@@ -1,14 +1,17 @@
 """
-ArogyaMitra — ML Prediction Microservice (FastAPI)
-Baseline implementation for Phase 0.
+ArogyaMitra — Production ML Prediction Microservice (FastAPI)
+Phase 1: Calibrated probabilities, TreeSHAP feature attributions,
+clinical uncertainty scoring, and auto-escalation flags.
 """
 
 import os
+import sys
 import json
 import logging
+import re
 from typing import List, Optional, Dict, Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import numpy as np
@@ -18,17 +21,15 @@ import joblib
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("arogyamitra-ml")
 
-# ── App & Config ──────────────────────────────────────────────────────────────
 app = FastAPI(
     title="ArogyaMitra ML Prediction Service",
-    description="Disease prediction from patient reported symptoms using machine learning.",
-    version="1.0.0"
+    description="Disease prediction from patient-reported symptoms with TreeSHAP explainability and clinical escalation.",
+    version="1.1.0"
 )
 
-# CORS configuration
+# CORS
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
 allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins if allowed_origins else ["*"],
@@ -37,7 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Schema ────────────────────────────────────────────────────────────────────
+# ── Schemas ───────────────────────────────────────────────────────────────────
 class PredictRequest(BaseModel):
     symptoms: List[str] = Field(..., min_length=1, description="List of patient symptoms")
     patientName: Optional[str] = "Patient"
@@ -46,11 +47,15 @@ class PredictRequest(BaseModel):
     workerName: Optional[str] = "Healthcare Worker"
     location: Optional[str] = ""
 
-# ── Model & Artifact Loading ──────────────────────────────────────────────────
+# ── Artifact Management ───────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_DIR = os.getenv("MODEL_DIR", os.path.join(BASE_DIR, "model"))
+# Check v1 directory first, fallback to base model directory
+V1_DIR = os.path.join(BASE_DIR, "model", "v1")
+MODEL_DIR = V1_DIR if os.path.exists(os.path.join(V1_DIR, "disease_model.pkl")) else os.path.join(BASE_DIR, "model")
 
-model = None
+base_model = None
+calibrator = None
+shap_explainer = None
 label_encoder = None
 symptom_columns: List[str] = []
 severity_map: Dict[str, int] = {}
@@ -60,11 +65,28 @@ metadata: Dict[str, Any] = {}
 model_loaded = False
 load_error_message = ""
 
-def load_artifacts():
-    global model, label_encoder, symptom_columns, severity_map
-    global description_map, precaution_map, metadata, model_loaded, load_error_message
+def normalize_symptom_str(s: str) -> str:
+    cleaned = s.strip().lower().replace(" ", "_")
+    cleaned = re.sub(r"_+", "_", cleaned)
+    mappings = {
+        "dischromic__patches": "dischromic_patches",
+        "spotting__urination": "spotting_urination",
+        "foul_smell_ofurine": "foul_smell_of_urine",
+        "fluid_overload.1": "fluid_overload",
+    }
+    return mappings.get(cleaned, cleaned)
 
-    required_files = {
+def load_artifacts():
+    global base_model, calibrator, shap_explainer, label_encoder, symptom_columns
+    global severity_map, description_map, precaution_map, metadata, model_loaded, load_error_message, MODEL_DIR
+
+    # Re-evaluate MODEL_DIR in case v1 was just created
+    if os.path.exists(os.path.join(V1_DIR, "disease_model.pkl")):
+        MODEL_DIR = V1_DIR
+    else:
+        MODEL_DIR = os.getenv("MODEL_DIR", os.path.join(BASE_DIR, "model"))
+
+    required = {
         "disease_model": "disease_model.pkl",
         "label_encoder": "label_encoder.pkl",
         "symptom_columns": "symptom_columns.pkl",
@@ -73,23 +95,28 @@ def load_artifacts():
         "precaution_map": "precaution_map.pkl",
     }
 
-    missing = [f for key, f in required_files.items() if not os.path.exists(os.path.join(MODEL_DIR, f))]
+    missing = [f for key, f in required.items() if not os.path.exists(os.path.join(MODEL_DIR, f))]
     if missing:
-        load_error_message = (
-            f"Missing required model artifacts in '{MODEL_DIR}': {', '.join(missing)}. "
-            "Please run the baseline training script: python ML_Model/scripts/train_baseline.py"
-        )
+        load_error_message = f"Missing model artifacts in '{MODEL_DIR}': {', '.join(missing)}."
         logger.warning(load_error_message)
         model_loaded = False
         return
 
     try:
-        model = joblib.load(os.path.join(MODEL_DIR, required_files["disease_model"]))
-        label_encoder = joblib.load(os.path.join(MODEL_DIR, required_files["label_encoder"]))
-        symptom_columns = joblib.load(os.path.join(MODEL_DIR, required_files["symptom_columns"]))
-        severity_map = joblib.load(os.path.join(MODEL_DIR, required_files["severity_map"]))
-        description_map = joblib.load(os.path.join(MODEL_DIR, required_files["description_map"]))
-        precaution_map = joblib.load(os.path.join(MODEL_DIR, required_files["precaution_map"]))
+        base_model = joblib.load(os.path.join(MODEL_DIR, required["disease_model"]))
+        label_encoder = joblib.load(os.path.join(MODEL_DIR, required["label_encoder"]))
+        symptom_columns = joblib.load(os.path.join(MODEL_DIR, required["symptom_columns"]))
+        severity_map = joblib.load(os.path.join(MODEL_DIR, required["severity_map"]))
+        description_map = joblib.load(os.path.join(MODEL_DIR, required["description_map"]))
+        precaution_map = joblib.load(os.path.join(MODEL_DIR, required["precaution_map"]))
+
+        # Optional calibrator
+        cal_path = os.path.join(MODEL_DIR, "calibrator.pkl")
+        calibrator = joblib.load(cal_path) if os.path.exists(cal_path) else None
+
+        # Optional SHAP explainer
+        shap_path = os.path.join(MODEL_DIR, "shap_explainer.pkl")
+        shap_explainer = joblib.load(shap_path) if os.path.exists(shap_path) else None
 
         meta_path = os.path.join(MODEL_DIR, "metadata.json")
         if os.path.exists(meta_path):
@@ -97,45 +124,58 @@ def load_artifacts():
                 metadata = json.load(f)
 
         model_loaded = True
-        logger.info(f"Successfully loaded model artifacts from '{MODEL_DIR}'. Known symptoms: {len(symptom_columns)}")
+        logger.info(f"Loaded ML artifacts from '{MODEL_DIR}'. Known symptoms: {len(symptom_columns)}")
     except Exception as e:
         load_error_message = f"Failed to load artifacts from '{MODEL_DIR}': {str(e)}"
         logger.error(load_error_message)
         model_loaded = False
 
-# Attempt artifact loading on startup
+# Initial artifact loading
 load_artifacts()
 
-# ── Prediction Engine ─────────────────────────────────────────────────────────
+# ── Inference Engine ──────────────────────────────────────────────────────────
 def run_prediction(req: PredictRequest) -> Dict[str, Any]:
     if not model_loaded:
+        load_artifacts()
+    if not model_loaded:
         raise HTTPException(
-            status_code=503,
-            detail=load_error_message or "Model artifacts are not loaded. Please train the model first."
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=load_error_message or "Model artifacts are not loaded. Train the model first."
         )
 
-    # 1. Feature Vector Construction
+    # 1. Vocabulary validation and feature vector construction
     input_vector = np.zeros(len(symptom_columns), dtype=np.float32)
     matched: List[str] = []
     unmatched: List[str] = []
     symptom_severities: List[Dict[str, Any]] = []
 
     for s in req.symptoms:
-        s_clean = s.strip().lower().replace(" ", "_")
-        if s_clean in symptom_columns:
-            idx = symptom_columns.index(s_clean)
+        s_norm = normalize_symptom_str(s)
+        if s_norm in symptom_columns:
+            idx = symptom_columns.index(s_norm)
             input_vector[idx] = 1.0
-            matched.append(s_clean)
+            matched.append(s_norm)
             symptom_severities.append({
-                "symptom": s_clean,
-                "severity": int(severity_map.get(s_clean, 1))
+                "symptom": s_norm,
+                "severity": int(severity_map.get(s_norm, 1))
             })
         else:
             unmatched.append(s)
 
-    # 2. Probability Prediction
-    input_df = pd.DataFrame([input_vector], columns=symptom_columns)
-    proba = model.predict_proba(input_df)[0]
+    if not matched:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"None of the provided symptoms were recognized in the clinical vocabulary. Unmatched: {unmatched}"
+        )
+
+    # 2. Probability Prediction (Calibrated if available, else Base)
+    input_2d = input_vector.reshape(1, -1)
+    if calibrator is not None:
+        proba = calibrator.predict_proba(input_2d)[0]
+    else:
+        input_df = pd.DataFrame([input_vector], columns=symptom_columns)
+        proba = base_model.predict_proba(input_df)[0]
+
     top_indices = np.argsort(proba)[::-1][:3]
     top_disease = str(label_encoder.classes_[top_indices[0]])
     top_confidence = round(float(proba[top_indices[0]]) * 100, 2)
@@ -148,33 +188,74 @@ def run_prediction(req: PredictRequest) -> Dict[str, Any]:
         for i in top_indices
     ]
 
+    # Margin between top-1 and top-2
+    margin = (top_predictions[0]["confidence"] - top_predictions[1]["confidence"]) if len(top_predictions) > 1 else 100.0
+
     # 3. Clinical Severity Score
-    if symptom_severities:
-        avg_severity = round(float(np.mean([s["severity"] for s in symptom_severities])), 2)
-    else:
-        avg_severity = 1.0
+    severities = [s["severity"] for s in symptom_severities]
+    avg_severity = round(float(np.mean(severities)), 2)
+    max_severity = max(severities) if severities else 1
 
-    # 4. Feature Explanations (Heuristic Tree Weight / SHAP fallback for Phase 0)
-    # Direction contains 'Supports' or 'Against' as required by contract
-    lime_explanation: List[Dict[str, Any]] = []
-    for s_item in symptom_severities:
-        lime_explanation.append({
-            "feature": f"{s_item['symptom']} present",
-            "impact": round(0.15 * s_item["severity"], 4),
-            "direction": "Supports Diagnosis"
-        })
+    # 4. Clinical Uncertainty & Auto-Escalation Triggers
+    escalation_reasons: List[str] = []
+    if top_confidence < 55.0:
+        escalation_reasons.append(f"Low diagnostic confidence ({top_confidence}% < 55%). Physician review recommended.")
+    if margin < 15.0:
+        escalation_reasons.append(f"Narrow diagnostic margin ({margin:.1f}% < 15%) between primary and secondary differential diagnoses.")
+    if max_severity >= 5 or avg_severity >= 4.5:
+        escalation_reasons.append(f"High clinical acuity symptom detected (max severity: {max_severity}/7). Urgent escalation advised.")
 
-    # If few symptoms matched, report top unobserved symptoms as evidence against
-    if len(lime_explanation) < 3:
-        lime_explanation.append({
-            "feature": "sparse reported symptoms",
-            "impact": -0.05,
-            "direction": "Against Diagnosis"
-        })
+    needs_escalation = len(escalation_reasons) > 0
+    uncertainty_reason = " | ".join(escalation_reasons) if needs_escalation else None
 
-    # 5. Contract Assembly
+    # 5. TreeSHAP Feature Attributions
+    shap_explanations: List[Dict[str, Any]] = []
+    top_idx = top_indices[0]
+
+    if shap_explainer is not None:
+        try:
+            # TreeSHAP values
+            shap_vals = shap_explainer.shap_values(input_2d)
+            # Handle multi-class format: list of arrays (n_classes) or 3D array
+            if isinstance(shap_vals, list):
+                class_shap = shap_vals[top_idx][0]
+            elif isinstance(shap_vals, np.ndarray) and shap_vals.ndim == 3:
+                class_shap = shap_vals[0, :, top_idx]
+            else:
+                class_shap = shap_vals[0]
+
+            for s_name in matched:
+                s_idx = symptom_columns.index(s_name)
+                imp = float(class_shap[s_idx])
+                shap_explanations.append({
+                    "feature": f"{s_name} present",
+                    "impact": round(imp, 4),
+                    "direction": "Supports Diagnosis" if imp >= 0 else "Against Diagnosis"
+                })
+
+            # Sort by absolute impact descending
+            shap_explanations.sort(key=lambda x: abs(x["impact"]), reverse=True)
+        except Exception as e:
+            logger.warning(f"SHAP attribution fallback due to: {e}")
+
+    # Fallback explanation if SHAP not initialized or yielded few items
+    if not shap_explanations:
+        for s_item in symptom_severities:
+            shap_explanations.append({
+                "feature": f"{s_item['symptom']} present",
+                "impact": round(0.15 * s_item["severity"], 4),
+                "direction": "Supports Diagnosis"
+            })
+
+    # Backward-compatible alias
+    lime_explanations = shap_explanations
+
+    # 6. Disease metadata & Precautions
     disease_desc = description_map.get(top_disease, "Clinical disease information not available.")
-    disease_precautions = precaution_map.get(top_disease, ["Consult a qualified medical practitioner for detailed assessment."])
+    disease_precautions = precaution_map.get(
+        top_disease,
+        ["Consult a qualified medical practitioner for detailed clinical assessment."]
+    )
 
     return {
         "primaryDiagnosis": top_disease,
@@ -186,7 +267,10 @@ def run_prediction(req: PredictRequest) -> Dict[str, Any]:
         "symptomSeverities": symptom_severities,
         "precautions": disease_precautions,
         "description": disease_desc,
-        "limeExplanation": lime_explanation,
+        "shapExplanation": shap_explanations,
+        "limeExplanation": lime_explanations,
+        "needsEscalation": needs_escalation,
+        "uncertaintyReason": uncertainty_reason,
         # Echoed metadata
         "patientName": req.patientName,
         "patientAge": req.patientAge,
@@ -194,8 +278,9 @@ def run_prediction(req: PredictRequest) -> Dict[str, Any]:
         "workerName": req.workerName,
         "location": req.location,
         # Model metadata
-        "modelUsed": metadata.get("best_model", "RandomForestClassifier"),
-        "modelAccuracy": metadata.get("accuracy", 98.5),
+        "modelUsed": metadata.get("model_family", "LightGBM + CalibratedClassifierCV + TreeSHAP"),
+        "modelVersion": metadata.get("model_version", "v1.0.0"),
+        "modelAccuracy": metadata.get("metrics_on_unique_ground_truth", {}).get("accuracy", 98.0) * 100,
     }
 
 # ── API Routes ────────────────────────────────────────────────────────────────
@@ -204,7 +289,8 @@ def root():
     return {
         "message": "ArogyaMitra ML Prediction API",
         "status": "running",
-        "model_loaded": model_loaded
+        "model_loaded": model_loaded,
+        "version": metadata.get("model_version", "v1.0.0")
     }
 
 @app.get("/health")
@@ -216,18 +302,67 @@ def health():
         "total_symptoms": len(symptom_columns)
     }
 
+@app.get("/ready")
+def ready():
+    if not model_loaded:
+        load_artifacts()
+    if not model_loaded:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=load_error_message or "Model service is not ready."
+        )
+    return {
+        "status": "ready",
+        "model_loaded": True,
+        "version": metadata.get("model_version", "v1.0.0"),
+        "total_symptoms": len(symptom_columns),
+        "total_classes": len(label_encoder.classes_) if label_encoder else 0
+    }
+
+@app.get("/model-info")
+def model_info():
+    if not model_loaded:
+        load_artifacts()
+    return {
+        "modelVersion": metadata.get("model_version", "v1.0.0"),
+        "algorithm": metadata.get("model_family", "LightGBM + CalibratedClassifierCV + TreeSHAP"),
+        "trainingTimestamp": metadata.get("training_timestamp"),
+        "gitCommit": metadata.get("git_commit"),
+        "dataset": metadata.get("dataset"),
+        "metrics": metadata.get("metrics_on_unique_ground_truth"),
+        "totalSymptoms": len(symptom_columns),
+        "totalClasses": len(label_encoder.classes_) if label_encoder else 0,
+        "classes": list(label_encoder.classes_) if label_encoder else []
+    }
+
 @app.get("/symptoms")
 def get_symptoms():
     if not model_loaded:
         load_artifacts()
     if not model_loaded:
-        raise HTTPException(status_code=503, detail=load_error_message or "Model not loaded")
-    return {"symptoms": [s.replace("_", " ") for s in symptom_columns]}
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=load_error_message or "Model not loaded"
+        )
+    return {
+        "total": len(symptom_columns),
+        "symptoms": [
+            {
+                "id": s,
+                "label": s.replace("_", " ").title(),
+                "severity": int(severity_map.get(s, 1))
+            }
+            for s in symptom_columns
+        ]
+    }
 
 @app.post("/predict")
 def predict(req: PredictRequest):
     if not req.symptoms:
-        raise HTTPException(status_code=400, detail="At least one symptom is required.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one symptom is required."
+        )
     return run_prediction(req)
 
 if __name__ == "__main__":

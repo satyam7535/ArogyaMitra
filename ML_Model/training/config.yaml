@@ -1,0 +1,37 @@
+seed: 42
+
+data:
+  training_csv: "ML_Model/dataset/Training.csv"
+  testing_csv: "ML_Model/dataset/Testing.csv"
+  severity_csv: "ML_Model/dataset/Symptom-severity.csv"
+  description_csv: "ML_Model/dataset/symptom_Description.csv"
+  precaution_csv: "ML_Model/dataset/symptom_precaution.csv"
+  deduplicate: true
+  drop_columns:
+    - "Unnamed: 133"
+
+cv:
+  n_splits: 5
+  n_repeats: 3
+
+augmentation:
+  enabled: true
+  min_dropout: 0.0
+  max_dropout: 0.60
+  min_symptoms_kept: 1
+  copies_per_sample: 3
+
+optuna:
+  n_trials: 5
+  timeout_seconds: 60
+
+calibration:
+  method: "sigmoid" # Evaluated between sigmoid and isotonic by ECE
+
+uncertainty:
+  min_confidence_threshold: 55.0
+  min_margin_threshold: 15.0
+  high_severity_threshold: 4.5
+
+model_output_dir: "ML_Model/model/v1"
+evidence_output_dir: "docs/evidence"
