@@ -1,0 +1,35 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mD:/Document/Projects/Internship/Arogyamitra/Backend[39m
+
+[90mstdout[2m | tests/security.test.js
+[22m[39m[dotenv@17.3.1] injecting env (10) from .env -- tip: ⚙️  override existing env vars with { override: true }
+
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m1. AES-256-GCM Field-Level Encryption[2m > [22mshould encrypt and decrypt patient PII correctly[32m 20[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m1. AES-256-GCM Field-Level Encryption[2m > [22mshould handle null or invalid ciphertexts gracefully[32m 3[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m2. Argon2id Password Hashing[2m > [22mshould hash password with Argon2id and verify correctly[33m 1235[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m2. Argon2id Password Hashing[2m > [22mshould verify legacy bcrypt hashes for backward compatibility[32m 97[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m3. Secure Token Utilities[2m > [22mshould generate cryptographically random tokens and SHA-256 hashes[32m 2[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m4. Central Validated Config (Zod)[2m > [22mshould pass validation with valid secrets[32m 1[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m4. Central Validated Config (Zod)[2m > [22mshould fail validation if JWT_SECRET is less than 32 characters[32m 2[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m5. Role & Organization Authorization Middleware[2m > [22mshould reject requests without authorization token (401)[32m 3[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m5. Role & Organization Authorization Middleware[2m > [22mshould reject expired tokens with TOKEN_EXPIRED code (401)[32m 30[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m5. Role & Organization Authorization Middleware[2m > [22mshould reject tokens with insufficient role permissions (403)[32m 7[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m5. Role & Organization Authorization Middleware[2m > [22mshould authorize valid token and attach user + organization context[32m 5[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m6. Multi-Tenant Organization Scoping & Anti-Enumeration (404 Rule)[2m > [22mshould return 404 (NOT 403) when resource belongs to another organization[32m 2[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m6. Multi-Tenant Organization Scoping & Anti-Enumeration (404 Rule)[2m > [22mshould pass when resource belongs to user's organization[32m 1[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m6. Multi-Tenant Organization Scoping & Anti-Enumeration (404 Rule)[2m > [22mshould append organization to query filter via scopeFilter[32m 1[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m7. Brute-Force Protection & Account Lockout[2m > [22mshould lock account after 5 failed password attempts[33m 580[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m7. Brute-Force Protection & Account Lockout[2m > [22mshould reject attempts on a locked account with HTTP 423 Locked[32m 289[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m8. HTTP Level Security & Disabled Public Endpoints[2m > [22mshould return 403 Forbidden on public admin registration[32m 111[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m8. HTTP Level Security & Disabled Public Endpoints[2m > [22mshould omit X-Powered-By header[32m 16[2mms[22m[39m
+ [32m✓[39m tests/security.test.js[2m > [22mPhase 2 — Security & Cryptographic Integrity[2m > [22m8. HTTP Level Security & Disabled Public Endpoints[2m > [22mshould include standard Helmet security headers[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m19 passed[39m[22m[90m (19)[39m
+[2m   Start at [22m 03:15:34
+[2m   Duration [22m 6.74s[2m (import 54%, tests 39%, transform 7%)[22m
+
+
+[90mstderr[2m | tests/security.test.js[2m > [22m[2mPhase 2 — Security & Cryptographic Integrity[2m > [22m[2m1. AES-256-GCM Field-Level Encryption[2m > [22m[2mshould handle null or invalid ciphertexts gracefully
+[22m[39mFailed to decrypt field: Invalid authentication tag length: 0
+

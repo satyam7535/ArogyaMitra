@@ -1,36 +1,44 @@
 import Admin from "../models/admin/adminSchema.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import serverConfig from "../config/serverConfig.js";
-
-const registerAdmin = async ({ name, email, phoneNumber, password, location }) => {
-    const existing = await Admin.findOne({ $or: [{ email }, { phoneNumber }] });
-    if (existing) {
-        throw new Error("Admin with this email or phone number already exists");
-    }
-
-    const admin = await Admin.create({ name, email, phoneNumber, password, location });
-    return admin;
-};
+import {
+  generateTokenPair,
+  authenticateWithLockout,
+  initiatePasswordReset,
+  completePasswordReset,
+  rotateRefreshToken,
+} from "./auth.service.js";
 
 const loginAdmin = async ({ email, password }) => {
-    const admin = await Admin.findOne({ email });
-    if (!admin) {
-        throw new Error("Invalid email or password");
-    }
+  const admin = await Admin.findOne({ email });
+  if (!admin) {
+    throw { status: 401, message: "Invalid email or password", code: "INVALID_CREDENTIALS" };
+  }
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-        throw new Error("Invalid email or password");
-    }
+  // Validate password with 5-attempt lockout enforcement
+  await authenticateWithLockout(admin, password);
 
-    const token = jwt.sign(
-        { id: admin._id, role: "admin" },
-        serverConfig.JWT_SECRET,
-        { expiresIn: serverConfig.JWT_EXPIRY || "1d" }
-    );
+  // Generate short-lived accessToken and rotating refreshToken
+  const tokens = await generateTokenPair(admin, "Admin");
 
-    return { token, admin };
+  return { ...tokens, admin };
 };
 
-export { registerAdmin, loginAdmin };
+const handleForgotPassword = async (email) => {
+  const admin = await Admin.findOne({ email });
+  if (!admin) {
+    // Return dummy token or success message to prevent user enumeration
+    return { message: "If that email exists, password reset instructions have been sent." };
+  }
+  const resetToken = await initiatePasswordReset(admin);
+  return { message: "Password reset token generated.", resetToken };
+};
+
+const handleResetPassword = async (resetToken, newPassword) => {
+  return await completePasswordReset(Admin, resetToken, newPassword);
+};
+
+export {
+  loginAdmin,
+  handleForgotPassword,
+  handleResetPassword,
+  rotateRefreshToken,
+};

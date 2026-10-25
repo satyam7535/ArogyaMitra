@@ -1,75 +1,84 @@
 import mongoose from "mongoose";
 
-const consultationSchema = new mongoose.Schema({
+const consultationSchema = new mongoose.Schema(
+  {
     patient: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Patient",
-        required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
+      required: true,
     },
     submittedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Worker",
-        required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Worker",
+      required: true,
     },
     assignedDoctor: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Doctor",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+    },
+    organization: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      required: true,
+      index: true,
     },
     symptoms: {
-        type: [String],
-        required: true,
-    }, // e.g. ["fever", "cough", "chest pain"]
+      type: [String],
+      required: true,
+    },
     notes: {
-        type: String,
-    }, // additional observations by the worker
+      type: String,
+    },
     attachments: {
-        type: [String],
-    }, // Cloudinary URLs for patient reports/images
+      type: [String],
+    },
     aiReport: {
-        type: String,
-    }, // optional: Cloudinary URL of the AI-generated report uploaded by worker
+      type: String,
+    },
     analysisReport: {
-        type: String,
-    }, // URL/path to the full AI-generated PDF report (ML + LLM + verdict)
+      type: String,
+    },
     mlAnalysis: {
-        disease: String,
-        confidence: Number,
-        precautions: [String],
-        analyzedAt: Date,
+      disease: String,
+      confidence: Number,
+      precautions: [String],
+      analyzedAt: Date,
     },
     llmAnalysis: {
-        summary: String,
-        recommendations: [String],
-        riskLevel: { type: String, enum: ['low', 'moderate', 'high'] },
-        analyzedAt: Date,
+      summary: String,
+      recommendations: [String],
+      riskLevel: { type: String, enum: ["low", "moderate", "high"] },
+      analyzedAt: Date,
     },
     finalVerdict: {
-        conclusion: String,
-        generatedAt: Date,
+      conclusion: String,
+      generatedAt: Date,
     },
     status: {
-        type: String,
-        enum: ["pending", "reviewed", "closed"],
-        default: "pending",
+      type: String,
+      enum: ["pending", "reviewed", "closed"],
+      default: "pending",
     },
     workerDecision: {
-        type: String,
-        enum: ["accepted", "escalated"],
-    }, // accepted = satisfied with AI, escalated = wants doctor's second opinion
+      type: String,
+      enum: ["accepted", "escalated"],
+    },
     escalationReason: {
-        type: String,
-    }, // reason for escalation provided by worker
+      type: String,
+    },
     secondOpinion: {
-        diagnosis: {
-            type: String,
-        },
-        recommendation: {
-            type: String,
-        },
-        respondedAt: {
-            type: Date,
-        },
-    }, // filled by the doctor
-}, { timestamps: true });
+      diagnosis: {
+        type: String,
+      },
+      recommendation: {
+        type: String,
+      },
+      respondedAt: {
+        type: Date,
+      },
+    },
+  },
+  { timestamps: true, optimisticConcurrency: true }
+);
 
 export default mongoose.model("Consultation", consultationSchema);

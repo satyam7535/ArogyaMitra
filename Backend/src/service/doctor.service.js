@@ -1,62 +1,83 @@
 import Doctor from "../models/doctor/doctorSchema.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import serverConfig from "../config/serverConfig.js";
+import {
+  generateTokenPair,
+  authenticateWithLockout,
+  initiatePasswordReset,
+  completePasswordReset,
+  rotateRefreshToken,
+} from "./auth.service.js";
 
-// Called by admin to add a new doctor
-const addDoctor = async ({ name, email, phoneNumber, password, specialization }, adminId) => {
-    const existing = await Doctor.findOne({ $or: [{ email }, { phoneNumber }] });
-    if (existing) {
-        throw new Error("Doctor with this email or phone number already exists");
-    }
+// Called by Admin to add a doctor in their organization
+const addDoctor = async ({ name, email, phoneNumber, password, specialization }, adminId, organization) => {
+  const existing = await Doctor.findOne({ $or: [{ email }, { phoneNumber }] });
+  if (existing) {
+    throw { status: 400, message: "Doctor with this email or phone number already exists" };
+  }
 
-    const doctor = await Doctor.create({
-        name,
-        email,
-        phoneNumber,
-        password,
-        specialization,
-        addedBy: adminId,
-    });
+  const doctor = await Doctor.create({
+    name,
+    email,
+    phoneNumber,
+    password,
+    specialization,
+    addedBy: adminId,
+    organization,
+    role: "Doctor",
+  });
 
-    return doctor;
+  return doctor;
 };
 
-// Get all doctors added by a specific admin
-const getDoctorsByAdmin = async (adminId) => {
-    return await Doctor.find({ addedBy: adminId }).select("-password");
+// Get all doctors in admin's organization
+const getDoctorsByOrg = async (organization) => {
+  return await Doctor.find({ organization }).select("-password");
 };
 
-// Doctor login
+// Doctor login with lockout and token rotation
 const loginDoctor = async ({ email, password }) => {
-    const doctor = await Doctor.findOne({ email }).populate("addedBy");
-    if (!doctor) {
-        throw new Error("Invalid email or password");
-    }
+  const doctor = await Doctor.findOne({ email }).populate("organization");
+  if (!doctor) {
+    throw { status: 401, message: "Invalid email or password", code: "INVALID_CREDENTIALS" };
+  }
 
-    const isMatch = await bcrypt.compare(password, doctor.password);
-    if (!isMatch) {
-        throw new Error("Invalid email or password");
-    }
+  await authenticateWithLockout(doctor, password);
+  const tokens = await generateTokenPair(doctor, "Doctor");
 
-    const token = jwt.sign(
-        { id: doctor._id, role: "doctor" },
-        serverConfig.JWT_SECRET,
-        { expiresIn: serverConfig.JWT_EXPIRY || "1d" }
-    );
-
-    return { token, doctor };
+  return { ...tokens, doctor };
 };
 
-// Delete a doctor by ID
-const deleteDoctorById = async (doctorId) => {
-    return await Doctor.findByIdAndDelete(doctorId);
+// Delete a doctor strictly scoped to the admin's organization (returns null if cross-org)
+const deleteDoctorScoped = async (doctorId, organization) => {
+  return await Doctor.findOneAndDelete({ _id: doctorId, organization });
 };
 
-// Get ALL doctors (filtered by admin if provided)
-const getAllDoctorsFromDB = async (adminId = null) => {
-    const query = adminId ? { addedBy: adminId } : {};
-    return await Doctor.find(query).select("-password").sort({ name: 1 });
+// Get available doctors in the organization (for escalation dropdown)
+const getAllDoctorsFromDB = async (organization) => {
+  return await Doctor.find({ organization, isAvailable: true })
+    .select("-password")
+    .sort({ name: 1 });
 };
 
-export { addDoctor, getDoctorsByAdmin, getAllDoctorsFromDB, loginDoctor, deleteDoctorById };
+const handleForgotPassword = async (email) => {
+  const doctor = await Doctor.findOne({ email });
+  if (!doctor) {
+    return { message: "If that email exists, password reset instructions have been sent." };
+  }
+  const resetToken = await initiatePasswordReset(doctor);
+  return { message: "Password reset token generated.", resetToken };
+};
+
+const handleResetPassword = async (resetToken, newPassword) => {
+  return await completePasswordReset(Doctor, resetToken, newPassword);
+};
+
+export {
+  addDoctor,
+  getDoctorsByOrg,
+  getAllDoctorsFromDB,
+  loginDoctor,
+  deleteDoctorScoped,
+  handleForgotPassword,
+  handleResetPassword,
+  rotateRefreshToken,
+};

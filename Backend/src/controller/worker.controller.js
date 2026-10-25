@@ -1,101 +1,233 @@
-import { addWorker, getWorkersByAdmin, loginWorker, deleteWorkerById } from "../service/worker.service.js";
+import {
+  addWorker,
+  getWorkersByOrg,
+  loginWorker,
+  deleteWorkerScoped,
+  handleForgotPassword,
+  handleResetPassword,
+  rotateRefreshToken,
+} from "../service/worker.service.js";
+import { logAuditEvent } from "../middlewares/audit.middleware.js";
 
-// Admin deletes a worker
+// Admin deletes a worker (strictly scoped to admin's organization)
 const deleteWorker = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const worker = await deleteWorkerById(id);
+  try {
+    const { id } = req.params;
+    const worker = await deleteWorkerScoped(id, req.user.organization);
 
-        if (!worker) {
-            return res.status(404).json({ message: "Worker not found" });
-        }
-
-        return res.status(200).json({ message: "Worker deleted successfully" });
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+    if (!worker) {
+      // 404 Not Found to prevent leaking existence of cross-org worker
+      return res.status(404).json({ message: "Worker not found" });
     }
+
+    await logAuditEvent({
+      req,
+      action: "WORKER_DELETED",
+      resourceType: "Worker",
+      resourceId: id,
+    });
+
+    return res.status(200).json({ message: "Worker deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
-// Admin adds a worker
+// Admin adds a worker (inherits admin's organization)
 const createWorker = async (req, res) => {
-    try {
-        const { name, email, phoneNumber, password } = req.body;
+  try {
+    const { name, email, phoneNumber, password } = req.body;
 
-        if (!name || !email || !phoneNumber || !password) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-
-        const worker = await addWorker(
-            { name, email, phoneNumber, password },
-            req.user.id  // adminId from JWT
-        );
-
-        return res.status(201).json({
-            message: "Worker added successfully",
-            worker: {
-                id: worker._id,
-                name: worker.name,
-                email: worker.email,
-                phoneNumber: worker.phoneNumber,
-                addedBy: worker.addedBy,
-            },
-        });
-    } catch (error) {
-        return res.status(400).json({ message: error.message });
+    if (!name || !email || !phoneNumber || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
+
+    const worker = await addWorker(
+      { name, email, phoneNumber, password },
+      req.user.id,
+      req.user.organization
+    );
+
+    await logAuditEvent({
+      req,
+      action: "WORKER_CREATED",
+      resourceType: "Worker",
+      resourceId: worker._id,
+      metadata: { email: worker.email },
+    });
+
+    return res.status(201).json({
+      message: "Worker added successfully",
+      worker: {
+        id: worker._id,
+        name: worker.name,
+        email: worker.email,
+        phoneNumber: worker.phoneNumber,
+        organization: worker.organization,
+        addedBy: worker.addedBy,
+      },
+    });
+  } catch (error) {
+    return res.status(error.status || 400).json({ message: error.message });
+  }
 };
 
-// Admin gets all workers they added
+// Admin gets all workers in their organization
 const getWorkers = async (req, res) => {
-    try {
-        const workers = await getWorkersByAdmin(req.user.id);
-        return res.status(200).json({ workers });
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
+  try {
+    const workers = await getWorkersByOrg(req.user.organization);
+    return res.status(200).json({ workers });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 // Worker login
 const login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
-        }
-
-        const { token, worker } = await loginWorker({ email, password });
-
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000,
-        });
-
-        return res.status(200).json({
-            message: "Login successful",
-            worker: {
-                id: worker._id,
-                name: worker.name,
-                email: worker.email,
-                phoneNumber: worker.phoneNumber,
-                location: worker.addedBy?.location,
-            },
-        });
-    } catch (error) {
-        return res.status(401).json({ message: error.message });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
     }
-};
 
-// Worker logout
-const logout = (req, res) => {
-    res.clearCookie("token", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+    const { accessToken, refreshToken, worker } = await loginWorker({ email, password });
+
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
     });
-    return res.status(200).json({ message: "Logged out successfully" });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    await logAuditEvent({
+      req,
+      action: "WORKER_LOGIN_SUCCESS",
+      resourceType: "Worker",
+      resourceId: worker._id,
+      metadata: { email: worker.email },
+    });
+
+    return res.status(200).json({
+      message: "Login successful",
+      accessToken,
+      refreshToken,
+      worker: {
+        id: worker._id,
+        name: worker.name,
+        email: worker.email,
+        phoneNumber: worker.phoneNumber,
+        organization: worker.organization?._id || worker.organization,
+        role: worker.role,
+      },
+    });
+  } catch (error) {
+    await logAuditEvent({
+      req,
+      action: "WORKER_LOGIN_FAILED",
+      resourceType: "Worker",
+      metadata: { email: req.body?.email, reason: error.message },
+    });
+    return res.status(error.status || 401).json({
+      message: error.message || "Invalid credentials",
+      code: error.code || "AUTH_FAILED",
+    });
+  }
 };
 
-export { createWorker, getWorkers, login, logout, deleteWorker };
+const refreshSession = async (req, res) => {
+  try {
+    const rawRefreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+    if (!rawRefreshToken) {
+      return res.status(401).json({ message: "Refresh token is required" });
+    }
+
+    const { accessToken, refreshToken } = await rotateRefreshToken(rawRefreshToken);
+
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "Tokens refreshed successfully",
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    return res.status(error.status || 401).json({
+      message: error.message || "Failed to refresh token",
+      code: error.code || "REFRESH_FAILED",
+    });
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    const result = await handleForgotPassword(email);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(error.status || 500).json({ message: error.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: "Token and new password are required" });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters long" });
+    }
+    await handleResetPassword(token, newPassword);
+    return res.status(200).json({ message: "Password reset successfully. You may now log in." });
+  } catch (error) {
+    return res.status(error.status || 400).json({ message: error.message });
+  }
+};
+
+const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  return res.status(200).json({ message: "Logged out successfully" });
+};
+
+export {
+  createWorker,
+  getWorkers,
+  login,
+  refreshSession,
+  forgotPassword,
+  resetPassword,
+  logout,
+  deleteWorker,
+};

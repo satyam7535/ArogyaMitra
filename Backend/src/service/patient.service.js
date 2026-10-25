@@ -1,36 +1,34 @@
 import Patient from "../models/patient/patientSchema.js";
 
-// Worker registers a new patient
-const createPatient = async ({ name, age, gender, phoneNumber, address, medicalHistory }, workerId) => {
-    const patient = await Patient.create({
-        name,
-        age,
-        gender,
-        phoneNumber,
-        address,
-        medicalHistory,
-        registeredBy: workerId,
-    });
-    return patient;
+// Worker registers a new patient in their organization
+const createPatient = async (
+  { name, age, gender, phoneNumber, address, medicalHistory },
+  workerId,
+  organization
+) => {
+  const patient = await Patient.create({
+    name,
+    age,
+    gender,
+    phoneNumber,
+    address,
+    medicalHistory,
+    registeredBy: workerId,
+    organization,
+  });
+  return patient.getDecrypted();
 };
 
-import Worker from "../models/worker/workerSchema.js";
-
-// Get all patients belong to the same admin organization
-const getPatientsByWorker = async (workerId) => {
-    const worker = await Worker.findById(workerId);
-    if (!worker) return [];
-
-    // Find all workers under the same admin
-    const workers = await Worker.find({ addedBy: worker.addedBy }).select("_id");
-    const workerIds = workers.map(w => w._id);
-
-    return await Patient.find({ registeredBy: { $in: workerIds } }).sort({ createdAt: -1 });
+// Get all patients strictly within the user's organization
+const getPatientsByOrg = async (organization) => {
+  const patients = await Patient.find({ organization }).sort({ createdAt: -1 });
+  return patients.map((p) => p.getDecrypted());
 };
 
-// Get a single patient by ID
-const getPatientById = async (patientId) => {
-    return await Patient.findById(patientId);
+// Get a single patient strictly scoped to organization (returns null if cross-org)
+const getPatientByIdScoped = async (patientId, organization) => {
+  const patient = await Patient.findOne({ _id: patientId, organization });
+  return patient ? patient.getDecrypted() : null;
 };
 
-export { createPatient, getPatientsByWorker, getPatientById };
+export { createPatient, getPatientsByOrg, getPatientByIdScoped };

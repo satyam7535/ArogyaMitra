@@ -1,28 +1,47 @@
 import jwt from "jsonwebtoken";
 import serverConfig from "../config/serverConfig.js";
 
-const verifyToken = (roles = []) => {
-    return (req, res, next) => {
-        try {
-            const token = req.cookies?.token;
+/**
+ * Authentication Middleware: Extracts token from Authorization header or httpOnly cookie.
+ * Populates req.user with { id, role, organization }
+ */
+export const verifyToken = (roles = []) => {
+  return (req, res, next) => {
+    try {
+      let token = null;
 
-            if (!token) {
-                return res.status(401).json({ message: "Unauthorized: No token provided" });
-            }
+      // 1. Check Authorization: Bearer <token>
+      const authHeader = req.headers.authorization || req.headers.Authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+      }
 
-            const decoded = jwt.verify(token, serverConfig.JWT_SECRET);
+      // 2. Fallback to cookies
+      if (!token && req.cookies) {
+        token = req.cookies.token || req.cookies.accessToken;
+      }
 
-            // If roles are specified, check if the user's role is allowed
-            if (roles.length > 0 && !roles.includes(decoded.role)) {
-                return res.status(403).json({ message: "Forbidden: Insufficient permissions" });
-            }
+      if (!token) {
+        return res.status(401).json({ message: "Unauthorized: No authentication token provided" });
+      }
 
-            req.user = decoded; // { id, role }
-            next();
-        } catch (error) {
-            return res.status(401).json({ message: "Unauthorized: Invalid or expired token" });
-        }
-    };
+      const decoded = jwt.verify(token, serverConfig.JWT_SECRET);
+
+      // Validate role permissions
+      if (roles.length > 0 && !roles.includes(decoded.role)) {
+        return res.status(403).json({ message: "Forbidden: Insufficient role permissions" });
+      }
+
+      req.user = decoded; // { id, role, organization }
+      req.organization = decoded.organization;
+      next();
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ message: "Unauthorized: Access token has expired", code: "TOKEN_EXPIRED" });
+      }
+      return res.status(401).json({ message: "Unauthorized: Invalid token" });
+    }
+  };
 };
 
 export default verifyToken;
