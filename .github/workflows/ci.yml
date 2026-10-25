@@ -1,0 +1,87 @@
+name: ArogyaMitra Continuous Integration
+
+on:
+  push:
+    branches: [ main, phase-* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  secret-scan:
+    name: Secret & Credential Leak Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify No Live Secrets or Real .env Files
+        run: |
+          echo "Scanning git repository for committed .env files..."
+          COMMITTED_ENVS=$(git ls-files | grep -i "\.env$" || true)
+          if [ -n "$COMMITTED_ENVS" ]; then
+            echo "CRITICAL: Found real .env files committed to git:"
+            echo "$COMMITTED_ENVS"
+            exit 1
+          fi
+          echo "Passed: Only .env.example files found in version control."
+
+  backend-tests:
+    name: Backend Security & Concurrency Tests (Node.js)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: Backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: ./Backend
+        run: npm ci
+
+      - name: Run Security & Concurrency Vitest Suites
+        working-directory: ./Backend
+        env:
+          JWT_SECRET: "ci_pipeline_test_secret_key_minimum_32_characters_long"
+          INTERNAL_SERVICE_SECRET: "arogyamitra_internal_service_token_secret_key_32chars!"
+          ENCRYPTION_KEY: "arogyamitra_aes_256_secret_key_32bytes!"
+          NODE_ENV: "test"
+        run: npm run test
+
+  python-tests:
+    name: ML, Graph AI Pipeline & Streamlit Tests (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install ML & Graph Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ML_Model/requirements.txt
+          pip install -r graph/requirements.txt
+          pip install -r ui/requirements.txt pytest
+
+      - name: Run ML Contract & Phase 1 Tests
+        run: |
+          pytest ML_Model/tests/ -v
+
+      - name: Run Graph AI Pipeline & Safe LLM Tests (Phase 3)
+        run: |
+          pytest graph/tests/ -v
+
+      - name: Run Streamlit UI AppTest Suite (Phase 6)
+        run: |
+          pytest ui/tests/ -v
