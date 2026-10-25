@@ -14,6 +14,11 @@ import {
   triggerConsultationAnalysis,
   getAllConsultationsForAdmin,
 } from "../service/consultation.service.js";
+import {
+  enqueueAnalysisJob,
+  getJobStatus,
+  getQueueMetrics,
+} from "../service/jobQueue.service.js";
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
 
 // Worker submits a new consultation
@@ -241,6 +246,71 @@ const triggerAnalysis = async (req, res) => {
   }
 };
 
+// Asynchronous background job enqueue (returns HTTP 202 immediately)
+const triggerAnalysisAsync = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { language } = req.body;
+
+    const job = enqueueAnalysisJob({
+      consultationId: id,
+      organization: req.user.organization,
+      requestingUser: req.user,
+      options: { language: language || "en" },
+    });
+
+    await logAuditEvent({
+      req,
+      action: "CONSULTATION_ANALYSIS_JOB_ENQUEUED",
+      resourceType: "Consultation",
+      resourceId: id,
+      metadata: { jobId: job.jobId },
+    });
+
+    return res.status(202).json({
+      message: "Analysis job accepted for processing",
+      job,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message,
+      code: error.code || "JOB_ENQUEUE_FAILED",
+    });
+  }
+};
+
+// Check status of asynchronous analysis job
+const checkAnalysisJobStatus = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const job = getJobStatus(jobId, req.user.organization);
+
+    if (!job) {
+      return res.status(404).json({
+        message: "Analysis job not found in your organization",
+        code: "JOB_NOT_FOUND",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Analysis job status retrieved",
+      job,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// Queue diagnostics for observability
+const getJobQueueDiagnostics = async (req, res) => {
+  try {
+    const metrics = getQueueMetrics();
+    return res.status(200).json({ metrics });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 // Store ML analysis (Direct client write disabled for security)
 const storeMlAnalysisResult = async (req, res) => {
   return res.status(403).json({
@@ -283,6 +353,9 @@ export {
   getAllForDoctor,
   respondWithSecondOpinion,
   triggerAnalysis,
+  triggerAnalysisAsync,
+  checkAnalysisJobStatus,
+  getJobQueueDiagnostics,
   storeMlAnalysisResult,
   storeLlmAnalysisResult,
   storeFinalVerdictResult,

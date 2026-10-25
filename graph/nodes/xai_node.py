@@ -1,26 +1,28 @@
 import os
 import httpx
 
-# ML API service URL (local or docker service)
 ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8000")
+
+# Persistent connection pool with keep-alive for high concurrency
+http_limits = httpx.Limits(max_keepalive_connections=20, max_connections=100, keepalive_expiry=30.0)
+http_client = httpx.Client(limits=http_limits, timeout=60.0)
 
 
 def xai_node(state):
     req = state["request"]
 
     payload = {
-        "symptoms":      req.symptoms,
-        "patientName":   req.patientName,
-        "patientAge":    req.patientAge,
+        "symptoms": req.symptoms,
+        "patientName": req.patientName,
+        "patientAge": req.patientAge,
         "patientGender": req.patientGender,
-        "workerName":    req.workerName,
-        "location":      req.location,
+        "workerName": req.workerName,
+        "location": req.location,
     }
 
-    response = httpx.post(
+    response = http_client.post(
         f"{ML_API_URL}/predict",
         json=payload,
-        timeout=60.0,  # HF Spaces may need a cold-start
     )
     response.raise_for_status()
     result = response.json()

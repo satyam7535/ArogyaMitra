@@ -36,5 +36,13 @@
 | 2026-10-26 | Task 3.5: Multilingual ReportLab PDF generation | DONE | Enhanced `graph/utils/pdf_generator.py` with robust font resolution (Nirmala UI / Arial / DejaVu / Helvetica fallback) and defensive key handling. Verified valid `%PDF-` generation in en, hi, and mr. |
 | 2026-10-26 | Task 3.6: Phase 3 automated test suite & evidence | DONE | Built `graph/tests/test_phase3.py` covering prompt injection neutralization, schema validation, multilingual fallbacks, JWT auth, PDF generation, and e2e pipeline. All 12/12 tests passed (verified in `docs/evidence/phase3_llm_pipeline.txt`). |
 | 2026-10-26 | Phase 3 Gate Evaluation | PASSED | 12/12 automated pipeline tests passing. Prompt injection defended, inter-service JWT verified, server-side orchestration enforced, and deterministic fallback operational. |
+| 2026-10-26 | Phase 4 Setup: Branch creation (`phase-4-concurrency`) | DONE | Created and checked out branch `phase-4-concurrency`. |
+| 2026-10-26 | Task 4.1: Asynchronous analysis job queue | DONE | Built `Backend/src/service/jobQueue.service.js` with background pump, multi-tenant isolation, and concurrency throttling (`maxConcurrency: 5`). Implemented `POST /:id/analyze/async` (HTTP 202 with `jobId`), `GET /:id/analyze/status/:jobId`, and `GET /queue/metrics`. |
+| 2026-10-26 | Task 4.2: Optimistic concurrency control & atomic updates | DONE | Configured Mongoose `optimisticConcurrency: true` across Consultation and Patient schemas. Verified version conflict detection (`VersionError`) preventing lost updates under concurrent edits. |
+| 2026-10-26 | Task 4.3: Non-blocking microservice connection pooling | DONE | Upgraded `graph/nodes/xai_node.py` with persistent `httpx.Client` connection pooling (`max_keepalive_connections: 20`, `max_connections: 100`) and keep-alive reuse. Verified threadpool execution in FastAPI endpoints. |
+| 2026-10-26 | Task 4.4: Concurrency test suite | DONE | Built `Backend/tests/concurrency.test.js` covering job lifecycle, multi-tenant status isolation, OCC version conflict rejection, and high-concurrency 50-job enqueue throughput. All 7/7 tests passed (26/26 overall in Backend, verified in `docs/evidence/phase4_concurrency_matrix.txt`). |
+| 2026-10-26 | Task 4.5: Empirical load test benchmark | DONE | Executed 400 empirical requests across 4 concurrency levels (c=1, c=5, c=10, c=20) using `docs/evidence/run_load_test.py`. Logged empirical throughput (peak 13.3 req/s) and latency distribution (p50, p90, p95, p99) to `docs/evidence/load_test.md` with 0.0% error rate. |
+| 2026-10-26 | Phase 4 Gate Evaluation | PASSED | Concurrency suite 26/26 passing. Load test verified (0.0% error rate over 400 requests). OCC and async job queues operational. |
+
 
 

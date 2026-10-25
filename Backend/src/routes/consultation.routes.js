@@ -9,6 +9,9 @@ import {
     getAllForDoctor,
     respondWithSecondOpinion,
     triggerAnalysis,
+    triggerAnalysisAsync,
+    checkAnalysisJobStatus,
+    getJobQueueDiagnostics,
     storeMlAnalysisResult,
     storeLlmAnalysisResult,
     storeFinalVerdictResult,
@@ -48,7 +51,10 @@ consultationRouter.patch("/:id/respond", verifyToken(["doctor"]), respondWithSec
 consultationRouter.get("/:id", verifyToken(["worker", "doctor"]), getConsultation);            // GET  /api/v1/consultation/:id
 
 // Server-Side Orchestrated AI Analysis (ML -> LLM -> PDF)
-consultationRouter.post("/:id/analyze", verifyToken(["worker", "doctor"]), triggerAnalysis);    // POST /api/v1/consultation/:id/analyze
+consultationRouter.post("/:id/analyze", verifyToken(["worker", "doctor"]), triggerAnalysis);               // POST /api/v1/consultation/:id/analyze (Sync)
+consultationRouter.post("/:id/analyze/async", verifyToken(["worker", "doctor"]), triggerAnalysisAsync);    // POST /api/v1/consultation/:id/analyze/async (Async Queue)
+consultationRouter.get("/:id/analyze/status/:jobId", verifyToken(["worker", "doctor"]), checkAnalysisJobStatus); // GET /api/v1/consultation/:id/analyze/status/:jobId (Poll)
+consultationRouter.get("/queue/metrics", verifyToken(["admin", "doctor"]), getJobQueueDiagnostics);        // GET  /api/v1/consultation/queue/metrics
 
 // Direct client analysis mutation routes (Blocked with 403)
 consultationRouter.post("/:id/analysis/ml", verifyToken(["worker"]), storeMlAnalysisResult);   // POST /api/v1/consultation/:id/analysis/ml
