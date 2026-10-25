@@ -1,0 +1,120 @@
+name: arogyamitra
+
+services:
+  # ── MongoDB Database ────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: arogya-mongo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - arogya-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── ML Prediction Service (FastAPI) ─────────────────────────────────────────
+  ml:
+    build:
+      context: ./ML_Model
+      dockerfile: Dockerfile
+    container_name: arogya-ml
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - PORT=8000
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:80,http://frontend:80
+    networks:
+      - arogya-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── LangGraph Workflow Orchestration ────────────────────────────────────────
+  graph:
+    build:
+      context: ./graph
+      dockerfile: Dockerfile
+    container_name: arogya-graph
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8001"
+    environment:
+      - PORT=8001
+      - ML_API_URL=http://ml:8000
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
+      - LLM_MODEL=${LLM_MODEL:-gemini-1.5-flash}
+    networks:
+      - arogya-network
+    depends_on:
+      ml:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Express Backend API ─────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: arogya-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      - PORT=5000
+      - DB_URL=mongodb://mongo:27017/arogyamitra
+      - JWT_SECRET=${JWT_SECRET:-arogyamitra_secure_dev_jwt_secret_min32chars}
+      - JWT_EXPIRY=1d
+      - FRONTEND_URL=http://localhost:5173
+      - ML_API_URL=http://ml:8000
+      - GRAPH_API_URL=http://graph:8001
+      - NODE_ENV=production
+    networks:
+      - arogya-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Frontend Web App (React + Vite static) ──────────────────────────────────
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: arogya-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5173:80"
+    networks:
+      - arogya-network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+networks:
+  arogya-network:
+    driver: bridge
+
+volumes:
+  mongo_data:

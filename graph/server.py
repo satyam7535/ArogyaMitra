@@ -55,6 +55,11 @@ def root():
     return {"message": "ArogyaMitra Graph API", "status": "running"}
 
 
+@app.get("/health")
+def health():
+    return {"status": "healthy", "service": "graph"}
+
+
 @app.post("/analyze")
 def analyze(req: AnalyzeRequest):
     """

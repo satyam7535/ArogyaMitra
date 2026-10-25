@@ -1,0 +1,2 @@
+# Keep dataset directory in repository structure.
+# Dataset CSVs are ignored by git; see ML_Model/scripts/download_dataset.md for instructions.

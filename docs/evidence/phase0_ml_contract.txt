@@ -1,0 +1,85 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+plugins: anyio-4.15.1
+collecting ... collected 4 items
+
+ML_Model/tests/test_phase0.py::test_health_endpoint PASSED               [ 25%]
+ML_Model/tests/test_phase0.py::test_symptoms_endpoint PASSED             [ 50%]
+ML_Model/tests/test_phase0.py::test_prediction_contract PASSED           [ 75%]
+ML_Model/tests/test_phase0.py::test_prediction_empty_symptoms_fails PASSED [100%]
+
+============================== 4 passed in 2.15s ==============================
+
+Prediction Contract Response Payload Verified:
+{
+  "primaryDiagnosis": "Fungal infection",
+  "confidenceScore": 100.0,
+  "severityScore": 1.67,
+  "topPredictions": [
+    {
+      "disease": "Fungal infection",
+      "confidence": 100.0
+    },
+    {
+      "disease": "Allergy",
+      "confidence": 0.0
+    },
+    {
+      "disease": "GERD",
+      "confidence": 0.0
+    }
+  ],
+  "matchedSymptoms": [
+    "itching",
+    "skin_rash",
+    "nodal_skin_eruptions"
+  ],
+  "unmatchedSymptoms": [],
+  "symptomSeverities": [
+    {
+      "symptom": "itching",
+      "severity": 1
+    },
+    {
+      "symptom": "skin_rash",
+      "severity": 3
+    },
+    {
+      "symptom": "nodal_skin_eruptions",
+      "severity": 4
+    }
+  ],
+  "precautions": [
+    "bath twice",
+    "use dettol or neem in bathing water",
+    "keep infected area dry",
+    "use clean cloths"
+  ],
+  "description": "In humans, fungal infections occur when an invading fungus takes over an area of the body and is too much for the immune system to handle. Fungi can live in the air, soil, water, and plants. There are also some fungi that live naturally in the human body. Like many microbes, there are helpful fungi and harmful fungi.",
+  "limeExplanation": [
+    {
+      "feature": "itching present",
+      "impact": 0.15,
+      "direction": "Supports Diagnosis"
+    },
+    {
+      "feature": "skin_rash present",
+      "impact": 0.45,
+      "direction": "Supports Diagnosis"
+    },
+    {
+      "feature": "nodal_skin_eruptions present",
+      "impact": 0.6,
+      "direction": "Supports Diagnosis"
+    }
+  ],
+  "patientName": "Sunita Patil",
+  "patientAge": 35,
+  "patientGender": "Female",
+  "workerName": "Asha Worker Anita",
+  "location": "Wardha PHC",
+  "modelUsed": "RandomForestClassifier",
+  "modelAccuracy": 100.0
+}

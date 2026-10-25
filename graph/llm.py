@@ -7,12 +7,15 @@ from pydantic import BaseModel
 
 load_dotenv()
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("OPENAI_BASE_URL"),
-)
+# LLM Provider Configuration (Google Gemini via OpenAI-compatible endpoint)
+LLM_API_KEY = os.getenv("LLM_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.getenv("OPENAI_API_KEY")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
+LLM_MODEL = os.getenv("LLM_MODEL") or os.getenv("MODEL_NAME", "gemini-1.5-flash")
 
-MODEL_NAME = os.getenv("MODEL_NAME")
+client = OpenAI(
+    api_key=LLM_API_KEY or "missing-key",
+    base_url=LLM_BASE_URL,
+)
 
 class LLMConclusion(BaseModel):
     diagnosis_summary: str
@@ -21,18 +24,7 @@ class LLMConclusion(BaseModel):
     key_contributing_factors: str
     recommended_next_steps: str
     referral_recommendation: str
-    
 
-def generate_llm_prompt(ml_result, graph_result):
-    return (
-        f"ML Analysis:\n"
-        f"Disease: {ml_result['disease']}\n"
-        f"Confidence: {ml_result['confidence']}\n"
-        f"Precautions: {', '.join(ml_result['precautions'])}\n\n"
-        f"Graph Analysis:\n"
-        f"Insights: {graph_result['insights']}\n"
-        f"Recommendations: {', '.join(graph_result['recommendations'])}\n"
-    )
 
 def call_llm(prompt: str) -> LLMConclusion:
     few_shot_example = {
@@ -63,7 +55,7 @@ def call_llm(prompt: str) -> LLMConclusion:
     )
 
     response = client.chat.completions.create(
-        model=MODEL_NAME,
+        model=LLM_MODEL,
         messages=[
             {"role": "system", "content": system_content},
             {"role": "user", "content": f"Analyze this data and return only JSON matching the schema:\n\n{prompt}"}
@@ -82,7 +74,10 @@ def call_llm(prompt: str) -> LLMConclusion:
         else:
             raise ValueError("The AI did not provide a JSON block.")
 
-        llm_conclusion = LLMConclusion.parse_raw(json_str)
+        if hasattr(LLMConclusion, "model_validate_json"):
+            llm_conclusion = LLMConclusion.model_validate_json(json_str)
+        else:
+            llm_conclusion = LLMConclusion.parse_raw(json_str)
         return llm_conclusion
     except Exception as e:
         raise ValueError(f"LLM Response Error: {e}. Raw content: {response_content}")

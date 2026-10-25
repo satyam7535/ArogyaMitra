@@ -1,8 +1,8 @@
 import os
 import httpx
 
-# Deployed ML API on HuggingFace Spaces
-ML_API_URL = os.getenv("ML_API_URL", "https://dashayush-arogyamitra-api.hf.space")
+# ML API service URL (local or docker service)
+ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8000")
 
 
 def xai_node(state):

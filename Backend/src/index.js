@@ -26,6 +26,9 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
     res.json({ message: "Healthcare Decision Support API is running" });
 });
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "healthy", service: "backend" });
+});
 
 // Routes
 app.use("/api/v1/admin", adminRouter);

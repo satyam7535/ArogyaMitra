@@ -1,0 +1,2 @@
+# Keep model artifact directory structure in git.
+# Actual .pkl, .joblib, and model weight binaries are ignored by .gitignore.
