@@ -1,0 +1,25 @@
+langgraph
+langchain
+openai
+python-dotenv
+pydantic
+httpx
+
+# FastAPI graph server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# ML model dependencies
+joblib
+numpy
+scikit-learn
+xgboost
+lime
+reportlab
+huggingface_hub
+
+# Training / notebook (optional)
+pandas
+matplotlib
+seaborn

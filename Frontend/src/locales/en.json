@@ -1,0 +1,91 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "consultations": "Consultations",
+    "patients": "Patients",
+    "profile": "Profile",
+    "logout": "Logout",
+    "search": "Search...",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "escalate": "Escalate to Doctor",
+    "analyze": "Analyze",
+    "language": "Language",
+    "overview": "Overview",
+    "doctors": "Doctors",
+    "workers": "Workers",
+    "status": {
+      "pending": "Pending",
+      "closed": "Closed",
+      "reviewed": "Reviewed",
+      "escalated": "Escalated"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "table": {
+      "patient": "Patient",
+      "age_gender": "Age / Gender",
+      "contact": "Contact",
+      "address": "Address",
+      "registered": "Registered",
+      "symptoms": "Symptoms",
+      "status": "Status",
+      "decision": "Decision",
+      "date": "Date"
+    }
+  },
+  "worker": {
+    "welcome": "Good day! 👋",
+    "summary": "Here's a summary of your healthcare activity.",
+    "total_patients": "Total Patients",
+    "total_consultations": "Total Consultations",
+    "pending": "Pending",
+    "closed_reviewed": "Closed / Reviewed",
+    "recent_consultations": "Recent Consultations",
+    "no_consultations": "No consultations yet. Create your first one from the Consultations tab.",
+    "registered_by_you": "Registered by your organization",
+    "awaiting_decision": "Awaiting decision",
+    "loading_dashboard": "Loading dashboard...",
+    "add_patient": "Add Patient",
+    "new_consultation": "New Consultation",
+    "search_patients": "Search by name, gender, or phone...",
+    "search_consultations": "Search by patient name or symptom...",
+    "loading_patients": "Loading patients...",
+    "loading_consultations": "Loading consultations...",
+    "registered_by_organization": "registered by your organization",
+    "no_patients_found": "No patients match your search",
+    "no_patients_yet": "No patients registered yet",
+    "register_first_patient": "Register your first patient →",
+    "no_consultations_found": "No consultations match your filters",
+    "create_first_consultation": "Create your first consultation →",
+    "view": "View",
+    "total_assigned": "Total Assigned",
+    "pending_review": "Pending Review",
+    "escalated_to_you": "Escalated to you",
+    "awaiting_opinion": "Awaiting your opinion",
+    "no_assigned_consultations": "No consultations assigned yet. Workers will escalate cases to you.",
+    "decision": {
+      "accepted": "AI Accepted",
+      "escalated": "Escalated"
+    }
+  },
+  "doctor": {
+    "welcome": "Welcome back, Dr. {{name}}",
+    "doctor_welcome": "Welcome, Doctor! 👋",
+    "summary": "Here's a summary of your consultation activity.",
+    "pending_requests": "Pending Requests",
+    "all_consultations": "All Consultations"
+  },
+  "admin": {
+    "total_doctors": "Total Doctors",
+    "total_workers": "Total Workers",
+    "total_consultations": "Total Consultations",
+    "active_in_organization": "Active in your organization",
+    "summary": "Here's what's happening in your organization."
+  }
+}

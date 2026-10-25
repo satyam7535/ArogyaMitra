@@ -1,0 +1,107 @@
+.vscode/
+.env
+
+example.md
+ML_Model/model/
+ML_Model/dataset/
+ML_Model/.venv/
+ML_Model/__pycache__/
+ML_Model/*.pyc
+
+graph/venv/
+graph/__pycache__/
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Compiled extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# =========================
+# Virtual Environment
+# =========================
+venv/
+.env/
+env/
+ENV/
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# IDE / Editor Files
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+*.out
+
+# =========================
+# Database
+# =========================
+*.db
+*.sqlite3
+
+# =========================
+# ML Model Files (IMPORTANT)
+# =========================
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# =========================
+# PDF Reports (Generated)
+# =========================
+*.pdf
+reports/
+generated_reports/
+
+# =========================
+# Temporary Files
+# =========================
+*.tmp
+*.bak
+*.cache
+.cache/
+
+# =========================
+# Testing / Coverage
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =========================
+# Jupyter Notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# OS Files
+# =========================
+Thumbs.db
+Desktop.ini

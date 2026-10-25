@@ -1,0 +1,16 @@
+﻿# FastAPI server dependencies
+fastapi
+uvicorn
+joblib
+numpy
+reportlab
+python-multipart
+
+# Training dependencies (notebook only)
+scikit-learn
+xgboost
+lime
+pandas
+matplotlib
+seaborn
+huggingface_hub
