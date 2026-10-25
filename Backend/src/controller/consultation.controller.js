@@ -11,6 +11,7 @@ import {
   storeLlmAnalysis,
   storeFinalVerdict,
   storeAnalysisReport,
+  triggerConsultationAnalysis,
   getAllConsultationsForAdmin,
 } from "../service/consultation.service.js";
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
@@ -203,77 +204,73 @@ const respondWithSecondOpinion = async (req, res) => {
   }
 };
 
-// Store ML analysis
-const storeMlAnalysisResult = async (req, res) => {
+// Trigger Server-Side Orchestrated AI Analysis (ML -> LLM -> PDF)
+const triggerAnalysis = async (req, res) => {
   try {
-    const { mlResult } = req.body;
-    if (!mlResult) {
-      return res.status(400).json({ message: "ML result is required" });
-    }
+    const { id } = req.params;
+    const { language } = req.body;
 
-    const consultation = await storeMlAnalysis(req.params.id, req.user.organization, mlResult);
-    if (!consultation) return res.status(404).json({ message: "Consultation not found" });
+    const consultation = await triggerConsultationAnalysis(
+      id,
+      req.user.organization,
+      req.user,
+      { language: language || "en" }
+    );
 
-    return res.status(200).json({ message: "ML analysis stored", consultation });
-  } catch (error) {
-    return res.status(400).json({ message: error.message });
-  }
-};
-
-// Store LLM analysis
-const storeLlmAnalysisResult = async (req, res) => {
-  try {
-    const { llmResult } = req.body;
-    if (!llmResult) {
-      return res.status(400).json({ message: "LLM result is required" });
-    }
-
-    const consultation = await storeLlmAnalysis(req.params.id, req.user.organization, llmResult);
-    if (!consultation) return res.status(404).json({ message: "Consultation not found" });
-
-    return res.status(200).json({ message: "LLM analysis stored", consultation });
-  } catch (error) {
-    return res.status(400).json({ message: error.message });
-  }
-};
-
-// Store final verdict
-const storeFinalVerdictResult = async (req, res) => {
-  try {
-    const { verdict } = req.body;
-    if (!verdict) {
-      return res.status(400).json({ message: "Verdict is required" });
-    }
-
-    const consultation = await storeFinalVerdict(req.params.id, req.user.organization, verdict);
-    if (!consultation) return res.status(404).json({ message: "Consultation not found" });
-
-    return res.status(200).json({ message: "Final verdict stored", consultation });
-  } catch (error) {
-    return res.status(400).json({ message: error.message });
-  }
-};
-
-// Store AI analysis PDF report
-const storeAnalysisReportResult = async (req, res) => {
-  try {
-    const { pdfBase64 } = req.body;
-    if (!pdfBase64) {
-      return res.status(400).json({ message: "pdfBase64 is required" });
-    }
-
-    const pdfBuffer = Buffer.from(pdfBase64, "base64");
-    const consultation = await storeAnalysisReport(req.params.id, req.user.organization, pdfBuffer);
-    if (!consultation) return res.status(404).json({ message: "Consultation not found" });
+    await logAuditEvent({
+      req,
+      action: "CONSULTATION_ANALYZED",
+      resourceType: "Consultation",
+      resourceId: consultation._id,
+      metadata: {
+        disease: consultation.mlAnalysis?.disease,
+        confidence: consultation.mlAnalysis?.confidence,
+        llmFallback: consultation.llmAnalysis?.llmFallback,
+      },
+    });
 
     return res.status(200).json({
-      message: "Analysis report stored",
-      reportUrl: consultation.analysisReport,
+      message: "Consultation analysis completed successfully",
       consultation,
     });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(error.statusCode || 500).json({
+      message: error.message,
+      code: error.code || "ANALYSIS_FAILED",
+    });
   }
+};
+
+// Store ML analysis (Direct client write disabled for security)
+const storeMlAnalysisResult = async (req, res) => {
+  return res.status(403).json({
+    message: "Direct client analysis mutations are forbidden. Use POST /api/v1/consultation/:id/analyze for server-side orchestrated analysis.",
+    code: "DIRECT_ANALYSIS_WRITE_FORBIDDEN",
+  });
+};
+
+// Store LLM analysis (Direct client write disabled for security)
+const storeLlmAnalysisResult = async (req, res) => {
+  return res.status(403).json({
+    message: "Direct client analysis mutations are forbidden. Use POST /api/v1/consultation/:id/analyze for server-side orchestrated analysis.",
+    code: "DIRECT_ANALYSIS_WRITE_FORBIDDEN",
+  });
+};
+
+// Store final verdict (Direct client write disabled for security)
+const storeFinalVerdictResult = async (req, res) => {
+  return res.status(403).json({
+    message: "Direct client analysis mutations are forbidden. Use POST /api/v1/consultation/:id/analyze for server-side orchestrated analysis.",
+    code: "DIRECT_ANALYSIS_WRITE_FORBIDDEN",
+  });
+};
+
+// Store AI analysis PDF report (Direct client write disabled for security)
+const storeAnalysisReportResult = async (req, res) => {
+  return res.status(403).json({
+    message: "Direct client analysis mutations are forbidden. Use POST /api/v1/consultation/:id/analyze for server-side orchestrated analysis.",
+    code: "DIRECT_ANALYSIS_WRITE_FORBIDDEN",
+  });
 };
 
 export {
@@ -285,6 +282,7 @@ export {
   getPendingForDoctor,
   getAllForDoctor,
   respondWithSecondOpinion,
+  triggerAnalysis,
   storeMlAnalysisResult,
   storeLlmAnalysisResult,
   storeFinalVerdictResult,

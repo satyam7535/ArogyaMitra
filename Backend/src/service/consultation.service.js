@@ -1,5 +1,7 @@
 import Consultation from "../models/consultation/consultationSchema.js";
 import { cloudinary } from "../config/cloudinaryConfig.js";
+import jwt from "jsonwebtoken";
+import serverConfig from "../config/serverConfig.js";
 
 // Helper: upload a buffer to Cloudinary
 const uploadToCloudinary = (buffer, folder, resourceType = "auto") => {
@@ -218,6 +220,111 @@ const storeAnalysisReport = async (consultationId, organization, pdfBuffer) => {
   return consultation;
 };
 
+// Orchestrate Server-Side AI Analysis (ML -> Safe LLM -> Multilingual PDF)
+const triggerConsultationAnalysis = async (consultationId, organization, requestingUser, options = {}) => {
+  const consultation = await Consultation.findOne({
+    _id: consultationId,
+    organization,
+  }).populate("patient", "name age gender");
+
+  if (!consultation) {
+    const error = new Error("Consultation not found in your organization");
+    error.statusCode = 404;
+    error.code = "CONSULTATION_NOT_FOUND";
+    throw error;
+  }
+
+  if (!consultation.symptoms || consultation.symptoms.length === 0) {
+    const error = new Error("Consultation has no symptoms to analyze");
+    error.statusCode = 400;
+    error.code = "NO_SYMPTOMS_FOUND";
+    throw error;
+  }
+
+  // Mint signed internal service JWT token
+  const serviceToken = jwt.sign(
+    {
+      iss: "arogyamitra-backend",
+      sub: requestingUser._id ? requestingUser._id.toString() : requestingUser.id,
+      role: requestingUser.role || "worker",
+      organization: organization.toString(),
+      consultationId: consultationId.toString(),
+    },
+    serverConfig.INTERNAL_SERVICE_SECRET,
+    { expiresIn: "5m" }
+  );
+
+  const payload = {
+    symptoms: consultation.symptoms,
+    patientName: consultation.patient?.name || "Patient",
+    patientAge: consultation.patient?.age,
+    patientGender: consultation.patient?.gender,
+    workerName: requestingUser.name || "Healthcare Worker",
+    language: options.language || "en",
+  };
+
+  const response = await fetch(`${serverConfig.GRAPH_API_URL}/analyze/json`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Service-Token": serviceToken,
+      "Authorization": `Bearer ${serviceToken}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    const error = new Error(`AI Graph Pipeline failed with HTTP ${response.status}: ${errText}`);
+    error.statusCode = response.status >= 500 ? 502 : response.status;
+    error.code = "AI_PIPELINE_ERROR";
+    throw error;
+  }
+
+  const analysisResult = await response.json();
+  const { mlResult, llmResult, pdfBase64 } = analysisResult;
+
+  // Atomically update consultation
+  consultation.mlAnalysis = {
+    disease: mlResult.disease,
+    confidence: mlResult.confidence,
+    severityScore: mlResult.severityScore,
+    topPredictions: mlResult.topPredictions || [],
+    matchedSymptoms: mlResult.matchedSymptoms || [],
+    precautions: mlResult.precautions || [],
+    description: mlResult.description || "",
+    shapExplanation: mlResult.shapExplanation || [],
+    needsEscalation: mlResult.needsEscalation || false,
+    uncertaintyReason: mlResult.uncertaintyReason || null,
+    analyzedAt: new Date(),
+  };
+
+  consultation.llmAnalysis = {
+    summary: llmResult.diagnosis_summary,
+    confidenceInterpretation: llmResult.confidence_interpretation,
+    severityAssessment: llmResult.severity_assessment,
+    keyFactors: llmResult.key_contributing_factors,
+    recommendations: llmResult.recommended_next_steps,
+    referral: llmResult.referral_recommendation,
+    llmFallback: llmResult.llmFallback || false,
+    analyzedAt: new Date(),
+  };
+
+  consultation.finalVerdict = {
+    conclusion: llmResult.diagnosis_summary,
+    generatedAt: new Date(),
+  };
+
+  if (pdfBase64) {
+    consultation.analysisReport = `data:application/pdf;base64,${pdfBase64}`;
+  }
+
+  consultation.status = "analyzed";
+  await consultation.save();
+
+  return consultation;
+};
+
 export {
   createConsultation,
   getConsultationsByWorker,
@@ -231,5 +338,6 @@ export {
   storeLlmAnalysis,
   storeFinalVerdict,
   storeAnalysisReport,
+  triggerConsultationAnalysis,
   getAllConsultationsForAdmin,
 };

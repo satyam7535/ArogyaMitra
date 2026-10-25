@@ -8,6 +8,7 @@ import {
     getPendingForDoctor,
     getAllForDoctor,
     respondWithSecondOpinion,
+    triggerAnalysis,
     storeMlAnalysisResult,
     storeLlmAnalysisResult,
     storeFinalVerdictResult,
@@ -46,7 +47,10 @@ consultationRouter.patch("/:id/respond", verifyToken(["doctor"]), respondWithSec
 // Shared (worker or doctor can view)
 consultationRouter.get("/:id", verifyToken(["worker", "doctor"]), getConsultation);            // GET  /api/v1/consultation/:id
 
-// Analysis storage routes (worker)
+// Server-Side Orchestrated AI Analysis (ML -> LLM -> PDF)
+consultationRouter.post("/:id/analyze", verifyToken(["worker", "doctor"]), triggerAnalysis);    // POST /api/v1/consultation/:id/analyze
+
+// Direct client analysis mutation routes (Blocked with 403)
 consultationRouter.post("/:id/analysis/ml", verifyToken(["worker"]), storeMlAnalysisResult);   // POST /api/v1/consultation/:id/analysis/ml
 consultationRouter.post("/:id/analysis/llm", verifyToken(["worker"]), storeLlmAnalysisResult); // POST /api/v1/consultation/:id/analysis/llm
 consultationRouter.post("/:id/analysis/verdict", verifyToken(["worker"]), storeFinalVerdictResult); // POST /api/v1/consultation/:id/analysis/verdict

@@ -218,7 +218,7 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
     now = datetime.now().strftime("%B %d, %Y  %I:%M %p")
     meta_data = [[
         Paragraph(f"<b>{t['date']}:</b> {now}", body_style),
-        Paragraph(f"<b>{t['worker']}:</b> {data['workerName']}", body_style),
+        Paragraph(f"<b>{t['worker']}:</b> {data.get('workerName', 'Healthcare Worker')}", body_style),
         Paragraph(f"<b>{t['location']}:</b> {data.get('location','—')}", body_style),
     ]]
     meta_table = Table(meta_data, colWidths=[5.6*cm, 5.6*cm, 5.8*cm])

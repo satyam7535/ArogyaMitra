@@ -13,6 +13,7 @@ const envSchema = z.object({
   FRONTEND_URL: z.string().default("http://localhost:5173"),
   ML_API_URL: z.string().default("http://localhost:8000"),
   GRAPH_API_URL: z.string().default("http://localhost:8001"),
+  INTERNAL_SERVICE_SECRET: z.string().min(32, "INTERNAL_SERVICE_SECRET must be at least 32 characters").default("arogyamitra_internal_service_token_secret_key_32chars!"),
   ENCRYPTION_KEY: z.string().min(32, "ENCRYPTION_KEY must be at least 32 characters for AES-256-GCM").default("arogyamitra_aes_256_secret_key_32bytes!"),
   OTPEMAIL: z.string().optional(),
   OTPPASSWORD: z.string().optional(),
@@ -41,6 +42,7 @@ const config = parsed.success ? parsed.data : {
   FRONTEND_URL: "http://localhost:5173",
   ML_API_URL: "http://localhost:8000",
   GRAPH_API_URL: "http://localhost:8001",
+  INTERNAL_SERVICE_SECRET: process.env.INTERNAL_SERVICE_SECRET || "arogyamitra_internal_service_token_secret_key_32chars!",
   ENCRYPTION_KEY: "arogyamitra_aes_256_secret_key_32bytes!",
 };
 

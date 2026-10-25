@@ -41,13 +41,25 @@ const consultationSchema = new mongoose.Schema(
     mlAnalysis: {
       disease: String,
       confidence: Number,
+      severityScore: Number,
+      topPredictions: Array,
+      matchedSymptoms: [String],
       precautions: [String],
+      description: String,
+      shapExplanation: Array,
+      needsEscalation: Boolean,
+      uncertaintyReason: String,
       analyzedAt: Date,
     },
     llmAnalysis: {
       summary: String,
-      recommendations: [String],
+      confidenceInterpretation: String,
+      severityAssessment: String,
+      keyFactors: String,
+      recommendations: mongoose.Schema.Types.Mixed,
+      referral: String,
       riskLevel: { type: String, enum: ["low", "moderate", "high"] },
+      llmFallback: { type: Boolean, default: false },
       analyzedAt: Date,
     },
     finalVerdict: {
@@ -56,7 +68,7 @@ const consultationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "reviewed", "closed"],
+      enum: ["pending", "analyzed", "reviewed", "closed"],
       default: "pending",
     },
     workerDecision: {
