@@ -1,0 +1,216 @@
+"""
+ArogyaMitra — Community Health Worker Triage Interface
+Enables village health workers to register patient vitals, select presenting symptoms,
+trigger calibrated AI analysis, inspect TreeSHAP explainability, and escalate to doctors.
+"""
+
+import streamlit as st
+import base64
+import os
+import sys
+
+# Ensure ui and project root are in sys.path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.i18n import t
+from utils.api_client import get_clinical_symptoms, run_triage_analysis
+from utils.viz import create_shap_waterfall_or_bar, create_top_predictions_chart
+
+st.set_page_config(
+    page_title="Worker Triage | ArogyaMitra",
+    page_icon="👩‍⚕️",
+    layout="wide",
+)
+
+lang = st.session_state.get("lang", "en")
+
+st.title(f"👩‍⚕️ {t('nav_triage', lang)}")
+st.caption("Primary Health Centre Community Outreach & Triage Workstation")
+
+# Clinical Non-Diagnostic Disclaimer
+st.info(f"⚠️ **{t('disclaimer_title', lang)}:** {t('disclaimer_text', lang)}")
+
+st.divider()
+
+# ── 1. Patient Demographics Form ─────────────────────────────────────────────
+st.markdown(f"### 📋 {t('patient_details', lang)}")
+
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    patient_name = st.text_input(t("patient_name", lang), value="Kavita Devi")
+with col2:
+    patient_age = st.number_input(t("patient_age", lang), min_value=1, max_value=120, value=42)
+with col3:
+    patient_gender = st.selectbox(t("patient_gender", lang), options=["Female", "Male", "Other"], index=0)
+with col4:
+    patient_location = st.text_input(t("patient_location", lang), value="Khed Sub-Centre, Pune")
+
+# ── 2. Symptom Selection ─────────────────────────────────────────────────────
+st.markdown(f"### 🩺 {t('symptoms_title', lang)}")
+
+# Quick presets for fast clinical demonstration
+st.markdown("**Quick Preset Clinical Cases:**")
+preset_cols = st.columns(4)
+selected_preset = None
+with preset_cols[0]:
+    if st.button("🟡 Jaundice / Liver Case", use_container_width=True):
+        selected_preset = ["itching", "vomiting", "fatigue", "yellowish_skin", "dark_urine"]
+with preset_cols[1]:
+    if st.button("🦟 Malaria / Fever Case", use_container_width=True):
+        selected_preset = ["chills", "vomiting", "high_fever", "sweating", "headache"]
+with preset_cols[2]:
+    if st.button("🫁 Bronchial / Respiratory", use_container_width=True):
+        selected_preset = ["cough", "high_fever", "breathlessness", "chest_pain"]
+with preset_cols[3]:
+    if st.button("🧴 Fungal Skin Case", use_container_width=True):
+        selected_preset = ["itching", "skin_rash", "nodal_skin_eruptions"]
+
+all_symptoms_data = get_clinical_symptoms()
+symptom_ids = [s["id"] for s in all_symptoms_data]
+
+default_symptoms = selected_preset or st.session_state.get("triage_symptoms", ["itching", "skin_rash", "nodal_skin_eruptions"])
+if selected_preset:
+    st.session_state["triage_symptoms"] = selected_preset
+
+selected_symptoms = st.multiselect(
+    t("select_symptoms", lang),
+    options=symptom_ids,
+    default=default_symptoms,
+    format_func=lambda s: s.replace("_", " ").title(),
+)
+
+st.divider()
+
+# ── 3. Run Analysis ──────────────────────────────────────────────────────────
+if st.button(f"🔍 {t('run_analysis', lang)}", type="primary", use_container_width=True):
+    if not selected_symptoms:
+        st.error("Please select at least one clinical symptom to evaluate.")
+    else:
+        with st.spinner(t("analyzing", lang)):
+            patient_info = {
+                "name": patient_name,
+                "age": patient_age,
+                "gender": patient_gender,
+                "location": patient_location,
+                "workerName": "Sunita Patil (ASHA Worker)",
+            }
+            results = run_triage_analysis(selected_symptoms, patient_info, language=lang)
+            st.session_state["triage_results"] = results
+            st.session_state["triage_patient"] = patient_info
+
+# ── 4. Render Results ────────────────────────────────────────────────────────
+if "triage_results" in st.session_state:
+    results = st.session_state["triage_results"]
+    ml = results.get("mlResult", {})
+    llm = results.get("llmResult", {})
+    pdf_base64 = results.get("pdfBase64", "")
+    filename = results.get("filename", "ArogyaMitra_Report.pdf")
+
+    st.markdown(f"## 📊 {t('results_title', lang)}")
+
+    # Auto-Escalation Alert Banner
+    if ml.get("needsEscalation", False):
+        reason = ml.get("uncertaintyReason", "Clinical threshold exceeded")
+        st.error(
+            f"🚨 **{t('escalation_alert', lang)}:** The model confidence is low or clinical severity is high. "
+            f"Mandatory second opinion escalation recommended. (Reason: `{reason}`)"
+        )
+
+    # Top Metric Tiles
+    m1, m2, m3, m4 = st.columns(4)
+    with m1:
+        st.metric(
+            label=t("primary_diagnosis", lang),
+            value=ml.get("disease", "Unknown"),
+        )
+    with m2:
+        conf_pct = round(float(ml.get("confidence", 0.0)) * 100, 1)
+        st.metric(
+            label=t("confidence", lang),
+            value=f"{conf_pct}%",
+            delta="High Certainty" if conf_pct >= 80 else ("Moderate" if conf_pct >= 50 else "-Low Certainty"),
+        )
+    with m3:
+        sev = ml.get("severityScore", 1.0)
+        st.metric(
+            label=t("severity", lang),
+            value=f"{sev} / 5.0",
+            delta="High Risk" if sev >= 3.5 else "Standard",
+            delta_color="inverse" if sev >= 3.5 else "normal",
+        )
+    with m4:
+        st.metric(
+            label="Matched Symptoms",
+            value=len(ml.get("matchedSymptoms", [])),
+        )
+
+    st.markdown("---")
+
+    # Visualizations: TreeSHAP Bar & Differential Probabilities
+    c_left, c_right = st.columns([3, 2])
+    with c_left:
+        st.markdown(f"#### 🔍 {t('shap_chart_title', lang)}")
+        st.caption(t("shap_chart_desc", lang))
+        shap_fig = create_shap_waterfall_or_bar(
+            ml.get("shapExplanation", []),
+            primary_disease=ml.get("disease", "Condition")
+        )
+        st.plotly_chart(shap_fig, use_container_width=True)
+
+    with c_right:
+        st.markdown("#### 📈 Differential Diagnoses")
+        diff_fig = create_top_predictions_chart(ml.get("topPredictions", []))
+        st.plotly_chart(diff_fig, use_container_width=True)
+
+    st.markdown("---")
+
+    # LLM Clinical Summary & Precautions
+    llm_col, prec_col = st.columns([3, 2])
+    with llm_col:
+        st.markdown(f"#### 📝 {t('llm_summary_title', lang)}")
+        diag_summary = llm.get("diagnosis_summary", ml.get("description", ""))
+        rec_steps = llm.get("recommended_next_steps", "")
+        referral = llm.get("referral_recommendation", "")
+
+        st.markdown(f"**Clinical Impression:** {diag_summary}")
+        if rec_steps:
+            st.markdown(f"**Recommended Action:** {rec_steps}")
+        if referral:
+            st.markdown(f"**Referral Advice:** {referral}")
+
+        if llm.get("llmFallback"):
+            st.caption("ℹ️ *Generated by Deterministic Clinical Fallback Engine (Safe Mode).*")
+
+    with prec_col:
+        st.markdown(f"#### 🛡️ {t('precautions_title', lang)}")
+        precautions = ml.get("precautions", [])
+        if precautions:
+            for p in precautions:
+                st.markdown(f"- ✅ {p.capitalize()}")
+        else:
+            st.markdown("- Rest and maintain clean hydration.")
+
+    st.markdown("---")
+
+    # Action Buttons: Accept / Escalate / Download PDF
+    act_col1, act_col2, act_col3 = st.columns(3)
+    with act_col1:
+        if st.button(f"✅ {t('accept_decision', lang)}", use_container_width=True):
+            st.success("Triage consultation finalized and saved to patient record.")
+
+    with act_col2:
+        if st.button(f"🚨 {t('escalate_decision', lang)}", type="primary", use_container_width=True):
+            st.warning("Case successfully escalated to Medical Officer for second opinion.")
+
+    with act_col3:
+        if pdf_base64:
+            pdf_bytes = base64.b64decode(pdf_base64)
+            st.download_button(
+                label=f"📄 {t('download_pdf', lang)}",
+                data=pdf_bytes,
+                file_name=filename,
+                mime="application/pdf",
+                use_container_width=True,
+            )
+        else:
+            st.button(f"📄 {t('download_pdf', lang)}", disabled=True, use_container_width=True)

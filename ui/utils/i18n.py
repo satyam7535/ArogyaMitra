@@ -1,0 +1,190 @@
+"""
+ArogyaMitra — Internationalization (i18n) Module
+Supports English (en), Hindi (hi), and Marathi (mr).
+"""
+
+MESSAGES = {
+    "en": {
+        "app_title": "ArogyaMitra",
+        "app_tagline": "AI-Assisted Primary Healthcare Decision Support System",
+        "disclaimer_title": "Clinical Decision Support Disclaimer",
+        "disclaimer_text": (
+            "ArogyaMitra is an AI-assisted clinical decision support system designed exclusively "
+            "for community health workers and registered medical officers. It is NOT an autonomous "
+            "diagnostic device. All predictions and recommendations must be validated by a licensed physician."
+        ),
+        "language_select": "Select Interface Language",
+        "nav_home": "Home",
+        "nav_triage": "Worker Triage",
+        "nav_doctor": "Doctor Review",
+        "nav_admin": "Admin Dashboard",
+        "service_status": "System Services Health",
+        "ml_service": "ML Inference Engine",
+        "graph_service": "AI Graph Pipeline",
+        "backend_service": "Backend API",
+        "status_healthy": "Operational",
+        "status_offline": "Local Fallback Mode",
+        # Worker Triage
+        "patient_details": "Patient Information",
+        "patient_name": "Full Name",
+        "patient_age": "Age",
+        "patient_gender": "Gender",
+        "patient_location": "Village / PHC Location",
+        "symptoms_title": "Clinical Symptoms Reported",
+        "select_symptoms": "Select presenting symptoms (searchable):",
+        "run_analysis": "Run AI Diagnostic Analysis",
+        "run_analysis_async": "Enqueue Asynchronous Analysis",
+        "analyzing": "Analyzing symptoms with Calibrated ML & Safe LLM...",
+        "results_title": "Diagnostic Assessment Results",
+        "primary_diagnosis": "Primary Predicted Condition",
+        "confidence": "Calibrated Confidence",
+        "severity": "Clinical Severity Score",
+        "escalation_alert": "Clinical Escalation Triggered",
+        "shap_chart_title": "Explainable AI (TreeSHAP) Feature Attributions",
+        "shap_chart_desc": "Green bars indicate symptoms that support this diagnosis; red bars indicate negative evidence.",
+        "llm_summary_title": "Clinical Summary & Recommendations",
+        "precautions_title": "Standard Clinical Precautions",
+        "accept_decision": "Accept AI Decision & Issue Advice",
+        "escalate_decision": "Escalate to Doctor for Second Opinion",
+        "download_pdf": "Download Official Clinical Report (PDF)",
+        # Doctor Review
+        "doctor_portal_title": "Medical Officer Review Workstation",
+        "pending_queue": "Pending Escalations & Second Opinion Queue",
+        "patient_case": "Patient Case File",
+        "doctor_diagnosis": "Physician Final Diagnosis",
+        "prescription_notes": "Clinical Prescription & Referral Orders",
+        "submit_opinion": "Sign & Submit Second Opinion",
+        # Admin Dashboard
+        "admin_portal_title": "System Observability & Health Center Governance",
+        "total_consultations": "Total Consultations",
+        "escalation_rate": "Escalation Rate",
+        "avg_turnaround": "Avg Doctor Turnaround",
+        "active_workers": "Active Health Workers",
+        "disease_prevalence": "Epidemiological Disease Distribution",
+        "audit_logs": "Security Audit Trail",
+    },
+    "hi": {
+        "app_title": "आरोग्यमित्र",
+        "app_tagline": "AI-सहायित प्राथमिक स्वास्थ्य निर्णय समर्थन प्रणाली",
+        "disclaimer_title": "नैदानिक निर्णय समर्थन अस्वीकरण",
+        "disclaimer_text": (
+            "आरोग्यमित्र एक AI-सहायित नैदानिक निर्णय समर्थन प्रणाली है जिसे विशेष रूप से "
+            "सामुदायिक स्वास्थ्य कार्यकर्ताओं और पंजीकृत डॉक्टरों के लिए बनाया गया है। यह एक स्वायत्त "
+            "निदान उपकरण नहीं है। सभी भविष्यवाणियों और सिफारिशों की पुष्टि एक योग्य डॉक्टर द्वारा की जानी चाहिए।"
+        ),
+        "language_select": "भाषा चुनें",
+        "nav_home": "होम",
+        "nav_triage": "कार्यकर्ता ट्राइएज",
+        "nav_doctor": "डॉक्टर समीक्षा",
+        "nav_admin": "व्यवस्थापक डैशबोर्ड",
+        "service_status": "सिस्टम सेवाएं स्थिति",
+        "ml_service": "ML इंफरेंस इंजन",
+        "graph_service": "AI ग्राफ पाइपलाइन",
+        "backend_service": "बैकएंड API",
+        "status_healthy": "सक्रिय",
+        "status_offline": "स्थानीय मोड",
+        # Worker Triage
+        "patient_details": "मरीज की जानकारी",
+        "patient_name": "पूरा नाम",
+        "patient_age": "उम्र",
+        "patient_gender": "लिंग",
+        "patient_location": "गांव / स्वास्थ्य केंद्र",
+        "symptoms_title": "मरीज द्वारा बताए गए लक्षण",
+        "select_symptoms": "लक्षण चुनें (खोजें):",
+        "run_analysis": "AI निदान विश्लेषण चलाएं",
+        "run_analysis_async": "पृष्ठभूमि कार्य में विश्लेषण चलाएं",
+        "analyzing": "ML और सुरक्षित LLM द्वारा लक्षणों का विश्लेषण हो रहा है...",
+        "results_title": "निदान परिणाम",
+        "primary_diagnosis": "प्राथमिक संभावित रोग",
+        "confidence": "मॉडल विश्वसनीयता",
+        "severity": "गंभीरता स्कोर",
+        "escalation_alert": "डॉक्टर के पास भेजना आवश्यक है",
+        "shap_chart_title": "Explainable AI (TreeSHAP) लक्षण योगदान",
+        "shap_chart_desc": "हरे रंग की पट्टियां रोग का समर्थन करने वाले लक्षणों को दर्शाती हैं।",
+        "llm_summary_title": "नैदानिक सारांश और सिफारिशें",
+        "precautions_title": "अनुशंसित सावधानियां",
+        "accept_decision": "परिणाम स्वीकारें और सलाह दें",
+        "escalate_decision": "दूसरी राय के लिए डॉक्टर को भेजें",
+        "download_pdf": "आधिकारिक नैदानिक रिपोर्ट डाउनलोड करें (PDF)",
+        # Doctor Review
+        "doctor_portal_title": "चिकित्सा अधिकारी समीक्षा वर्कस्टेशन",
+        "pending_queue": "समीक्षा के लिए लंबित मरीज",
+        "patient_case": "मरीज केस विवरण",
+        "doctor_diagnosis": "डॉक्टर का अंतिम निदान",
+        "prescription_notes": "दवाएं और नैदानिक निर्देश",
+        "submit_opinion": "समीक्षा सहेजें और सबमिट करें",
+        # Admin Dashboard
+        "admin_portal_title": "सिस्टम निगरानी और स्वास्थ्य केंद्र प्रबंधन",
+        "total_consultations": "कुल परामर्श",
+        "escalation_rate": "रेफरल दर",
+        "avg_turnaround": "औसत प्रतिक्रिया समय",
+        "active_workers": "सक्रिय स्वास्थ्य कार्यकर्ता",
+        "disease_prevalence": "क्षेत्रीय रोग वितरण",
+        "audit_logs": "सुरक्षा ऑडिट लॉग",
+    },
+    "mr": {
+        "app_title": "आरोग्यमित्र",
+        "app_tagline": "AI-सहाय्यित प्राथमिक आरोग्य निर्णय समर्थन प्रणाली",
+        "disclaimer_title": "वैद्यकीय निर्णय समर्थन अस्वीकरण",
+        "disclaimer_text": (
+            "आरोग्यमित्र ही एक AI-आधारित क्लिनिकल निर्णय समर्थन प्रणाली आहे जी केवळ "
+            "आरोग्य सेविका आणि डॉक्टरांसाठी डिझाइन केलेली आहे. हे स्वतंत्र निदान उपकरण नाही. "
+            "सर्व निष्कर्षांची नोंदणीकृत डॉक्टरांकडून पडताळणी आवश्यक आहे."
+        ),
+        "language_select": "भाषा निवडा",
+        "nav_home": "मुख्यपृष्ठ",
+        "nav_triage": "आरोग्य सेवक तपासणी",
+        "nav_doctor": "डॉक्टर पुनरावलोकन",
+        "nav_admin": "प्रशासक डॅशबोर्ड",
+        "service_status": "प्रणाली सेवा स्थिती",
+        "ml_service": "ML मॉडेल सेवा",
+        "graph_service": "AI पाइपलाइन सेवा",
+        "backend_service": "बॅकएंड API",
+        "status_healthy": "कार्यरत",
+        "status_offline": "स्थानिक मोड",
+        # Worker Triage
+        "patient_details": "रुग्णाची माहिती",
+        "patient_name": "पूर्ण नाव",
+        "patient_age": "वय",
+        "patient_gender": "लिंग",
+        "patient_location": "गाव / उपकेंद्र",
+        "symptoms_title": "नोंदवलेली लक्षणे",
+        "select_symptoms": "लक्षणे निवडा:",
+        "run_analysis": "AI निदान विश्लेषण सुरू करा",
+        "run_analysis_async": "पार्श्वभूमीवर विश्लेषण सुरू करा",
+        "analyzing": "लक्षणे विश्लेषित केली जात आहेत...",
+        "results_title": "तपासणी निकाल",
+        "primary_diagnosis": "प्राथमिक संभाव्य आजार",
+        "confidence": "विश्वास पातळी",
+        "severity": "गंभीरता पातळी",
+        "escalation_alert": "तज्ज्ञ डॉक्टरांचा सल्ला आवश्यक",
+        "shap_chart_title": "AI स्पष्टीकरण (TreeSHAP) लक्षण प्रभाव",
+        "shap_chart_desc": "हिरव्या पट्ट्या निदानास पुष्टी देणारी लक्षणे दर्शवतात.",
+        "llm_summary_title": "वैद्यकीय सारांश व सल्ला",
+        "precautions_title": "शिफारस केलेल्या सावधगिरी",
+        "accept_decision": "निकाल स्वीकारा आणि मार्गदर्शन करा",
+        "escalate_decision": "दुसऱ्या मतासाठी डॉक्टरांकडे पाठवा",
+        "download_pdf": "अधिकृत अहवाल डाउनलोड करा (PDF)",
+        # Doctor Review
+        "doctor_portal_title": "वैद्यकीय अधिकारी पुनरावलोकन",
+        "pending_queue": "तपासणीसाठी प्रलंबित प्रकरणे",
+        "patient_case": "रुग्ण केस माहिती",
+        "doctor_diagnosis": "डॉक्टरांचे अंतिम निदान",
+        "prescription_notes": "औषधोपचार आणि सूचना",
+        "submit_opinion": "निदान नोंदवा आणि सबमिट करा",
+        # Admin Dashboard
+        "admin_portal_title": "प्रशासकीय नियंत्रण व देखरेख",
+        "total_consultations": "एकूण सल्लामसलत",
+        "escalation_rate": "रेफरल प्रमाण",
+        "avg_turnaround": "सरासरी प्रतिसाद वेळ",
+        "active_workers": "कार्यरत आरोग्य सेवक",
+        "disease_prevalence": "आजार वितरण आकडेवारी",
+        "audit_logs": "सुरक्षा ऑडिट नोंदी",
+    },
+}
+
+
+def t(key: str, lang: str = "en") -> str:
+    """Get localized text string."""
+    lang_dict = MESSAGES.get(lang, MESSAGES["en"])
+    return lang_dict.get(key, MESSAGES["en"].get(key, key))

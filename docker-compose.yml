@@ -97,20 +97,30 @@ services:
       retries: 5
       start_period: 15s
 
-  # ── Frontend Web App (React + Vite static) ──────────────────────────────────
+  # ── Streamlit Multi-Page Frontend ──────────────────────────────────────────
   frontend:
     build:
-      context: ./Frontend
+      context: ./ui
       dockerfile: Dockerfile
     container_name: arogya-frontend
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5173:80"
+      - "127.0.0.1:8501:8501"
+    environment:
+      - BACKEND_URL=http://backend:5000/api/v1
+      - ML_API_URL=http://ml:8000
+      - GRAPH_API_URL=http://graph:8001
     networks:
       - arogya-network
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
 networks:
   arogya-network:

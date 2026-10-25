@@ -50,6 +50,14 @@
 | 2026-10-26 | Task 5.4: DPDP Act (2023) & healthcare privacy compliance | DONE | Published `docs/PRIVACY.md` detailing alignment with India's Digital Personal Data Protection Act 2023, data fiduciary obligations, patient consent mechanisms, purpose limitation, rights of data principals, and 72-hour breach notification protocol. |
 | 2026-10-26 | Task 5.5: Automated security and dependency audit | DONE | Audited Node.js and Python ecosystems. Resolved subdependency advisories via `npm audit fix`. Evaluated remaining advisories against ArogyaMitra's multi-layered defenses. Published `docs/evidence/security_audit.md`. |
 | 2026-10-26 | Phase 5 Gate Evaluation | PASSED | Threat model (STRIDE), reverse proxy TLS/HSTS config, MITM demo, privacy policy (DPDP Act), and security audit documented and validated. |
+| 2026-10-26 | Phase 6 Setup: Branch creation (`phase-6-streamlit`) | DONE | Created and checked out branch `phase-6-streamlit`. |
+| 2026-10-26 | Task 6.1: Move legacy React frontend to legacy/frontend | DONE | Safely moved `Frontend/` to `legacy/frontend/` using `git mv` preserving full git commit history. |
+| 2026-10-26 | Task 6.2: Build multi-page Streamlit healthcare application | DONE | Created `ui/Home.py`, `ui/pages/1_Worker_Triage.py`, `ui/pages/2_Doctor_Review.py`, and `ui/pages/3_Admin_Dashboard.py`. Integrated Plotly TreeSHAP feature attributions, differential diagnoses, clinical presets, and second opinion workflows. |
+| 2026-10-26 | Task 6.3: Streamlit multilingual localization (en, hi, mr) | DONE | Built `ui/utils/i18n.py` providing instant vernacular translation across all screens, clinical headers, metrics, and disclaimer badges. |
+| 2026-10-26 | Task 6.4: Resilient client adapter & containerization | DONE | Implemented `ui/utils/api_client.py` with in-process resilient fallback and created `ui/Dockerfile` with healthchecks. Updated `docker-compose.yml` to run Streamlit on port `8501`. |
+| 2026-10-26 | Task 6.5: Streamlit AppTest test suite & evidence | DONE | Built `ui/tests/test_streamlit.py` with 6 headless UI tests verifying page mounting, symptom multiselect, doctor inputs, admin telemetry, and Plotly charts. All 6/6 tests passed (verified in `docs/evidence/phase6_streamlit_evidence.txt`). |
+| 2026-10-26 | Phase 6 Gate Evaluation | PASSED | Streamlit multi-page frontend operational. AppTest suite 6/6 passing. TreeSHAP and second opinion workflows verified. |
+
 
 
 
