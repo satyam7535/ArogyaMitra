@@ -43,6 +43,14 @@
 | 2026-10-26 | Task 4.4: Concurrency test suite | DONE | Built `Backend/tests/concurrency.test.js` covering job lifecycle, multi-tenant status isolation, OCC version conflict rejection, and high-concurrency 50-job enqueue throughput. All 7/7 tests passed (26/26 overall in Backend, verified in `docs/evidence/phase4_concurrency_matrix.txt`). |
 | 2026-10-26 | Task 4.5: Empirical load test benchmark | DONE | Executed 400 empirical requests across 4 concurrency levels (c=1, c=5, c=10, c=20) using `docs/evidence/run_load_test.py`. Logged empirical throughput (peak 13.3 req/s) and latency distribution (p50, p90, p95, p99) to `docs/evidence/load_test.md` with 0.0% error rate. |
 | 2026-10-26 | Phase 4 Gate Evaluation | PASSED | Concurrency suite 26/26 passing. Load test verified (0.0% error rate over 400 requests). OCC and async job queues operational. |
+| 2026-10-26 | Phase 5 Setup: Branch creation (`phase-5-infra-security`) | DONE | Created and checked out branch `phase-5-infra-security`. |
+| 2026-10-26 | Task 5.1: Threat modeling with STRIDE framework | DONE | Authored comprehensive `docs/THREAT_MODEL.md` documenting assets, trust boundaries, threat actors, STRIDE matrix (Spoofing, Tampering, Repudiation, Information Disclosure, DoS, Elevation of Privilege), and clinical risk controls. |
+| 2026-10-26 | Task 5.2: Production edge reverse proxy configuration | DONE | Created `deploy/nginx.conf` configured with TLS 1.3 termination, HSTS preload header (`max-age=63072000`), CSP, X-Frame-Options DENY, rate limiting zones (`15r/s` general, `3r/m` auth), and internal network isolation blocking public access to `:8000` and `:8001`. |
+| 2026-10-26 | Task 5.3: Man-in-the-Middle (MITM) demonstration | DONE | Documented empirical packet capture demonstration in `docs/evidence/mitm_demo.md` contrasting cleartext HTTP transmission with TLS 1.3, HSTS downgrade resistance, and AES-256-GCM authentication tag tamper-evidence. |
+| 2026-10-26 | Task 5.4: DPDP Act (2023) & healthcare privacy compliance | DONE | Published `docs/PRIVACY.md` detailing alignment with India's Digital Personal Data Protection Act 2023, data fiduciary obligations, patient consent mechanisms, purpose limitation, rights of data principals, and 72-hour breach notification protocol. |
+| 2026-10-26 | Task 5.5: Automated security and dependency audit | DONE | Audited Node.js and Python ecosystems. Resolved subdependency advisories via `npm audit fix`. Evaluated remaining advisories against ArogyaMitra's multi-layered defenses. Published `docs/evidence/security_audit.md`. |
+| 2026-10-26 | Phase 5 Gate Evaluation | PASSED | Threat model (STRIDE), reverse proxy TLS/HSTS config, MITM demo, privacy policy (DPDP Act), and security audit documented and validated. |
+
 
 
 
