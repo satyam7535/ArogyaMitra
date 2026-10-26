@@ -1,0 +1,19 @@
+# Command: docker compose version; docker info
+# Timestamp: 2026-10-26T10:42:18+05:30
+# Status: DAEMON NOT ACCESSIBLE / INSUFFICIENT DISK (2.41 GB free on C:)
+
+docker : The term 'docker' is not recognized as the name of a cmdlet, function, script file, or operable program. 
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ docker compose version; docker info
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (docker:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+# Additional System Diagnostic:
+# Command: wsl --list -v
+Windows Subsystem for Linux has no installed distributions.
+
+# Command: Get-PSDrive C, D
+# C: Free = 2.41 GB (insufficient for Docker Desktop / WSL ext4 disk image)
+# D: Free = 90.93 GB

@@ -12,4 +12,4 @@ tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 66%]
 tests/test_streamlit.py::test_i18n_localization_integrity PASSED         [ 83%]
 tests/test_streamlit.py::test_viz_module_robustness PASSED               [100%]
 
-============================= 6 passed in 28.44s ==============================
+============================= 6 passed in 15.82s ==============================

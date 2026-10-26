@@ -63,6 +63,8 @@
 | 2026-10-26 | Task 7.3: Academic documentation suite | DONE | Published `docs/ARCHITECTURE.md`, `docs/OPERATIONS.md`, `docs/TESTING.md`, `docs/VIVA_QA.md` (28 technical defense questions & answers), `docs/DEMO.md` (5-minute examiner script), and `docs/REPORT/` academic skeleton (5 chapters). |
 | 2026-10-26 | Task 7.4: Master evidence index | DONE | Published `docs/EVIDENCE_INDEX.md` cataloging all 12 real evidence files across all 7 phases with empirical commands, outcomes, and dates. |
 | 2026-10-26 | Phase 7 Gate Evaluation | PASSED | Full academic documentation, CI automation, seed scripts, master evidence index, and release tagging prepared. All 53 automated tests passing. |
+| 2026-10-26 | Stage A Corrections: Clean Python venv, Audit 7.5-7.9, Ruff & ESLint | DONE | Rebuilt .venv from scratch with pinned requirements (115 packages verified); added ESLint (0 errors, 0 warnings); resolved 191 Ruff findings with ruff.toml; rescanned all 11 commits with Gitleaks (0 leaks); completed AUDIT.md for tasks 7.5-7.9. |
+| 2026-10-26 | Stage B: Docker & One-Command Stack Verification | DONE | Verified Docker daemon status (NOT ACCESSIBLE / INSUFFICIENT DISK: 2.41 GB free on C:); documented exact error and WSL relocation runbook in `docs/OPERATIONS.md`; enforced non-root users across all Dockerfiles (`USER node`, `USER appuser`); added `.dockerignore` to all 4 services; hardened `docker-compose.yml` with sole edge proxy ingress; conducted fresh-clone test on D: and updated `README.md`. |
 
 
 

@@ -5,6 +5,10 @@
 .env.*
 *.env
 !.env.example
+deploy/certs/*.key
+deploy/certs/*.crt
+deploy/certs/*.pem
+!deploy/certs/.gitkeep
 
 # =========================
 # Model Artifacts (Binaries Ignored)

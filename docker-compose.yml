@@ -1,13 +1,38 @@
 name: arogyamitra
 
 services:
-  # ── MongoDB Database ────────────────────────────────────────────────────────
+  # ── Edge Reverse Proxy (Sole Public Ingress) ─────────────────────────────────
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: arogya-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/certs:/etc/nginx/certs:ro
+    networks:
+      - arogya-network
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # ── MongoDB Database (Internal Only) ─────────────────────────────────────────
   mongo:
     image: mongo:7.0
     container_name: arogya-mongo
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:27017:27017"
+    expose:
+      - "27017"
     volumes:
       - mongo_data:/data/db
     networks:
@@ -19,18 +44,18 @@ services:
       retries: 5
       start_period: 10s
 
-  # ── ML Prediction Service (FastAPI) ─────────────────────────────────────────
+  # ── ML Prediction Service (FastAPI — Internal Only) ──────────────────────────
   ml:
     build:
       context: ./ML_Model
       dockerfile: Dockerfile
     container_name: arogya-ml
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:8000:8000"
+    expose:
+      - "8000"
     environment:
       - PORT=8000
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:80,http://frontend:80
+      - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
     networks:
       - arogya-network
     healthcheck:
@@ -40,19 +65,20 @@ services:
       retries: 5
       start_period: 10s
 
-  # ── LangGraph Workflow Orchestration ────────────────────────────────────────
+  # ── LangGraph Workflow Orchestration (Internal Only) ─────────────────────────
   graph:
     build:
       context: ./graph
       dockerfile: Dockerfile
     container_name: arogya-graph
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:8001:8001"
+    expose:
+      - "8001"
     environment:
       - PORT=8001
       - ML_API_URL=http://ml:8000
-      - LLM_API_KEY=${LLM_API_KEY:-}
+      - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
+      - LLM_API_KEY=${LLM_API_KEY}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
       - LLM_MODEL=${LLM_MODEL:-gemini-1.5-flash}
     networks:
@@ -67,24 +93,28 @@ services:
       retries: 5
       start_period: 15s
 
-  # ── Express Backend API ─────────────────────────────────────────────────────
+  # ── Express Backend API (Internal Only) ──────────────────────────────────────
   backend:
     build:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: arogya-backend
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:5000:5000"
+    expose:
+      - "5000"
     environment:
       - PORT=5000
-      - DB_URL=mongodb://mongo:27017/arogyamitra
-      - JWT_SECRET=${JWT_SECRET:-arogyamitra_secure_dev_jwt_secret_min32chars}
-      - JWT_EXPIRY=1d
-      - FRONTEND_URL=http://localhost:5173
-      - ML_API_URL=http://ml:8000
-      - GRAPH_API_URL=http://graph:8001
       - NODE_ENV=production
+      - DB_URL=mongodb://mongo:27017/arogyamitra
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=15m
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - REFRESH_TOKEN_EXPIRY=7d
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
+      - ML_API_URL=http://ml:8000
+      - AI_SERVICE_URL=http://graph:8001
+      - CORS_ORIGIN=http://frontend:8501
     networks:
       - arogya-network
     depends_on:
@@ -97,19 +127,20 @@ services:
       retries: 5
       start_period: 15s
 
-  # ── Streamlit Multi-Page Frontend ──────────────────────────────────────────
+  # ── Streamlit Multi-Page Frontend (Internal Only) ───────────────────────────
   frontend:
     build:
       context: ./ui
       dockerfile: Dockerfile
     container_name: arogya-frontend
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:8501:8501"
+    expose:
+      - "8501"
     environment:
       - BACKEND_URL=http://backend:5000/api/v1
       - ML_API_URL=http://ml:8000
       - GRAPH_API_URL=http://graph:8001
+      - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
     networks:
       - arogya-network
     depends_on:

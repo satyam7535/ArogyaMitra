@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
+RUN useradd -m -u 1000 appuser
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -15,6 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py __init__.py ./
 COPY model/ ./model/
 COPY scripts/ ./scripts/
+RUN chown -R appuser:appuser /app
+
+USER appuser
 
 ENV PORT=8000
 EXPOSE 8000

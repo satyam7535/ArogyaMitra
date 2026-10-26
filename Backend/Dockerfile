@@ -8,6 +8,9 @@ RUN npm ci --omit=dev
 
 # Copy source code
 COPY . .
+RUN chown -R node:node /app
+
+USER node
 
 EXPOSE 5000
 

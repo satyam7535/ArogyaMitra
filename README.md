@@ -10,108 +10,125 @@
 flowchart TD
     subgraph Client ["Client Layer"]
         User(["Frontline Healthcare Worker / Doctor / Admin"])
-        UI["React 19 + Tailwind Dashboard :5173"]
+        UI["Streamlit Multi-Page Workstation :8501\n(Worker Triage, Doctor Review, Admin Metrics)"]
+    end
+
+    subgraph Ingress ["Edge Security Layer"]
+        Proxy["Nginx Reverse Proxy :80 / :443\n(TLS Termination, Rate Limiting, Internal Isolation)"]
     end
 
     subgraph Core ["Application & Data Layer"]
-        API["Express 5 Backend :5000\n(Auth, Roles, Consultations, RBAC)"]
-        DB[("MongoDB :27017\n(Patients, Users, Consultations)")]
+        API["Express 5 Backend :5000\n(Auth, RBAC, Consultations, Field Encryption)"]
+        DB[("MongoDB :27017\n(Tenants, Users, Consultations, Encrypted PII)")]
     end
 
     subgraph AI ["AI & Clinical Pipeline"]
-        GraphSvc["LangGraph Orchestration :8001\n(Workflow State, Multilingual PDF)"]
-        MLSvc["FastAPI ML Microservice :8000\n(Symptom Classifier, SHAP/LIME, Severity)"]
+        GraphSvc["LangGraph Orchestration :8001\n(Clinical Workflow, Fallback, Multilingual PDF)"]
+        MLSvc["FastAPI ML Microservice :8000\n(Calibrated LightGBM, TreeSHAP, Severity)"]
         GeminiAPI["Google Gemini LLM\n(OpenAI-Compatible Endpoint)"]
     end
 
-    User --> UI
+    User --> Proxy
+    Proxy -->|UI Routes| UI
+    Proxy -->|/api/*| API
     UI -->|REST / JWT| API
     API -->|Mongoose| DB
-    API -->|Internal Service Call| GraphSvc
-    GraphSvc -->|Feature Vector & Predict| MLSvc
-    GraphSvc -->|Structured Prompt| GeminiAPI
-    GraphSvc -->|Render PDF| UI
+    API -->|Internal JWT| GraphSvc
+    GraphSvc -->|Internal JWT| MLSvc
+    GraphSvc -->|Clinical Prompts| GeminiAPI
+    GraphSvc -->|Bilingual PDF| UI
 ```
 
 ---
 
-## ⚡ Setup in 5 Commands
+## ⚡ Unified Verification Runner
 
-Run the entire ArogyaMitra stack with Docker Compose:
+A single command verifies all 5 engineering tiers (Lint, ML Contract, Backend Security/Concurrency, Graph Pipeline, UI AppTests):
+
+```powershell
+# PowerShell (Windows)
+powershell -ExecutionPolicy Bypass -File scripts/verify_all.ps1
+
+# Bash (Linux / macOS)
+bash scripts/verify_all.sh
+```
+
+---
+
+## 🚀 Setup & Execution
+
+### 1. Automated Stack (Docker Compose)
+*Requires Docker Desktop with Linux containers enabled and >= 10 GB free virtualization disk.*
 
 ```bash
-# 1. Clone & enter repository
-git clone https://github.com/Ayush-div/Arogyamitra.git && cd Arogyamitra
+# 1. Clone repository
+git clone https://github.com/satyam7535/ArogyaMitra.git && cd ArogyaMitra
 
-# 2. Set up environment variables
+# 2. Configure environment secrets
 cp .env.example .env
 
-# 3. Train baseline ML model artifacts (requires Python 3.11+)
-python ML_Model/scripts/train_baseline.py
+# 3. Launch isolated container stack
+docker compose up --build -d
 
-# 4. Build and start all services (mongo, backend, ml, graph, frontend)
-docker compose up -d
-
-# 5. Verify service health
-curl http://localhost:5000/health && curl http://localhost:8000/health && curl http://localhost:8001/health
+# 4. Verify edge proxy and health endpoints
+curl -k https://localhost/health
 ```
 
 ---
 
-## 🛠️ Local Development (Manual Setup)
+### 2. Native Local Development (Manual Setup)
 
-### Prerequisites
+#### Prerequisites
 - **Node.js**: v20+ (v22 recommended)
 - **Python**: v3.11+
 - **MongoDB**: v6.0+ (running on `localhost:27017`)
 
 ---
 
-### Step 1: Backend Setup
+#### Step 1: Backend Express Gateway
 ```bash
 cd Backend
 cp .env.example .env
-npm install
+npm ci
 npm run dev
-# Listens on http://localhost:5000
+# Server listens on http://localhost:5000
 # Healthcheck: http://localhost:5000/health
 ```
 
 ---
 
-### Step 2: ML Prediction Microservice Setup
+#### Step 2: ML Diagnostic Microservice
 ```bash
 cd ML_Model
-# Verify dataset files exist in ML_Model/dataset/ (see ML_Model/scripts/download_dataset.md)
-python scripts/train_baseline.py
+cp .env.example .env
 pip install -r requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-# Listens on http://localhost:8000
+# Server listens on http://localhost:8000
 # Healthcheck: http://localhost:8000/health
 ```
 
 ---
 
-### Step 3: LangGraph AI Pipeline Setup
+#### Step 3: LangGraph Clinical Reasoning Service
 ```bash
 cd graph
 cp .env.example .env
-# Configure your Google Gemini API key:
-# LLM_API_KEY=your_gemini_api_key
 pip install -r requirements.txt
-python server.py
-# Listens on http://localhost:8001
+uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+# Server listens on http://localhost:8001
 # Healthcheck: http://localhost:8001/health
 ```
 
 ---
 
-### Step 4: Frontend Web App Setup
+#### Step 4: Streamlit Clinical Workstation
 ```bash
-cd Frontend
-npm install
-npm run dev
-# Listens on http://localhost:5173
+cd ui
+cp .env.example .env
+pip install -r requirements.txt
+streamlit run Home.py --server.port 8501
+# Application loads on http://localhost:8501
+# (Legacy React frontend is archived in legacy/frontend)
 ```
 
 ---

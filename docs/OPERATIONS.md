@@ -91,11 +91,46 @@ uv run streamlit run Home.py --server.port 8501
 ```
 
 ### 2.3 Containerized Startup (Docker Compose)
-When running on an environment with Docker daemon support and adequate virtualization disk space:
 
+#### Host Requirements:
+- Docker Engine >= 24.0 & Docker Compose v2.
+- Linux containers enabled (WSL 2 backend on Windows).
+- **Disk Requirement**: Minimum 10–15 GB free space for images and volumes. On hosts with limited space on C: (e.g. < 5 GB free), Docker Desktop will fail to allocate WSL virtual hard disks (`ext4.vhdx`).
+
+#### Relocating Docker / WSL to Drive D: (Windows Low-Disk Procedure):
+If drive C: is constrained, relocate Docker Desktop data to drive D: (which has > 90 GB free):
+1. **Via Docker Desktop GUI**:
+   - Open **Docker Desktop → Settings → Resources → Advanced**.
+   - Change **Disk image location** to `D:\Docker\wsl\data`.
+   - Click **Apply & restart**.
+2. **Via WSL CLI** (Manual export/import):
+   ```powershell
+   # Shutdown WSL
+   wsl --shutdown
+
+   # Export docker-desktop-data to D:
+   wsl --export docker-desktop-data D:\Docker\docker-desktop-data.tar
+   wsl --unregister docker-desktop-data
+
+   # Re-import into D:
+   wsl --import docker-desktop-data D:\Docker\data D:\Docker\docker-desktop-data.tar --version 2
+   Remove-Item D:\Docker\docker-desktop-data.tar
+   ```
+
+#### Stack Execution:
+Once Docker daemon is accessible and running:
 ```bash
+# 1. Start all containers in detached mode
 docker compose up --build -d
+
+# 2. Inspect container status and health
 docker compose ps
+
+# 3. Follow unified logs
+docker compose logs -f
+
+# 4. Tear down stack
+docker compose down -v
 ```
 
 ---
