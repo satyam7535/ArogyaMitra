@@ -4,12 +4,13 @@ Renders TreeSHAP feature attributions, calibrated probability distributions,
 and epidemiological prevalence graphs.
 """
 
-import plotly.graph_objects as go
+from typing import Any
+
 import plotly.express as px
-from typing import List, Dict, Any
+import plotly.graph_objects as go
 
 
-def create_shap_waterfall_or_bar(shap_explanations: List[Dict[str, Any]], primary_disease: str) -> go.Figure:
+def create_shap_waterfall_or_bar(shap_explanations: list[dict[str, Any]], primary_disease: str) -> go.Figure:
     """
     Renders an interactive horizontal bar chart showing TreeSHAP feature contributions.
     Positive impacts (supports diagnosis) are displayed in teal/emerald,
@@ -20,9 +21,9 @@ def create_shap_waterfall_or_bar(shap_explanations: List[Dict[str, Any]], primar
         fig.add_annotation(
             text="No TreeSHAP feature attributions available for this prediction",
             showarrow=False,
-            font=dict(size=14, color="#718096"),
+            font={"size": 14, "color": "#718096"},
         )
-        fig.update_layout(height=200, margin=dict(l=20, r=20, t=20, b=20))
+        fig.update_layout(height=200, margin={"l": 20, "r": 20, "t": 20, "b": 20})
         return fig
 
     # Take top 10 features
@@ -44,7 +45,7 @@ def create_shap_waterfall_or_bar(shap_explanations: List[Dict[str, Any]], primar
             x=impacts,
             y=names,
             orientation="h",
-            marker=dict(color=colors, line=dict(color="#1F2937", width=1)),
+            marker={"color": colors, "line": {"color": "#1F2937", "width": 1}},
             hovertemplate=(
                 "<b>%{y}</b><br>"
                 "SHAP Value: %{x:.4f}<br>"
@@ -54,31 +55,31 @@ def create_shap_waterfall_or_bar(shap_explanations: List[Dict[str, Any]], primar
     )
 
     fig.update_layout(
-        title=dict(
-            text=f"<b>TreeSHAP Diagnostic Feature Importance — {primary_disease}</b>",
-            font=dict(size=16, color="#0F172A"),
-        ),
-        xaxis=dict(
-            title="Marginal Contribution to Log-Odds (SHAP Value)",
-            zeroline=True,
-            zerolinecolor="#94A3B8",
-            zerolinewidth=1.5,
-            gridcolor="#E2E8F0",
-        ),
-        yaxis=dict(
-            title="",
-            gridcolor="#F1F5F9",
-        ),
+        title={
+            "text": f"<b>TreeSHAP Diagnostic Feature Importance — {primary_disease}</b>",
+            "font": {"size": 16, "color": "#0F172A"},
+        },
+        xaxis={
+            "title": "Marginal Contribution to Log-Odds (SHAP Value)",
+            "zeroline": True,
+            "zerolinecolor": "#94A3B8",
+            "zerolinewidth": 1.5,
+            "gridcolor": "#E2E8F0",
+        },
+        yaxis={
+            "title": "",
+            "gridcolor": "#F1F5F9",
+        },
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
         height=340,
-        margin=dict(l=150, r=30, t=50, b=50),
+        margin={"l": 150, "r": 30, "t": 50, "b": 50},
     )
 
     return fig
 
 
-def create_top_predictions_chart(top_predictions: List[Dict[str, Any]]) -> go.Figure:
+def create_top_predictions_chart(top_predictions: list[dict[str, Any]]) -> go.Figure:
     """
     Renders horizontal probability bar chart for differential diagnoses.
     """
@@ -93,10 +94,10 @@ def create_top_predictions_chart(top_predictions: List[Dict[str, Any]]) -> go.Fi
             x=probs,
             y=diseases,
             orientation="h",
-            marker=dict(
-                color=["#93C5FD", "#60A5FA", "#2563EB"][:len(diseases)],
-                line=dict(color="#1D4ED8", width=1),
-            ),
+            marker={
+                "color": ["#93C5FD", "#60A5FA", "#2563EB"][:len(diseases)],
+                "line": {"color": "#1D4ED8", "width": 1},
+            },
             text=[f"{p}%" for p in probs],
             textposition="auto",
             hovertemplate="<b>%{y}</b>: %{x:.1f}%<extra></extra>",
@@ -104,19 +105,19 @@ def create_top_predictions_chart(top_predictions: List[Dict[str, Any]]) -> go.Fi
     )
 
     fig.update_layout(
-        title=dict(text="<b>Calibrated Differential Diagnoses</b>", font=dict(size=14, color="#0F172A")),
-        xaxis=dict(title="Calibrated Probability (%)", range=[0, 105], gridcolor="#E2E8F0"),
-        yaxis=dict(title=""),
+        title={"text": "<b>Calibrated Differential Diagnoses</b>", "font": {"size": 14, "color": "#0F172A"}},
+        xaxis={"title": "Calibrated Probability (%)", "range": [0, 105], "gridcolor": "#E2E8F0"},
+        yaxis={"title": ""},
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
         height=220,
-        margin=dict(l=160, r=20, t=40, b=40),
+        margin={"l": 160, "r": 20, "t": 40, "b": 40},
     )
 
     return fig
 
 
-def create_admin_epidemiology_chart(disease_counts: Dict[str, int]) -> go.Figure:
+def create_admin_epidemiology_chart(disease_counts: dict[str, int]) -> go.Figure:
     """
     Renders epidemiological disease prevalence distribution for Admin Dashboard.
     """
@@ -134,10 +135,10 @@ def create_admin_epidemiology_chart(disease_counts: Dict[str, int]) -> go.Figure
     )
 
     fig.update_layout(
-        title=dict(text="<b>Regional Disease Incidence Breakdown</b>", font=dict(size=16)),
+        title={"text": "<b>Regional Disease Incidence Breakdown</b>", "font": {"size": 16}},
         height=350,
-        margin=dict(l=20, r=20, t=50, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
+        legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5},
     )
 
     return fig

@@ -1,4 +1,5 @@
 import os
+
 import httpx
 
 ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8000")

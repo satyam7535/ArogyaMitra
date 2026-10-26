@@ -8,12 +8,12 @@ Endpoints:
   POST /analyze/json → runs full pipeline, returns JSON (ML + LLM results + PDF base64)
 """
 
-import sys
-import os
-import io
 import base64
+import io
 import logging
-from typing import List, Optional
+import os
+import sys
+
 import jwt
 from dotenv import load_dotenv
 
@@ -21,12 +21,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Header, Depends, status
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
-from graph import graph, PredictRequest
+from graph import PredictRequest, graph
 
 logger = logging.getLogger("arogyamitra.graph_server")
 logging.basicConfig(level=logging.INFO)
@@ -52,8 +52,8 @@ app.add_middleware(
 
 
 def verify_service_token(
-    x_internal_service_token: Optional[str] = Header(None),
-    authorization: Optional[str] = Header(None),
+    x_internal_service_token: str | None = Header(None),
+    authorization: str | None = Header(None),
 ) -> dict:
     """
     Validates internal service tokens issued by the Node.js backend
@@ -85,18 +85,18 @@ def verify_service_token(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Invalid service token: {str(e)}",
+            detail=f"Invalid service token: {e!s}",
         )
 
 
 class AnalyzeRequest(BaseModel):
-    symptoms: List[str] = Field(..., min_length=1, description="List of symptoms reported by patient")
-    patientName: Optional[str] = "Patient"
-    patientAge: Optional[int] = None
-    patientGender: Optional[str] = None
-    workerName: Optional[str] = "Healthcare Worker"
-    location: Optional[str] = ""
-    language: Optional[str] = "en"
+    symptoms: list[str] = Field(..., min_length=1, description="List of symptoms reported by patient")
+    patientName: str | None = "Patient"
+    patientAge: int | None = None
+    patientGender: str | None = None
+    workerName: str | None = "Healthcare Worker"
+    location: str | None = ""
+    language: str | None = "en"
 
 
 @app.get("/")
@@ -110,7 +110,7 @@ def health():
 
 
 @app.post("/analyze")
-def analyze(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)):
+def analyze(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)):  # noqa: B008
     """
     Runs full LangGraph pipeline (ML inference → Safe LLM → Multilingual PDF).
     Returns PDF bytes as a streaming response.
@@ -128,8 +128,8 @@ def analyze(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)):
     try:
         result = graph.invoke({"request": predict_request})
     except Exception as e:
-        logger.error(f"Pipeline error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {str(e)}")
+        logger.exception("Pipeline execution failed")
+        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {e!s}")
 
     pdf_bytes = result["pdf_bytes"]
     filename = result["filename"]
@@ -145,7 +145,7 @@ def analyze(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)):
 
 
 @app.post("/analyze/json")
-def analyze_json(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)):
+def analyze_json(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)):  # noqa: B008
     """
     Runs the full LangGraph pipeline (ML → LLM → PDF).
     Returns structured JSON with ML results, safe LLM summary, and base64-encoded PDF.
@@ -163,8 +163,8 @@ def analyze_json(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)
     try:
         result = graph.invoke({"request": predict_request})
     except Exception as e:
-        logger.error(f"Pipeline error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {str(e)}")
+        logger.exception("Pipeline execution failed")
+        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {e!s}")
 
     xai_output = result.get("xai_output", {})
     llm_summary = result.get("llm_summary")
@@ -197,5 +197,5 @@ def analyze_json(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8001))
+    port = int(os.environ.get("PORT", "8001"))
     uvicorn.run(app, host="0.0.0.0", port=port, reload=False)

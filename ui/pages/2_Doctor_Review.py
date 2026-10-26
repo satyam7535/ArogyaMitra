@@ -4,9 +4,10 @@ Enables licensed physicians to review escalated rural cases, evaluate TreeSHAP f
 attributions, issue binding diagnoses, prescribe treatments, and resolve triage workflows.
 """
 
-import streamlit as st
 import os
 import sys
+
+import streamlit as st
 
 # Ensure ui and project root are in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -110,7 +111,7 @@ with h4:
     st.error(f"🚨 Escalation: `{selected_case['uncertaintyReason']}`")
 
 st.markdown(f"**Health Worker Notes:** *\"{selected_case['notes']}\"*")
-st.markdown(f"**Reported Symptoms:** " + ", ".join(f"`{s.replace('_', ' ').title()}`" for s in selected_case['symptoms']))
+st.markdown("**Reported Symptoms:** " + ", ".join(f"`{s.replace('_', ' ').title()}`" for s in selected_case['symptoms']))
 
 st.divider()
 

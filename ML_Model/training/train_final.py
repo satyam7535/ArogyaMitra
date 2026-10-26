@@ -5,13 +5,12 @@ calibrates probabilities with CalibratedClassifierCV, fits TreeSHAP explainer,
 and exports versioned artifacts to ML_Model/model/v1/.
 """
 
-import os
-import sys
 import json
-import time
+import os
 import subprocess
-from datetime import datetime
-from typing import Dict, Any
+import sys
+from datetime import UTC, datetime
+from typing import Any
 
 os.environ["TEMP"] = r"D:\temp"
 os.environ["TMP"] = r"D:\temp"
@@ -23,23 +22,23 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     except Exception:
         pass
 
-import yaml
 import joblib
+import numpy as np
 import optuna
 import shap
-import numpy as np
-import pandas as pd
+import yaml
 from lightgbm import LGBMClassifier
-from sklearn.model_selection import StratifiedKFold
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.metrics import accuracy_score, log_loss, f1_score
+from sklearn.metrics import accuracy_score, f1_score, log_loss
+from sklearn.model_selection import StratifiedKFold
 
 # Ensure root is on sys.path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from ML_Model.training.prepare_data import load_and_clean_data, augment_training_data
+from ML_Model.training.prepare_data import augment_training_data, load_and_clean_data
+
 
 def get_git_commit_hash() -> str:
     try:
@@ -62,7 +61,7 @@ def compute_ece(probs: np.ndarray, labels: np.ndarray, n_bins: int = 10) -> floa
             ece += np.sum(bin_mask) * np.abs(bin_acc - bin_conf)
     return float(ece / len(labels))
 
-def optimize_lightgbm(X: np.ndarray, y: np.ndarray, n_trials: int = 25, seed: int = 42) -> Dict[str, Any]:
+def optimize_lightgbm(X: np.ndarray, y: np.ndarray, n_trials: int = 25, seed: int = 42) -> dict[str, Any]:
     print(f"[OPTUNA] Beginning Bayesian hyperparameter search ({n_trials} trials)...")
     optuna.logging.set_verbosity(optuna.logging.WARNING)
 
@@ -165,7 +164,7 @@ def train_and_export_v1():
     acc_val = accuracy_score(y_clean, cal_preds)
     f1_val = f1_score(y_clean, cal_preds, average="macro")
 
-    print(f"[METRICS] Calibrated Model on Clean Ground Truth:")
+    print("[METRICS] Calibrated Model on Clean Ground Truth:")
     print(f"  Accuracy: {acc_val*100:.2f}%")
     print(f"  Macro-F1: {f1_val:.4f}")
     print(f"  Log Loss: {log_loss_val:.4f}")
@@ -199,7 +198,7 @@ def train_and_export_v1():
     metadata = {
         "model_version": "v1.0.0",
         "model_family": "LightGBM + CalibratedClassifierCV (sigmoid) + TreeSHAP",
-        "training_timestamp": datetime.utcnow().isoformat() + "Z",
+        "training_timestamp": datetime.now(UTC).isoformat(),
         "git_commit": get_git_commit_hash(),
         "dataset": {
             "initial_rows": data["stats"]["initial_rows"],
@@ -230,7 +229,7 @@ def train_and_export_v1():
     with open(os.path.join(root_model_dir, "metadata.json"), "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
-    print(f"[SUCCESS] Version 1 artifacts exported with metadata.json!")
+    print("[SUCCESS] Version 1 artifacts exported with metadata.json!")
 
 if __name__ == "__main__":
     train_and_export_v1()

@@ -1,17 +1,23 @@
-import os
 import io
+import os
 from datetime import datetime
-from reportlab.lib.pagesizes import A4
+
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    HRFlowable, KeepTogether
-)
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import (
+    HRFlowable,
+    KeepTogether,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 # ── Translations ─────────────────────────────────────────────────────────────
 TRANSLATIONS = {
@@ -154,7 +160,7 @@ try:
                 DEFAULT_FONT = 'Helvetica'
         else:
             DEFAULT_FONT = 'Helvetica'
-except Exception as e:
+except Exception:
     DEFAULT_FONT = 'Helvetica'
 
 # ── PDF Generator ──────────────────────────────────────────────────────────────
@@ -180,8 +186,6 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
     LIGHT_BG   = colors.HexColor('#EBF5FB')
     LIGHT_GRAY = colors.HexColor('#F2F3F4')
     WHITE      = colors.white
-
-    styles = getSampleStyleSheet()
 
     def style(name, **kwargs):
         return ParagraphStyle(name, **kwargs)

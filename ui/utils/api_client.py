@@ -6,9 +6,9 @@ for reliable demonstrations and standalone deployment.
 
 import os
 import sys
-import json
+from typing import Any
+
 import httpx
-from typing import List, Dict, Any, Optional
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:5000/api/v1")
 ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8000")
@@ -47,7 +47,7 @@ SYMPTOMS_LIST = [
 ]
 
 
-def check_services_health() -> Dict[str, bool]:
+def check_services_health() -> dict[str, bool]:
     """Check availability of backend, ML, and graph microservices."""
     health = {"ml": False, "graph": False, "backend": False}
     try:
@@ -71,7 +71,7 @@ def check_services_health() -> Dict[str, bool]:
     return health
 
 
-def get_clinical_symptoms() -> List[Dict[str, Any]]:
+def get_clinical_symptoms() -> list[dict[str, Any]]:
     """Return list of formatted clinical symptoms."""
     try:
         r = httpx.get(f"{ML_API_URL}/symptoms", timeout=2.0)
@@ -88,10 +88,10 @@ def get_clinical_symptoms() -> List[Dict[str, Any]]:
 
 
 def run_triage_analysis(
-    symptoms: List[str],
-    patient_info: Dict[str, Any],
+    symptoms: list[str],
+    patient_info: dict[str, Any],
     language: str = "en",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Executes triage analysis via HTTP microservice or in-process fallback engine.
     """
@@ -135,10 +135,12 @@ def run_triage_analysis(
         if ml_dir not in sys.path:
             sys.path.insert(0, ml_dir)
 
-        from app import run_prediction, PredictRequest
+        import base64
+
+        from app import PredictRequest, run_prediction
+
         from graph.llm import call_llm
         from graph.utils.pdf_generator import generate_pdf
-        import base64
 
         req = PredictRequest(
             symptoms=symptoms,
@@ -181,7 +183,7 @@ def run_triage_analysis(
             "pdfBase64": base64.b64encode(pdf_bytes).decode("utf-8"),
             "filename": f"ArogyaMitra_{payload['patientName'].replace(' ', '_')}.pdf",
         }
-    except Exception as e:
+    except Exception:
         # Ultimate deterministic safety fallback
         return {
             "mlResult": {

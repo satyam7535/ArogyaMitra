@@ -7,14 +7,13 @@ The generated PDF is saved in the current directory.
 """
 
 import argparse
-import sys
 import os
+import sys
 
 # Add parent directory to path so we can import ML_Model
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from graph import graph
-from graph import PredictRequest
+from graph import PredictRequest, graph
 
 
 def main():

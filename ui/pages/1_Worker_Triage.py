@@ -4,16 +4,17 @@ Enables village health workers to register patient vitals, select presenting sym
 trigger calibrated AI analysis, inspect TreeSHAP explainability, and escalate to doctors.
 """
 
-import streamlit as st
 import base64
 import os
 import sys
 
+import streamlit as st
+
 # Ensure ui and project root are in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.i18n import t
 from utils.api_client import get_clinical_symptoms, run_triage_analysis
+from utils.i18n import t
 from utils.viz import create_shap_waterfall_or_bar, create_top_predictions_chart
 
 st.set_page_config(

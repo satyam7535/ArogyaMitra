@@ -5,12 +5,14 @@ Asserts health status and strict compliance with the prediction contract.
 
 import os
 import sys
+
 import pytest
+from pydantic import ValidationError
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from fastapi import HTTPException
-from ML_Model.app import health, get_symptoms, predict, PredictRequest
+from ML_Model.app import PredictRequest, get_symptoms, health, predict
+
 
 def test_health_endpoint():
     data = health()
@@ -88,5 +90,5 @@ def test_prediction_contract():
     assert res["location"] == "Wardha PHC"
 
 def test_prediction_empty_symptoms_fails():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         PredictRequest(symptoms=[])

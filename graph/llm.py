@@ -5,14 +5,15 @@ Pydantic v2 structured output validation, multilingual generation (en/hi/mr),
 and deterministic clinical fallback on failures.
 """
 
-import os
 import json
-import re
 import logging
-from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
-from openai import OpenAI
+import os
+import re
+from typing import Any
+
 from dotenv import load_dotenv
+from openai import OpenAI
+from pydantic import BaseModel, Field
 
 load_dotenv()
 logger = logging.getLogger("arogyamitra.llm")
@@ -58,7 +59,7 @@ def sanitize_clinical_input(val: Any) -> Any:
     return val
 
 
-def generate_deterministic_fallback(xai_data: Dict[str, Any], language: str = "en") -> LLMConclusion:
+def generate_deterministic_fallback(xai_data: dict[str, Any], language: str = "en") -> LLMConclusion:
     """
     Clinically safe, deterministic fallback conclusion generated when LLM
     fails, times out, throws safety errors, or returns malformed JSON.
@@ -108,7 +109,7 @@ def generate_deterministic_fallback(xai_data: Dict[str, Any], language: str = "e
         )
 
 
-def call_llm(xai_data: Dict[str, Any], language: str = "en", client: Optional[OpenAI] = None) -> LLMConclusion:
+def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | None = None) -> LLMConclusion:
     """
     Executes prompt-injection protected, structured LLM analysis.
     Safely falls back to deterministic clinical output if any failure occurs.

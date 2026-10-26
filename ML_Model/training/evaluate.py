@@ -7,8 +7,6 @@ Saves empirical evidence to docs/evidence/.
 
 import os
 import sys
-import json
-from typing import Dict, Any
 
 os.environ["TEMP"] = r"D:\temp"
 os.environ["TMP"] = r"D:\temp"
@@ -21,19 +19,21 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
         pass
 
 import joblib
-import numpy as np
-import pandas as pd
 import matplotlib
+import numpy as np
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from sklearn.metrics import classification_report, log_loss, brier_score_loss, confusion_matrix
-from sklearn.calibration import calibration_curve
+from sklearn.metrics import (
+    classification_report,
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from ML_Model.training.prepare_data import load_and_clean_data, apply_symptom_masking
+from ML_Model.training.prepare_data import apply_symptom_masking, load_and_clean_data
+
 
 def compute_multiclass_ece(probs: np.ndarray, labels: np.ndarray, n_bins: int = 10):
     confidences = np.max(probs, axis=1)
@@ -66,7 +66,6 @@ def run_evaluation():
     calibrator = joblib.load(os.path.join(model_dir, "calibrator.pkl"))
     base_model = joblib.load(os.path.join(model_dir, "disease_model.pkl"))
     label_encoder = joblib.load(os.path.join(model_dir, "label_encoder.pkl"))
-    feature_names = joblib.load(os.path.join(model_dir, "symptom_columns.pkl"))
 
     data_dir = os.path.join(BASE_DIR, "ML_Model", "dataset")
     data = load_and_clean_data(os.path.join(data_dir, "Training.csv"), deduplicate=True)
@@ -147,14 +146,12 @@ def run_evaluation():
         f.write("## 1. Reliability & Calibration Bins\n\n")
         f.write("| Confidence Bin | Sample Count | Mean Confidence | Empirical Accuracy |\n")
         f.write("|---|:---:|:---:|:---:|\n")
-        for b in bin_stats:
-            f.write(f"| {b['bin']} | {b['count']} | {b['confidence']:.4f} | {b['accuracy']:.4f} |\n")
+        f.writelines(f"| {b['bin']} | {b['count']} | {b['confidence']:.4f} | {b['accuracy']:.4f} |\n" for b in bin_stats)
 
         f.write("\n## 2. Robustness Under Symptom Omission (Masking)\n\n")
         f.write("| Mask Rate (% Symptoms Hidden) | Top-1 Accuracy (%) | Top-3 Accuracy (%) | ECE |\n")
         f.write("|---|:---:|:---:|:---:|\n")
-        for mr in mask_results:
-            f.write(f"| {mr['mask_rate']} | {mr['top1_accuracy']}% | {mr['top3_accuracy']}% | {mr['ece']} |\n")
+        f.writelines(f"| {mr['mask_rate']} | {mr['top1_accuracy']}% | {mr['top3_accuracy']}% | {mr['ece']} |\n" for mr in mask_results)
 
         f.write("\n## 3. Per-Class Precision, Recall, and F1-Score\n\n")
         f.write("| Disease Class | Precision | Recall | F1-Score | Support |\n")

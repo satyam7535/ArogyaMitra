@@ -1,1 +1,5 @@
 ﻿All checks passed!
+
+> techathon-3.0@1.0.0 lint
+> eslint src/
+

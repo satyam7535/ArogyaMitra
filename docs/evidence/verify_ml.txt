@@ -2,7 +2,7 @@
 platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
 cachedir: .pytest_cache
 rootdir: D:\Document\Projects\Internship\Arogyamitra\ML_Model
-plugins: anyio-4.15.1, langsmith-0.3.45, platformdirs-4.13.5
+plugins: anyio-4.15.1, langsmith-0.3.45
 collecting ... collected 9 items
 
 tests/test_phase1.py::test_no_data_leakage_in_clean_data PASSED          [ 11%]
@@ -51,4 +51,4 @@ tests/test_phase1.py: 15 warnings
     warnings.warn(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-====================== 9 passed, 938 warnings in 26.01s =======================
+====================== 9 passed, 938 warnings in 59.63s =======================

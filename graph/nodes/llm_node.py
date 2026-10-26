@@ -1,5 +1,6 @@
 from llm import call_llm
 
+
 def llm_node(state):
     xai_data = state["xai_output"]
     req = state.get("request")

@@ -67,7 +67,7 @@ app.use((req, res) => {
 });
 
 // 7. Global Error Handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error("[SERVER ERROR]", err);
   const statusCode = err.status || 500;
   res.status(statusCode).json({

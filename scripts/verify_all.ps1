@@ -53,9 +53,13 @@ function Run-Step {
 }
 
 # 1. Lint Step
-Run-Step -Name "Lint (Python & Node Syntax)" -OutputFile "verify_lint.txt" -Action {
-    Write-Host "# Running ruff lint check on Python codebase..."
-    uv run ruff check --select E9,F63,F7,F82 ML_Model graph ui
+Run-Step -Name "Lint (Python Ruff & Node ESLint)" -OutputFile "verify_lint.txt" -Action {
+    Write-Host "# Running ruff check on ML_Model, graph, ui..."
+    uv run ruff check ML_Model graph ui
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "# Running ESLint on Backend/src..."
+    npm --prefix Backend run lint
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host "# Running Node syntax check on Backend/src..."

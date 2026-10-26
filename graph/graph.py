@@ -1,23 +1,26 @@
-from langgraph.graph import StateGraph, END
-from typing import TypedDict, Dict, Any, Optional, List
-from pydantic import BaseModel
-from nodes.xai_node import xai_node
+from typing import Any, TypedDict
+
+from langgraph.graph import END, StateGraph
+from llm import LLMConclusion
 from nodes.llm_node import llm_node
 from nodes.report_node import report_node
-from llm import LLMConclusion       
+from nodes.xai_node import xai_node
+from pydantic import BaseModel
+
+
 class PredictRequest(BaseModel):
-    symptoms: List[str]
-    patientName: Optional[str] = "Patient"
-    patientAge: Optional[int] = None
-    patientGender: Optional[str] = None
-    workerName: Optional[str] = "Healthcare Worker"
-    location: Optional[str] = ""
-    language: Optional[str] = "en"
+    symptoms: list[str]
+    patientName: str | None = "Patient"
+    patientAge: int | None = None
+    patientGender: str | None = None
+    workerName: str | None = "Healthcare Worker"
+    location: str | None = ""
+    language: str | None = "en"
 
 
 class HealthcareState(TypedDict):
     request: PredictRequest
-    xai_output: Dict[str, Any]
+    xai_output: dict[str, Any]
     llm_summary: LLMConclusion
     final_report: str
     pdf_bytes: bytes

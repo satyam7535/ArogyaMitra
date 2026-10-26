@@ -1,5 +1,7 @@
-from utils.pdf_generator import generate_pdf
 from datetime import datetime
+
+from utils.pdf_generator import generate_pdf
+
 
 def report_node(state):
     xai_data = state["xai_output"]

@@ -16,8 +16,10 @@ echo "============================================================"
 echo "  1. RUNNING LINT (Python & Node Syntax)"
 echo "============================================================"
 {
-    echo "# Running ruff lint check on Python codebase..."
-    uv run ruff check --select E9,F63,F7,F82 ML_Model graph ui
+    echo "# Running ruff check on ML_Model, graph, ui..."
+    uv run ruff check ML_Model graph ui
+    echo "# Running ESLint on Backend/src..."
+    npm --prefix Backend run lint
     echo "# Running Node syntax check on Backend/src..."
     find Backend/src -name "*.js" -exec node --check {} +
     echo "Lint checks completed successfully."

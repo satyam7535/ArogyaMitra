@@ -4,19 +4,18 @@ Phase 1: Calibrated probabilities, TreeSHAP feature attributions,
 clinical uncertainty scoring, and auto-escalation flags.
 """
 
-import os
-import sys
 import json
 import logging
+import os
 import re
-from typing import List, Optional, Dict, Any
+from typing import Any
 
+import joblib
+import numpy as np
+import pandas as pd
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import numpy as np
-import pandas as pd
-import joblib
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("arogyamitra-ml")
@@ -40,12 +39,12 @@ app.add_middleware(
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 class PredictRequest(BaseModel):
-    symptoms: List[str] = Field(..., min_length=1, description="List of patient symptoms")
-    patientName: Optional[str] = "Patient"
-    patientAge: Optional[int] = None
-    patientGender: Optional[str] = None
-    workerName: Optional[str] = "Healthcare Worker"
-    location: Optional[str] = ""
+    symptoms: list[str] = Field(..., min_length=1, description="List of patient symptoms")
+    patientName: str | None = "Patient"
+    patientAge: int | None = None
+    patientGender: str | None = None
+    workerName: str | None = "Healthcare Worker"
+    location: str | None = ""
 
 # ── Artifact Management ───────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -57,11 +56,11 @@ base_model = None
 calibrator = None
 shap_explainer = None
 label_encoder = None
-symptom_columns: List[str] = []
-severity_map: Dict[str, int] = {}
-description_map: Dict[str, str] = {}
-precaution_map: Dict[str, List[str]] = {}
-metadata: Dict[str, Any] = {}
+symptom_columns: list[str] = []
+severity_map: dict[str, int] = {}
+description_map: dict[str, str] = {}
+precaution_map: dict[str, list[str]] = {}
+metadata: dict[str, Any] = {}
 model_loaded = False
 load_error_message = ""
 
@@ -126,7 +125,7 @@ def load_artifacts():
         model_loaded = True
         logger.info(f"Loaded ML artifacts from '{MODEL_DIR}'. Known symptoms: {len(symptom_columns)}")
     except Exception as e:
-        load_error_message = f"Failed to load artifacts from '{MODEL_DIR}': {str(e)}"
+        load_error_message = f"Failed to load artifacts from '{MODEL_DIR}': {e!s}"
         logger.error(load_error_message)
         model_loaded = False
 
@@ -134,7 +133,7 @@ def load_artifacts():
 load_artifacts()
 
 # ── Inference Engine ──────────────────────────────────────────────────────────
-def run_prediction(req: PredictRequest) -> Dict[str, Any]:
+def run_prediction(req: PredictRequest) -> dict[str, Any]:
     if not model_loaded:
         load_artifacts()
     if not model_loaded:
@@ -145,9 +144,9 @@ def run_prediction(req: PredictRequest) -> Dict[str, Any]:
 
     # 1. Vocabulary validation and feature vector construction
     input_vector = np.zeros(len(symptom_columns), dtype=np.float32)
-    matched: List[str] = []
-    unmatched: List[str] = []
-    symptom_severities: List[Dict[str, Any]] = []
+    matched: list[str] = []
+    unmatched: list[str] = []
+    symptom_severities: list[dict[str, Any]] = []
 
     for s in req.symptoms:
         s_norm = normalize_symptom_str(s)
@@ -197,7 +196,7 @@ def run_prediction(req: PredictRequest) -> Dict[str, Any]:
     max_severity = max(severities) if severities else 1
 
     # 4. Clinical Uncertainty & Auto-Escalation Triggers
-    escalation_reasons: List[str] = []
+    escalation_reasons: list[str] = []
     if top_confidence < 55.0:
         escalation_reasons.append(f"Low diagnostic confidence ({top_confidence}% < 55%). Physician review recommended.")
     if margin < 15.0:
@@ -209,7 +208,7 @@ def run_prediction(req: PredictRequest) -> Dict[str, Any]:
     uncertainty_reason = " | ".join(escalation_reasons) if needs_escalation else None
 
     # 5. TreeSHAP Feature Attributions
-    shap_explanations: List[Dict[str, Any]] = []
+    shap_explanations: list[dict[str, Any]] = []
     top_idx = top_indices[0]
 
     if shap_explainer is not None:
@@ -367,5 +366,5 @@ def predict(req: PredictRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", "8000"))
     uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)

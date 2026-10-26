@@ -6,8 +6,9 @@ TreeSHAP explainability contract, clinical uncertainty triggers, and vocabulary 
 
 import os
 import sys
-import pytest
+
 import numpy as np
+import pytest
 from fastapi import HTTPException
 
 # Ensure root is on path
@@ -15,16 +16,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from ML_Model.training.prepare_data import load_and_clean_data, normalize_symptom_name
 from ML_Model.app import (
     PredictRequest,
-    run_prediction,
-    health,
-    ready,
-    model_info,
     get_symptoms,
-    load_artifacts
+    health,
+    load_artifacts,
+    model_info,
+    ready,
+    run_prediction,
 )
+from ML_Model.training.prepare_data import load_and_clean_data, normalize_symptom_name
+
 
 @pytest.fixture(scope="session", autouse=True)
 def ensure_artifacts():

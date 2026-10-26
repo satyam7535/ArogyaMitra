@@ -66,4 +66,9 @@ This audit document evaluates every task and gate across Phases 0 through 7 agai
 | **Task 7.2** | Demo data seeding script | **PASS** | `Backend/src/scripts/seedDemo.js` |
 | **Task 7.3** | Academic documentation suite | **PARTIAL** | Generated in a single pass; literature citations, claims, and numbers must be traced to raw evidence. |
 | **Task 7.4** | Master evidence index | **PARTIAL** | `docs/EVIDENCE_INDEX.md` indexed previous text and test outputs; needs cleanup of unverified claims. |
-| **Gate 7** | Academic Deliverables Gate | **PARTIAL** | Documentation drafted; claims tracing and citation verification required. |
+| **Task 7.5** | Viva Q&A prep document | **PARTIAL** | `docs/VIVA_QA.md` authored, but contains unverified claims (e.g. 42 diseases, enterprise-grade calibration); scheduled for audit & scrub in Stage I. |
+| **Task 7.6** | Live demo script | **PARTIAL** | `docs/DEMO.md` authored; relies on unverified live Docker stack and placeholder IDs; needs verification in Stage I. |
+| **Task 7.7** | Operations runbook | **PARTIAL** | `docs/OPERATIONS.md` documents deployment, backup, and restore procedures; Docker deployment untested due to host C: drive storage limit. |
+| **Task 7.8** | Testing guide | **PASS** | `docs/TESTING.md` accurately documents test runners, unit/integration suites, and mock structures. |
+| **Task 7.9** | Release tagging and final verification | **PARTIAL** | Premature `v1.0.0` tag renamed to `v0.9-unreviewed` on branch `remediation`; final tagging deferred until Stage J passes all gates. |
+| **Gate 7** | Academic Deliverables Gate | **PARTIAL** | Deliverable documents drafted; claims tracing, citation verification, and Docker operations testing required. |

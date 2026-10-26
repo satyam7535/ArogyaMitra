@@ -93,7 +93,7 @@ const escalateToDoctor = async (consultationId, organization, doctorId, reason =
 };
 
 // Worker accepts AI result (strictly scoped to organization)
-const acceptAiResult = async (consultationId, organization, workerId) => {
+const acceptAiResult = async (consultationId, organization, _workerId) => {
   const consultation = await Consultation.findOne({ _id: consultationId, organization });
   if (!consultation) {
     return null;

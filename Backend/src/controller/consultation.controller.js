@@ -7,10 +7,6 @@ import {
   getPendingConsultationsForDoctor,
   getAllConsultationsForDoctor,
   submitSecondOpinion,
-  storeMlAnalysis,
-  storeLlmAnalysis,
-  storeFinalVerdict,
-  storeAnalysisReport,
   triggerConsultationAnalysis,
   getAllConsultationsForAdmin,
 } from "../service/consultation.service.js";

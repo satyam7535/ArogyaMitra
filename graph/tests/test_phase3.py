@@ -10,13 +10,14 @@ Tests:
   7. End-to-end LangGraph pipeline execution
 """
 
-import sys
-import os
-import time
 import json
-import pytest
+import os
+import sys
+import time
 from unittest.mock import MagicMock
+
 import jwt
+import pytest
 
 # Add graph directory to path
 graph_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,16 +25,15 @@ sys.path.insert(0, graph_dir)
 
 os.environ.setdefault("INTERNAL_SERVICE_SECRET", "test_internal_service_secret_key_at_least_32_chars!")
 
+from fastapi import HTTPException
 from llm import (
     LLMConclusion,
-    sanitize_clinical_input,
-    generate_deterministic_fallback,
     call_llm,
+    generate_deterministic_fallback,
+    sanitize_clinical_input,
 )
-from server import verify_service_token, INTERNAL_SERVICE_SECRET
+from server import INTERNAL_SERVICE_SECRET, verify_service_token
 from utils.pdf_generator import generate_pdf
-from fastapi import HTTPException
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. Prompt Injection Neutralization & Input Sanitization
@@ -297,7 +297,7 @@ def test_pdf_generation_multilingual():
 
 def test_e2e_graph_invocation(monkeypatch):
     """Verify full graph execution (xai -> llm -> report) produces PDF bytes and filename."""
-    from graph import graph, PredictRequest
+    from graph import PredictRequest
 
     # Mock xai_node call to avoid requiring running ML microservice during unit test
     def mock_xai_node(state):
