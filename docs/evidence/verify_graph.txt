@@ -1,0 +1,27 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Document\Projects\Internship\Arogyamitra\graph
+plugins: anyio-4.15.1, langsmith-0.3.45, platformdirs-4.13.5
+collecting ... collected 12 items
+
+tests/test_phase3.py::test_prompt_injection_sanitization PASSED          [  8%]
+tests/test_phase3.py::test_sanitize_nested_data PASSED                   [ 16%]
+tests/test_phase3.py::test_deterministic_fallback_multilingual PASSED    [ 25%]
+tests/test_phase3.py::test_call_llm_valid_mock_response PASSED           [ 33%]
+tests/test_phase3.py::test_call_llm_malformed_json_triggers_fallback PASSED [ 41%]
+tests/test_phase3.py::test_call_llm_exception_triggers_fallback PASSED   [ 50%]
+tests/test_phase3.py::test_verify_service_token_valid PASSED             [ 58%]
+tests/test_phase3.py::test_verify_service_token_missing PASSED           [ 66%]
+tests/test_phase3.py::test_verify_service_token_forged PASSED            [ 75%]
+tests/test_phase3.py::test_verify_service_token_expired PASSED           [ 83%]
+tests/test_phase3.py::test_pdf_generation_multilingual PASSED            [ 91%]
+tests/test_phase3.py::test_e2e_graph_invocation PASSED                   [100%]
+
+============================== warnings summary ===============================
+..\.venv\Lib\site-packages\langgraph\checkpoint\base\__init__.py:18
+  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\langgraph\checkpoint\base\__init__.py:18: LangChainPendingDeprecationWarning: The default value of `allowed_objects` will change in a future version. Pass an explicit value (e.g., allowed_objects='messages' or allowed_objects='core') to suppress this warning.
+    from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 12 passed, 1 warning in 10.07s ========================

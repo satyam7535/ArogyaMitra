@@ -13,7 +13,7 @@ from typing import List, Dict, Any, Optional
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:5000/api/v1")
 ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8000")
 GRAPH_API_URL = os.getenv("GRAPH_API_URL", "http://localhost:8001")
-INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "arogyamitra_internal_service_token_secret_key_32chars!")
+INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "")
 
 # Pre-load symptom columns from ML_Model for immediate instant availability
 SYMPTOMS_LIST = [

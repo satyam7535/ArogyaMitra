@@ -22,6 +22,8 @@ import jwt
 graph_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, graph_dir)
 
+os.environ.setdefault("INTERNAL_SERVICE_SECRET", "test_internal_service_secret_key_at_least_32_chars!")
+
 from llm import (
     LLMConclusion,
     sanitize_clinical_input,

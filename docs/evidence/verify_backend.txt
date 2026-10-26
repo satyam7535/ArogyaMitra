@@ -1,0 +1,45 @@
+﻿
+> techathon-3.0@1.0.0 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mD:/Document/Projects/Internship/Arogyamitra/Backend[39m
+
+[90mstdout[2m | tests/security.test.js
+[22m[39m[dotenv@17.3.1] injecting env (10) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+
+node.exe : [90mstderr[2m | tests/security.test.js
+At C:\Program Files\nodejs\npm.ps1:29 char:3
++   & $NODE_EXE $NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([90mstderr[2m | tests/security.test.js:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[22m[39mWARN: Missing test environment variables, falling back to ephemeral test config.
+
+[90mstdout[2m | tests/concurrency.test.js
+[22m[39m[dotenv@17.3.1] injecting env (10) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+
+[90mstderr[2m | tests/concurrency.test.js
+[22m[39mWARN: Missing test environment variables, falling back to ephemeral test config.
+
+ [32m✓[39m tests/concurrency.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+[90mstderr[2m | tests/security.test.js[2m > [22m[2mPhase 2 — Security & Cryptographic Integrity[2m > [22m[2m1. 
+AES-256-GCM Field-Level Encryption[2m > [22m[2mshould handle null or invalid ciphertexts gracefully
+[22m[39mFailed to decrypt field: Invalid authentication tag length: 0
+
+ [32m✓[39m tests/security.test.js [2m([22m[2m19 tests[22m[2m)[22m[33m 3302[2mms[22m[39m
+   [32m✓[39m Phase 2 — Security & Cryptographic Integrity [2m(19)[22m
+     [32m✓[39m 2. Argon2id Password Hashing [2m(2)[22m
+       [33m[2m✓[22m[39m should hash password with Argon2id and verify correctly[33m 1015[2mms[22m[39m
+     [32m✓[39m 7. Brute-Force Protection & Account Lockout [2m(2)[22m
+       [33m[2m✓[22m[39m should lock account after 5 failed password attempts[33m 820[2mms[22m[39m
+       [33m[2m✓[22m[39m should reject attempts on a locked account with HTTP 423 Locked[33m 819[2mms[22m[39m
+     [32m✓[39m 8. HTTP Level Security & Disabled Public Endpoints [2m(3)[22m
+       [33m[2m✓[22m[39m should return 403 Forbidden on public admin registration[33m 412[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m26 passed[39m[22m[90m (26)[39m
+[2m   Start at [22m 06:02:59
+[2m   Duration [22m 10.65s[2m (import 63%, tests 23%, transform 14%)[22m
+

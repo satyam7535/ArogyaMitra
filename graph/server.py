@@ -31,8 +31,11 @@ from graph import graph, PredictRequest
 logger = logging.getLogger("arogyamitra.graph_server")
 logging.basicConfig(level=logging.INFO)
 
-INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "arogyamitra_internal_service_token_secret_key_32chars!")
+INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "")
 REQUIRE_AUTH = os.getenv("REQUIRE_INTERNAL_AUTH", "true").lower() in ("true", "1", "yes")
+
+if REQUIRE_AUTH and not INTERNAL_SERVICE_SECRET:
+    logger.warning("SECURITY WARNING: INTERNAL_SERVICE_SECRET is not configured in environment.")
 
 app = FastAPI(title="ArogyaMitra Graph API", version="1.1.0")
 

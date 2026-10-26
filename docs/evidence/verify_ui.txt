@@ -1,0 +1,15 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Document\Projects\Internship\Arogyamitra\ui
+plugins: anyio-4.15.1, langsmith-0.3.45, platformdirs-4.13.5
+collecting ... collected 6 items
+
+tests/test_streamlit.py::test_home_page_initialization PASSED            [ 16%]
+tests/test_streamlit.py::test_worker_triage_page_initialization PASSED   [ 33%]
+tests/test_streamlit.py::test_doctor_review_page_initialization PASSED   [ 50%]
+tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 66%]
+tests/test_streamlit.py::test_i18n_localization_integrity PASSED         [ 83%]
+tests/test_streamlit.py::test_viz_module_robustness PASSED               [100%]
+
+============================= 6 passed in 24.43s ==============================
