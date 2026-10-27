@@ -14,7 +14,6 @@ import Worker from "../models/worker/workerSchema.js";
 import Doctor from "../models/doctor/doctorSchema.js";
 import Patient from "../models/patient/patientSchema.js";
 import Consultation from "../models/consultation/consultationSchema.js";
-import { hashPassword, encryptField } from "../utils/crypto.js";
 import serverConfig from "../config/serverConfig.js";
 
 dotenv.config();
@@ -25,58 +24,152 @@ const seed = async () => {
     await mongoose.connect(serverConfig.DB_URL);
     console.log("Connected to MongoDB successfully.\n");
 
-    // 1. Seed Organization
+    // 1. Seed Organization 1 (Pune)
     let org = await Organization.findOne({ code: "PUNE-RHM" });
     if (!org) {
       org = await Organization.create({
         name: "Pune District Rural Health Mission",
         code: "PUNE-RHM",
-        type: "phc",
-        district: "Pune",
-        state: "Maharashtra",
+        active: true,
       });
-      console.log(`[+] Seeded Organization: ${org.name} (${org.code})`);
+      console.log(`[+] Seeded Organization 1: ${org.name} (${org.code})`);
     } else {
-      console.log(`[*] Organization exists: ${org.name}`);
+      console.log(`[*] Organization 1 exists: ${org.name}`);
     }
 
-    // 2. Seed Admin User
+    // Seed Organization 2 (Nashik - for cross-tenant scoping tests)
+    let org2 = await Organization.findOne({ code: "NASHIK-RHM" });
+    if (!org2) {
+      org2 = await Organization.create({
+        name: "Nashik Rural Health Mission",
+        code: "NASHIK-RHM",
+        active: true,
+      });
+      console.log(`[+] Seeded Organization 2: ${org2.name} (${org2.code})`);
+    } else {
+      console.log(`[*] Organization 2 exists: ${org2.name}`);
+    }
+
+    // 2. Seed Admin User (Org 1)
     let admin = await Admin.findOne({ email: "admin@arogyamitra.gov.in" });
     if (!admin) {
-      const hashedPassword = await hashPassword("Admin@Arogya2026!");
       admin = await Admin.create({
         name: "Dr. Vikram Kulkarni (Chief Medical Officer)",
         email: "admin@arogyamitra.gov.in",
-        password: hashedPassword,
+        phoneNumber: "+91 98200 11111",
+        location: "Pune PHC Central",
+        password: "Admin@Arogya2026!",
         organization: org._id,
       });
       console.log(`[+] Seeded Admin: ${admin.email}`);
+    } else {
+      admin.password = "Admin@Arogya2026!";
+      admin.failedLoginAttempts = 0;
+      admin.lockUntil = null;
+      await admin.save();
+      console.log(`[*] Updated Admin password: ${admin.email}`);
     }
 
-    // 3. Seed Worker User
+    // Seed Admin User (Org 2)
+    let admin2 = await Admin.findOne({ email: "admin2@arogyamitra.gov.in" });
+    if (!admin2) {
+      admin2 = await Admin.create({
+        name: "Dr. Rajesh Shinde (Nashik CMO)",
+        email: "admin2@arogyamitra.gov.in",
+        phoneNumber: "+91 98200 11112",
+        location: "Nashik Sub-center",
+        password: "Admin@Arogya2026!",
+        organization: org2._id,
+      });
+      console.log(`[+] Seeded Admin 2: ${admin2.email}`);
+    } else {
+      admin2.password = "Admin@Arogya2026!";
+      admin2.failedLoginAttempts = 0;
+      admin2.lockUntil = null;
+      await admin2.save();
+      console.log(`[*] Updated Admin 2 password: ${admin2.email}`);
+    }
+
+    // 3. Seed Worker User (Org 1)
     let worker = await Worker.findOne({ email: "worker@arogyamitra.gov.in" });
     if (!worker) {
-      const hashedPassword = await hashPassword("Worker@Arogya2026!");
       worker = await Worker.create({
         name: "Sunita Patil (ASHA Lead)",
         email: "worker@arogyamitra.gov.in",
-        password: hashedPassword,
+        phoneNumber: "+91 98200 22221",
+        password: "Worker@Arogya2026!",
         organization: org._id,
+        addedBy: admin._id,
       });
-      console.log(`[+] Seeded Health Worker: ${worker.email}`);
+      console.log(`[+] Seeded Health Worker 1: ${worker.email}`);
+    } else {
+      worker.password = "Worker@Arogya2026!";
+      worker.failedLoginAttempts = 0;
+      worker.lockUntil = null;
+      await worker.save();
+      console.log(`[*] Updated Health Worker 1 password: ${worker.email}`);
     }
 
-    // 4. Seed Doctor User
+    // Seed Worker User (Org 2)
+    let worker2 = await Worker.findOne({ email: "worker2@arogyamitra.gov.in" });
+    if (!worker2) {
+      worker2 = await Worker.create({
+        name: "Anita Deshmukh (ASHA Lead Nashik)",
+        email: "worker2@arogyamitra.gov.in",
+        phoneNumber: "+91 98200 22222",
+        password: "Worker@Arogya2026!",
+        organization: org2._id,
+        addedBy: admin2._id,
+      });
+      console.log(`[+] Seeded Health Worker 2: ${worker2.email}`);
+    } else {
+      worker2.password = "Worker@Arogya2026!";
+      worker2.failedLoginAttempts = 0;
+      worker2.lockUntil = null;
+      await worker2.save();
+      console.log(`[*] Updated Health Worker 2 password: ${worker2.email}`);
+    }
+
+    // 4. Seed Doctor User (Org 1)
     let doctor = await Doctor.findOne({ email: "doctor@arogyamitra.gov.in" });
     if (!doctor) {
-      const hashedPassword = await hashPassword("Doctor@Arogya2026!");
       doctor = await Doctor.create({
         name: "Dr. Anand Joshi (Medical Officer)",
         email: "doctor@arogyamitra.gov.in",
-        password: hashedPassword,
+        phoneNumber: "+91 98200 33331",
+        specialization: "General Medicine",
+        password: "Doctor@Arogya2026!",
         organization: org._id,
+        addedBy: admin._id,
       });
-      console.log(`[+] Seeded Doctor: ${doctor.email}`);
+      console.log(`[+] Seeded Doctor 1: ${doctor.email}`);
+    } else {
+      doctor.password = "Doctor@Arogya2026!";
+      doctor.failedLoginAttempts = 0;
+      doctor.lockUntil = null;
+      await doctor.save();
+      console.log(`[*] Updated Doctor 1 password: ${doctor.email}`);
+    }
+
+    // Seed Doctor User (Org 2)
+    let doctor2 = await Doctor.findOne({ email: "doctor2@arogyamitra.gov.in" });
+    if (!doctor2) {
+      doctor2 = await Doctor.create({
+        name: "Dr. Sneha Rao (Medical Officer Nashik)",
+        email: "doctor2@arogyamitra.gov.in",
+        phoneNumber: "+91 98200 33332",
+        specialization: "Pediatrics",
+        password: "Doctor@Arogya2026!",
+        organization: org2._id,
+        addedBy: admin2._id,
+      });
+      console.log(`[+] Seeded Doctor 2: ${doctor2.email}`);
+    } else {
+      doctor2.password = "Doctor@Arogya2026!";
+      doctor2.failedLoginAttempts = 0;
+      doctor2.lockUntil = null;
+      await doctor2.save();
+      console.log(`[*] Updated Doctor 2 password: ${doctor2.email}`);
     }
 
     // 5. Seed Patients with AES-256-GCM Encrypted PII
@@ -86,13 +179,13 @@ const seed = async () => {
         name: "Kavita Devi",
         age: 42,
         gender: "female",
-        phone: encryptField("+91 98765 43210"),
-        address: encryptField("House 42, Khed Village, Pune, Maharashtra"),
+        phoneNumber: "+91 98765 43210",
+        address: "House 42, Khed Village, Pune, Maharashtra",
         organization: org._id,
         registeredBy: worker._id,
         medicalHistory: "Mild hypertension managed by lifestyle. No known drug allergies.",
       });
-      console.log(`[+] Seeded Patient: ${p1.name} (PII Encrypted with AES-256-GCM)`);
+      console.log(`[+] Seeded Patient 1 (Org 1): ${p1.name}`);
     }
 
     let p2 = await Patient.findOne({ name: "Ramesh Shinde", organization: org._id });
@@ -101,13 +194,28 @@ const seed = async () => {
         name: "Ramesh Shinde",
         age: 48,
         gender: "male",
-        phone: encryptField("+91 91234 56789"),
-        address: encryptField("Plot 12, Pali Sub-Centre, Raigad, Maharashtra"),
+        phoneNumber: "+91 91234 56789",
+        address: "Plot 12, Pali Sub-Centre, Raigad, Maharashtra",
         organization: org._id,
         registeredBy: worker._id,
         medicalHistory: "History of seasonal malaria 2 years ago.",
       });
-      console.log(`[+] Seeded Patient: ${p2.name} (PII Encrypted with AES-256-GCM)`);
+      console.log(`[+] Seeded Patient 2 (Org 1): ${p2.name}`);
+    }
+
+    let p3 = await Patient.findOne({ name: "Sanjay More", organization: org2._id });
+    if (!p3) {
+      p3 = await Patient.create({
+        name: "Sanjay More",
+        age: 35,
+        gender: "male",
+        phoneNumber: "+91 94220 54321",
+        address: "Ward 4, Igatpuri, Nashik, Maharashtra",
+        organization: org2._id,
+        registeredBy: worker2._id,
+        medicalHistory: "No prior chronic medical conditions.",
+      });
+      console.log(`[+] Seeded Patient 3 (Org 2): ${p3.name}`);
     }
 
     // 6. Seed Consultations

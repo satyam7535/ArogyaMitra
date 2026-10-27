@@ -342,3 +342,10 @@ def test_e2e_graph_invocation(monkeypatch):
     assert "pdf_bytes" in report_res
     assert report_res["pdf_bytes"].startswith(b"%PDF-")
     assert "ArogyaMitra_Report_Kavita_Devi_" in report_res["filename"]
+
+
+def test_pdf_generator_labels_use_treeshap():
+    from utils.pdf_generator import TRANSLATIONS
+    for lang in ["en", "hi", "mr"]:
+        assert "TreeSHAP" in TRANSLATIONS[lang]["ai_explanation"]
+        assert "LIME" not in TRANSLATIONS[lang]["ai_explanation"]

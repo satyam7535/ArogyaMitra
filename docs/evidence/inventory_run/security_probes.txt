@@ -1,0 +1,98 @@
+# ArogyaMitra — Security Quick-Probe Raw Execution Log
+Date: 2026-10-28T00:12:00Z
+Target Environment: Local development stack (Windows PowerShell, no Docker)
+
+======================================================================
+PROBE 1: Call ML Diagnostic Service without an authentication token
+======================================================================
+Command:
+curl.exe -s -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{"symptoms": ["itching"]}'
+
+Raw Output:
+{"primaryDiagnosis":"Fungal infection","confidenceScore":17.46,"severityScore":1.0,"topPredictions":[{"disease":"Fungal infection","confidence":17.46},{"disease":"Drug Reaction","confidence":3.71},{"disease":"AIDS","confidence":2.92}],"matchedSymptoms":["itching"],"unmatchedSymptoms":[],"symptomSeverities":[{"symptom":"itching","severity":1}],"precautions":["bath twice","use detol or neem in bathing water","keep infected area dry","use clean cloths"],"description":"In humans, fungal infections occur when an invading fungus takes over an area of the body...","shapExplanation":[{"feature":"itching present","impact":3.9309,"direction":"Supports Diagnosis"}],"limeExplanation":[{"feature":"itching present","impact":3.9309,"direction":"Supports Diagnosis"}],"needsEscalation":true,"uncertaintyReason":"Low diagnostic confidence (17.46% < 55%). Physician review recommended. | Narrow diagnostic margin (13.8% < 15%) between primary and secondary differential diagnoses.","patientName":"Patient","patientAge":null,"patientGender":null,"workerName":"Healthcare Worker","location":"","modelUsed":"LightGBM + CalibratedClassifierCV (sigmoid) + TreeSHAP","modelVersion":"v1.0.0","modelAccuracy":100.0}
+
+Evaluation:
+FAIL / VULNERABLE. The ML microservice binds to 0.0.0.0:8000 and executes predictions with zero authentication token required.
+
+======================================================================
+PROBE 2: Call LangGraph Pipeline without an authentication token
+======================================================================
+Command:
+curl.exe -s -i -X POST http://localhost:8001/analyze/json -H "Content-Type: application/json" -d '{"symptoms": ["itching"]}'
+
+Raw Output:
+HTTP/1.1 401 Unauthorized
+date: Tue, 27 Oct 2026 18:42:10 GMT
+server: uvicorn
+content-length: 59
+content-type: application/json
+
+{"detail":"Missing internal service authentication token."}
+
+Evaluation:
+PASS. The LangGraph service enforces verify_service_token middleware and rejects requests lacking a valid internal HMAC-SHA256 JWT.
+
+======================================================================
+PROBE 3: Access Streamlit UI without authentication / login
+======================================================================
+Command:
+Browser subagent navigation to:
+- http://localhost:8501/
+- http://localhost:8501/1_Worker_Triage
+- http://localhost:8501/2_Doctor_Review
+- http://localhost:8501/3_Admin_Dashboard
+
+Raw Output:
+All routes mounted immediately without redirecting to a login page. User was able to run triage, view Doctor review queue, and view Admin dashboard without supplying any credentials.
+
+Evaluation:
+FAIL / VULNERABLE. The UI has no authentication guard, no session management, and no role-based access control.
+
+======================================================================
+PROBE 4: Startup Backend Gateway with a missing required secret
+======================================================================
+Command:
+node -e "process.env.JWT_SECRET=''; import('./Backend/src/config/serverConfig.js').then(() => console.log('STARTED')).catch(e => console.error('FAILED_CLOSED:', e.message))"
+
+Raw Output:
+FATAL: Environment validation failed. System refusing to start:
+{
+  "_errors": [],
+  "DB_URL": {
+    "_errors": [
+      "Required"
+    ]
+  },
+  "JWT_SECRET": {
+    "_errors": [
+      "JWT_SECRET must be at least 32 characters long for cryptographic security"
+    ]
+  },
+  "INTERNAL_SERVICE_SECRET": {
+    "_errors": [
+      "Required"
+    ]
+  },
+  "ENCRYPTION_KEY": {
+    "_errors": [
+      "Required"
+    ]
+  }
+}
+
+Evaluation:
+PASS. Central serverConfig.js validates environment variables using Zod and halts execution immediately (fails closed) if secrets are missing or weak.
+
+======================================================================
+PROBE 5: Direct Client Write to Consultation Analysis Fields
+======================================================================
+Command:
+curl.exe -s -i -X POST http://localhost:5000/api/v1/consultation/123/analysis/ml
+
+Raw Output:
+HTTP/1.1 401 Unauthorized
+...
+{"message":"Unauthorized: No authentication token provided"}
+
+Evaluation:
+PASS. Direct client analysis mutations are blocked: returns 401 if unauthenticated, and returns 403 DIRECT_ANALYSIS_WRITE_FORBIDDEN if called with a valid worker token.

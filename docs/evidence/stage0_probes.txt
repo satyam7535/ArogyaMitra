@@ -1,0 +1,811 @@
+================================================================================
+AROGYAMITRA STAGE 0 — REAL DATABASE & API PROBE EVIDENCE
+Timestamp: 2026-10-27T21:13:01.004Z
+Database: MongoDB Atlas arogyamitra_dev
+================================================================================
+
+[FIXTURES FOUND]
+Org 1 (Pune): 6ae1070ef57007c12dfe5bee (PUNE-RHM)
+Org 2 (Nashik): 6ae10765d7265b845af2b8af (NASHIK-RHM)
+Patient 1 (Org 1): 6ae10768d7265b845af2b8c8 (Kavita Devi)
+Consultation 1 (Org 1): 6ae10768d7265b845af2b8d1
+Worker 1 (Org 1): 6ae10766d7265b845af2b8bc (worker@arogyamitra.gov.in)
+Doctor 1 (Org 1): 6ae10767d7265b845af2b8c2 (doctor@arogyamitra.gov.in)
+Doctor 2 (Org 2): 6ae10768d7265b845af2b8c5 (doctor2@arogyamitra.gov.in)
+
+--------------------------------------------------------------------------------
+PROBE: Worker 1 Login (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:5000/api/v1/worker/login
+Body: {
+  "email": "worker@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+<<< RESPONSE:
+Status: 200 OK
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 596
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:02 GMT
+etag: W/"254-Ms9lE+Cck+uxtcIlilgt9Frmtzc"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 15
+ratelimit-policy: 15;w=900
+ratelimit-remaining: 8
+ratelimit-reset: 531
+referrer-policy: no-referrer
+set-cookie: [REDACTED_COOKIE]
+set-cookie: [REDACTED_COOKIE]
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "worker": {
+    "id": "6ae10766d7265b845af2b8bc",
+    "name": "Sunita Patil (ASHA Lead)",
+    "email": "worker@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 22221",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "role": "Worker"
+  }
+}
+
+[JWT Worker 1 Claims]: {
+  "id": "6ae10766d7265b845af2b8bc",
+  "role": "Worker",
+  "organization": "6ae1070ef57007c12dfe5bee",
+  "iat": 1793135582,
+  "exp": 1793136482
+}
+
+--------------------------------------------------------------------------------
+PROBE: Worker 2 Login (Org 2 - Cross-Tenant)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:5000/api/v1/worker/login
+Body: {
+  "email": "worker2@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+<<< RESPONSE:
+Status: 200 OK
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 606
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:02 GMT
+etag: W/"25e-DirR2ZkRfGHPpVoXLfr6JeNz73c"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 15
+ratelimit-policy: 15;w=900
+ratelimit-remaining: 7
+ratelimit-reset: 531
+referrer-policy: no-referrer
+set-cookie: [REDACTED_COOKIE]
+set-cookie: [REDACTED_COOKIE]
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "worker": {
+    "id": "6ae10767d7265b845af2b8bf",
+    "name": "Anita Deshmukh (ASHA Lead Nashik)",
+    "email": "worker2@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 22222",
+    "organization": "6ae10765d7265b845af2b8af",
+    "role": "Worker"
+  }
+}
+
+[JWT Worker 2 Claims]: {
+  "id": "6ae10767d7265b845af2b8bf",
+  "role": "Worker",
+  "organization": "6ae10765d7265b845af2b8af",
+  "iat": 1793135582,
+  "exp": 1793136482
+}
+
+--------------------------------------------------------------------------------
+PROBE: Doctor 1 Login (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:5000/api/v1/doctor/login
+Body: {
+  "email": "doctor@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+<<< RESPONSE:
+Status: 200 OK
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 641
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:02 GMT
+etag: W/"281-jbET+1jQ0Lyhx1AzPTOUAsIlT5Q"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 15
+ratelimit-policy: 15;w=900
+ratelimit-remaining: 6
+ratelimit-reset: 530
+referrer-policy: no-referrer
+set-cookie: [REDACTED_COOKIE]
+set-cookie: [REDACTED_COOKIE]
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "doctor": {
+    "id": "6ae10767d7265b845af2b8c2",
+    "name": "Dr. Anand Joshi (Medical Officer)",
+    "email": "doctor@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 33331",
+    "specialization": "General Medicine",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "role": "Doctor"
+  }
+}
+
+--------------------------------------------------------------------------------
+PROBE: Doctor 2 Login (Org 2 - Cross-Tenant)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:5000/api/v1/doctor/login
+Body: {
+  "email": "doctor2@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+<<< RESPONSE:
+Status: 200 OK
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 641
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:03 GMT
+etag: W/"281-RIV8LWXpJSmcY0JySaR7PxmSZOE"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 15
+ratelimit-policy: 15;w=900
+ratelimit-remaining: 5
+ratelimit-reset: 530
+referrer-policy: no-referrer
+set-cookie: [REDACTED_COOKIE]
+set-cookie: [REDACTED_COOKIE]
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "doctor": {
+    "id": "6ae10768d7265b845af2b8c5",
+    "name": "Dr. Sneha Rao (Medical Officer Nashik)",
+    "email": "doctor2@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 33332",
+    "specialization": "Pediatrics",
+    "organization": "6ae10765d7265b845af2b8af",
+    "role": "Doctor"
+  }
+}
+
+--------------------------------------------------------------------------------
+PROBE: Admin 1 Login (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:5000/api/v1/admin/login
+Body: {
+  "email": "admin@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+<<< RESPONSE:
+Status: 200 OK
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 641
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:03 GMT
+etag: W/"281-0FS1mU7axWGJy41mqI9b/lzt8GY"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 15
+ratelimit-policy: 15;w=900
+ratelimit-remaining: 4
+ratelimit-reset: 529
+referrer-policy: no-referrer
+set-cookie: [REDACTED_COOKIE]
+set-cookie: [REDACTED_COOKIE]
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "admin": {
+    "id": "6ae10765d7265b845af2b8b6",
+    "name": "Dr. Vikram Kulkarni (Chief Medical Officer)",
+    "email": "admin@arogyamitra.gov.in",
+    "location": "Pune PHC Central",
+    "phoneNumber": "+91 98200 11111",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "role": "Admin"
+  }
+}
+
+--------------------------------------------------------------------------------
+PROBE: Admin 2 Login (Org 2 - Cross-Tenant)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:5000/api/v1/admin/login
+Body: {
+  "email": "admin2@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+<<< RESPONSE:
+Status: 200 OK
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 630
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"276-ZbJi5yB/pNRkEVC3wtiPrr2rp6Q"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 15
+ratelimit-policy: 15;w=900
+ratelimit-remaining: 3
+ratelimit-reset: 529
+referrer-policy: no-referrer
+set-cookie: [REDACTED_COOKIE]
+set-cookie: [REDACTED_COOKIE]
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "admin": {
+    "id": "6ae10766d7265b845af2b8b9",
+    "name": "Dr. Rajesh Shinde (Nashik CMO)",
+    "email": "admin2@arogyamitra.gov.in",
+    "location": "Nashik Sub-center",
+    "phoneNumber": "+91 98200 11112",
+    "organization": "6ae10765d7265b845af2b8af",
+    "role": "Admin"
+  }
+}
+
+--------------------------------------------------------------------------------
+PROBE: Cross-Tenant READ: Worker 2 (Org 2) requesting Patient 1 (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+GET http://127.0.0.1:5000/api/v1/patient/6ae10768d7265b845af2b8c8
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+<<< RESPONSE:
+Status: 404 Not Found
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 31
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"1f-bLCYumBrQUMroEcwc1RrKX3MdtI"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 143
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Patient not found"
+}
+
+--------------------------------------------------------------------------------
+PROBE: Cross-Tenant READ: Worker 2 (Org 2) requesting Consultation 1 (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+GET http://127.0.0.1:5000/api/v1/consultation/6ae10768d7265b845af2b8d1
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+<<< RESPONSE:
+Status: 404 Not Found
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 36
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"24-du0gUFVy6X9Vf3zmVRnswyhzS6w"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 142
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Consultation not found"
+}
+
+--------------------------------------------------------------------------------
+PROBE: Legitimate Same-Tenant READ: Worker 1 (Org 1) requesting Patient 1 (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+GET http://127.0.0.1:5000/api/v1/patient/6ae10768d7265b845af2b8c8
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+<<< RESPONSE:
+Status: 200 OK
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 434
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"1b2-gsaMdX+xxyKm6DD/9MQt1f60lwM"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 141
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "patient": {
+    "_id": "6ae10768d7265b845af2b8c8",
+    "name": "Kavita Devi",
+    "age": 42,
+    "gender": "female",
+    "phoneNumber": "+91 98765 43210",
+    "address": "House 42, Khed Village, Pune, Maharashtra",
+    "medicalHistory": "Mild hypertension managed by lifestyle. No known drug allergies.",
+    "registeredBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "createdAt": "2026-10-27T20:19:52.358Z",
+    "updatedAt": "2026-10-27T20:19:52.358Z",
+    "__v": 0
+  }
+}
+
+--------------------------------------------------------------------------------
+PROBE: Cross-Tenant WRITE (Escalate): Worker 2 (Org 2) escalating Consultation 1 (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+PATCH http://127.0.0.1:5000/api/v1/consultation/6ae10768d7265b845af2b8d1/escalate
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+Body: {
+  "doctorId": "6ae10768d7265b845af2b8c5",
+  "reason": "Unauthorized cross-org escalation attempt"
+}
+<<< RESPONSE:
+Status: 404 Not Found
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 36
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"24-du0gUFVy6X9Vf3zmVRnswyhzS6w"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 140
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Consultation not found"
+}
+
+--------------------------------------------------------------------------------
+PROBE: Cross-Tenant WRITE (Accept AI): Worker 2 (Org 2) accepting AI on Consultation 1 (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+PATCH http://127.0.0.1:5000/api/v1/consultation/6ae10768d7265b845af2b8d1/accept
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+<<< RESPONSE:
+Status: 404 Not Found
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 36
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"24-du0gUFVy6X9Vf3zmVRnswyhzS6w"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 139
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Consultation not found"
+}
+
+--------------------------------------------------------------------------------
+PROBE: Cross-Tenant WRITE (Respond): Doctor 2 (Org 2) submitting second opinion on Consultation 1 (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+PATCH http://127.0.0.1:5000/api/v1/consultation/6ae10768d7265b845af2b8d1/respond
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+Body: {
+  "diagnosis": "Forged cross-tenant opinion",
+  "recommendation": "Prescribe unauthorized medication"
+}
+<<< RESPONSE:
+Status: 404 Not Found
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 59
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"3b-dwp/i5Gei58+l0xU2zeIs41Qfnc"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 138
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Consultation not found or not assigned to you"
+}
+
+--------------------------------------------------------------------------------
+PROBE: Cross-Tenant WRITE (Delete Worker): Admin 2 (Org 2) attempting to delete Worker 1 (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+DELETE http://127.0.0.1:5000/api/v1/worker/6ae10766d7265b845af2b8bc
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+<<< RESPONSE:
+Status: 404 Not Found
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 30
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"1e-RL/F7kZOy2shdzKuXng3aafQE+w"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 137
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Worker not found"
+}
+
+--------------------------------------------------------------------------------
+PROBE: Cross-Tenant WRITE (Delete Doctor): Admin 2 (Org 2) attempting to delete Doctor 1 (Org 1)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+DELETE http://127.0.0.1:5000/api/v1/doctor/6ae10767d7265b845af2b8c2
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+<<< RESPONSE:
+Status: 404 Not Found
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 30
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"1e-CMXwRDy/doL/YJJRncmBr/tQ09U"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 136
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Doctor not found"
+}
+
+--------------------------------------------------------------------------------
+PROBE: Worker Direct Analysis Mutation Attempt (POST /api/v1/consultation/:id/analysis/ml)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:5000/api/v1/consultation/6ae10768d7265b845af2b8d1/analysis/ml
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+Body: {
+  "disease": "Hacked Diagnosis",
+  "confidence": 0.999
+}
+<<< RESPONSE:
+Status: 403 Forbidden
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 183
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"b7-/tnHW5AW5CKBppJyf/XVhfyEDPk"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 135
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Direct client analysis mutations are forbidden. Use POST /api/v1/consultation/:id/analyze for server-side orchestrated analysis.",
+  "code": "DIRECT_ANALYSIS_WRITE_FORBIDDEN"
+}
+
+--------------------------------------------------------------------------------
+PROBE: Mass Assignment Probe: Worker 1 creates Patient with injected _id, organization, role, analysis
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:5000/api/v1/patient
+Authorization: Bearer [REDACTED_BEARER_TOKEN]
+Body: {
+  "_id": "000000000000000000000001",
+  "name": "Pooja Deshmukh",
+  "age": 29,
+  "gender": "female",
+  "phoneNumber": "+91 98888 77777",
+  "address": "Shirur Tehsil, Pune",
+  "organization": "6ae10765d7265b845af2b8af",
+  "role": "Admin",
+  "addedBy": "malicious_actor_id",
+  "mlAnalysis": {
+    "disease": "Maliciously Injected Analysis",
+    "confidence": 100
+  },
+  "analysis": {
+    "bypassed": true
+  },
+  "status": "verified"
+}
+<<< RESPONSE:
+Status: 201 Created
+access-control-allow-credentials: true
+connection: keep-alive
+content-length: 375
+content-security-policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Tue, 27 Oct 2026 21:13:04 GMT
+etag: W/"177-2Lce4eBXz0lBi+7MBKYf8ZJ0j8k"
+keep-alive: timeout=5
+origin-agent-cluster: ?1
+ratelimit-limit: 150
+ratelimit-policy: 150;w=60
+ratelimit-remaining: 134
+ratelimit-reset: 58
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+Body: {
+  "message": "Patient registered successfully",
+  "patient": {
+    "name": "Pooja Deshmukh",
+    "age": 29,
+    "gender": "female",
+    "phoneNumber": "+91 98888 77777",
+    "address": "Shirur Tehsil, Pune",
+    "registeredBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "_id": "6ae113e0be814cbb58650fd0",
+    "createdAt": "2026-10-27T21:13:04.291Z",
+    "updatedAt": "2026-10-27T21:13:04.291Z",
+    "__v": 0
+  }
+}
+
+[DATABASE VERIFICATION OF STORED PATIENT]
+Stored _id: 6ae113e0be814cbb58650fd0 (Matches injected 000000000000000000000001: false)
+Stored organization: 6ae1070ef57007c12dfe5bee (Matches user org Org 1: true; Injected Org 2 Ignored: true)
+Stored role field: [NOT PRESENT] (Role injected ignored)
+Stored mlAnalysis field: [NOT PRESENT] (Analysis injected ignored)
+Stored analysis field: [NOT PRESENT] (Analysis injected ignored)
+
+--------------------------------------------------------------------------------
+PROBE: Unauthenticated Call to ML Service (:8000/predict)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:8000/predict
+Body: {
+  "symptoms": [
+    "itching",
+    "skin_rash"
+  ]
+}
+<<< RESPONSE:
+Status: 401 Unauthorized
+content-length: 59
+content-type: application/json
+date: Tue, 27 Oct 2026 21:13:03 GMT
+server: uvicorn
+Body: {
+  "detail": "Missing internal service authentication token."
+}
+
+--------------------------------------------------------------------------------
+PROBE: Unauthenticated Call to Graph AI Pipeline (:8001/analyze)
+--------------------------------------------------------------------------------
+>>> REQUEST:
+POST http://127.0.0.1:8001/analyze
+Body: {
+  "symptoms": [
+    "itching",
+    "skin_rash"
+  ],
+  "patient_info": {
+    "age": 30,
+    "gender": "female"
+  }
+}
+<<< RESPONSE:
+Status: 401 Unauthorized
+content-length: 59
+content-type: application/json
+date: Tue, 27 Oct 2026 21:13:03 GMT
+server: uvicorn
+Body: {
+  "detail": "Missing internal service authentication token."
+}

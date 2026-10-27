@@ -27,9 +27,13 @@ export const verifyToken = (roles = []) => {
 
       const decoded = jwt.verify(token, serverConfig.JWT_SECRET);
 
-      // Validate role permissions
-      if (roles.length > 0 && !roles.includes(decoded.role)) {
-        return res.status(403).json({ message: "Forbidden: Insufficient role permissions" });
+      // Validate role permissions (case-insensitive whitelist matching)
+      if (roles.length > 0) {
+        const userRoleLower = (decoded.role || "").toLowerCase();
+        const allowedRolesLower = roles.map((r) => r.toLowerCase());
+        if (!allowedRolesLower.includes(userRoleLower)) {
+          return res.status(403).json({ message: "Forbidden: Insufficient role permissions" });
+        }
       }
 
       req.user = decoded; // { id, role, organization }

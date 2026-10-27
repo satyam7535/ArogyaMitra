@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/dbConfig.js";
+import "./models/index.js";
 import serverConfig from "./config/serverConfig.js";
 import { applySecurityMiddlewares, generalApiLimiter } from "./middlewares/security.middleware.js";
 import adminRouter from "./routes/admin.routes.js";

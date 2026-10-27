@@ -5,13 +5,13 @@
 
 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mD:/Document/Projects/Internship/Arogyamitra/Backend[39m
 
-[90mstdout[2m | tests/security.test.js
-[22m[39m[dotenv@17.3.1] injecting env (15) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
-
 [90mstdout[2m | tests/concurrency.test.js
-[22m[39m[dotenv@17.3.1] injecting env (15) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[22m[39m[dotenv@17.3.1] injecting env (15) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
 
- [32m✓[39m tests/concurrency.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m tests/concurrency.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+[90mstdout[2m | tests/security.test.js
+[22m[39m[dotenv@17.3.1] injecting env (15) from .env -- tip: ⚙️  override existing env vars with { override: true }
+
 node.exe : [90mstderr[2m | tests/security.test.js[2m > [22m[2mPhase 2 — Security & Cryptographic Integrity[2m > 
 [22m[2m1. AES-256-GCM Field-Level Encryption[2m > [22m[2mshould handle null or invalid ciphertexts gracefully
 At C:\Program Files\nodejs\npm.ps1:29 char:3
@@ -22,15 +22,15 @@ At C:\Program Files\nodejs\npm.ps1:29 char:3
  
 [22m[39mFailed to decrypt field: Invalid authentication tag length: 0
 
- [32m✓[39m tests/security.test.js [2m([22m[2m19 tests[22m[2m)[22m[33m 1699[2mms[22m[39m
-   [32m✓[39m Phase 2 — Security & Cryptographic Integrity [2m(19)[22m
+ [32m✓[39m tests/security.test.js [2m([22m[2m21 tests[22m[2m)[22m[33m 1631[2mms[22m[39m
+   [32m✓[39m Phase 2 — Security & Cryptographic Integrity [2m(21)[22m
      [32m✓[39m 2. Argon2id Password Hashing [2m(2)[22m
-       [33m[2m✓[22m[39m should hash password with Argon2id and verify correctly[33m 738[2mms[22m[39m
+       [33m[2m✓[22m[39m should hash password with Argon2id and verify correctly[33m 684[2mms[22m[39m
      [32m✓[39m 7. Brute-Force Protection & Account Lockout [2m(2)[22m
-       [33m[2m✓[22m[39m should lock account after 5 failed password attempts[33m 466[2mms[22m[39m
+       [33m[2m✓[22m[39m should lock account after 5 failed password attempts[33m 449[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
-[2m      Tests [22m [1m[32m26 passed[39m[22m[90m (26)[39m
-[2m   Start at [22m 10:54:38
-[2m   Duration [22m 4.99s[2m (import 67%, tests 27%, transform 5%, worker 1%)[22m
+[2m      Tests [22m [1m[32m28 passed[39m[22m[90m (28)[39m
+[2m   Start at [22m 02:43:47
+[2m   Duration [22m 4.90s[2m (import 66%, tests 26%, transform 8%)[22m
 

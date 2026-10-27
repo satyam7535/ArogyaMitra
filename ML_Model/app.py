@@ -13,12 +13,56 @@ from typing import Any
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, status
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+load_dotenv()
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("arogyamitra-ml")
+
+INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "")
+REQUIRE_INTERNAL_AUTH = os.getenv("REQUIRE_INTERNAL_AUTH", "true").lower() in ("true", "1", "yes")
+
+if REQUIRE_INTERNAL_AUTH and not INTERNAL_SERVICE_SECRET:
+    logger.warning("SECURITY WARNING: INTERNAL_SERVICE_SECRET is not configured in environment.")
+
+def verify_internal_service_token(
+    x_internal_service_token: str | None = Header(None),
+    authorization: str | None = Header(None),
+):
+    if not REQUIRE_INTERNAL_AUTH:
+        return {"service": "unauthenticated-dev"}
+
+    token = x_internal_service_token if isinstance(x_internal_service_token, str) else None
+    if not token and isinstance(authorization, str):
+        parts = authorization.split(" ")
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            token = parts[1]
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing internal service authentication token.",
+        )
+
+    if INTERNAL_SERVICE_SECRET and token == INTERNAL_SERVICE_SECRET:
+        return {"service": "internal-shared-secret"}
+
+    if INTERNAL_SERVICE_SECRET:
+        try:
+            import jwt
+            payload = jwt.decode(token, INTERNAL_SERVICE_SECRET, algorithms=["HS256"])
+            return payload
+        except Exception:
+            pass
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Invalid internal service authentication token.",
+    )
 
 app = FastAPI(
     title="ArogyaMitra ML Prediction Service",
@@ -356,7 +400,7 @@ def get_symptoms():
     }
 
 @app.post("/predict")
-def predict(req: PredictRequest):
+def predict(req: PredictRequest, auth: Any = Depends(verify_internal_service_token)):  # noqa: B008
     if not req.symptoms:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -367,4 +411,4 @@ def predict(req: PredictRequest):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", "8000"))
-    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run("app:app", host="127.0.0.1", port=port, reload=False)

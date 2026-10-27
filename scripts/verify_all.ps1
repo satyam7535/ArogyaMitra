@@ -72,11 +72,11 @@ Run-Step -Name "Lint (Python Ruff & Node ESLint)" -OutputFile "verify_lint.txt" 
 }
 
 # 2. ML Tests Step
-Run-Step -Name "ML Tests (ML_Model contract & explainability)" -OutputFile "verify_ml.txt" -Action {
+Run-Step -Name "ML Tests (ML_Model Phase 0 & Phase 1 contracts)" -OutputFile "verify_ml.txt" -Action {
     $env:PYTHONPATH = (Join-Path $repoRoot "ML_Model")
     Push-Location (Join-Path $repoRoot "ML_Model")
     try {
-        uv run pytest tests/test_phase1.py -v
+        uv run pytest tests/test_phase0.py tests/test_phase1.py -v
     } finally {
         Pop-Location
     }

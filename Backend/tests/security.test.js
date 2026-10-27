@@ -16,6 +16,7 @@ import { enforceOrgScope, scopeFilter } from "../src/middlewares/orgScope.middle
 import { authenticateWithLockout } from "../src/service/auth.service.js";
 
 import serverConfig from "../src/config/serverConfig.js";
+import Worker from "../src/models/worker/workerSchema.js";
 
 describe("Phase 2 — Security & Cryptographic Integrity", () => {
   // ── 1. Cryptographic Primitives ───────────────────────────────────────────
@@ -158,11 +159,43 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
       const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
       const next = vi.fn();
 
-      verifyToken(["Worker"])(req, res, next);
+      verifyToken(["worker"])(req, res, next);
       expect(next).toHaveBeenCalled();
       expect(req.user.id).toBe("w1");
       expect(req.user.role).toBe("Worker");
       expect(req.user.organization).toBe("org_alpha");
+    });
+
+    it("should reject wrongly-cased unauthorized roles and role spoofing attempts (403)", () => {
+      const unauthorizedRoleVariants = [
+        "dOcToR",
+        "DOCTOR",
+        "Doctor",
+        "aDmIn",
+        "ADMIN",
+        "worker_admin",
+        "Worker_Attacker",
+        "worker ",
+        "SUPERADMIN",
+        "patient",
+        "",
+      ];
+
+      for (const badRole of unauthorizedRoleVariants) {
+        const token = jwt.sign(
+          { id: "u_bad", role: badRole, organization: "org_alpha" },
+          serverConfig.JWT_SECRET
+        );
+
+        const req = { headers: { authorization: `Bearer ${token}` }, cookies: {} };
+        const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+        const next = vi.fn();
+
+        verifyToken(["worker"])(req, res, next); // Worker route
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({ message: "Forbidden: Insufficient role permissions" });
+        expect(next).not.toHaveBeenCalled();
+      }
     });
   });
 
@@ -301,6 +334,23 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
       expect(res.headers["x-frame-options"]).toBe("SAMEORIGIN");
       expect(res.headers["x-content-type-options"]).toBe("nosniff");
       expect(res.headers["strict-transport-security"]).toBeDefined();
+    });
+
+    it("should never leak resetToken in forgot-password response", async () => {
+      const mockWorker = {
+        email: "worker@arogyamitra.gov.in",
+        save: vi.fn().mockResolvedValue(true),
+      };
+      vi.spyOn(Worker, "findOne").mockResolvedValue(mockWorker);
+
+      const res = await request(app)
+        .post("/api/v1/worker/forgot-password")
+        .send({ email: "worker@arogyamitra.gov.in" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.resetToken).toBeUndefined();
+      expect(res.body.token).toBeUndefined();
+      expect(res.body.message).toContain("If that email exists, password reset instructions have been sent");
     });
   });
 });

@@ -30,7 +30,7 @@ echo "  2. RUNNING ML TESTS"
 echo "============================================================"
 {
     cd "$REPO_ROOT/ML_Model"
-    PYTHONPATH="$REPO_ROOT/ML_Model" uv run pytest tests/test_phase1.py -v
+    PYTHONPATH="$REPO_ROOT/ML_Model" uv run pytest tests/test_phase0.py tests/test_phase1.py -v
 } 2>&1 | tee "$EVIDENCE_DIR/verify_ml.txt"
 
 echo "============================================================"

@@ -64,7 +64,10 @@ const handleForgotPassword = async (email) => {
     return { message: "If that email exists, password reset instructions have been sent." };
   }
   const resetToken = await initiatePasswordReset(doctor);
-  return { message: "Password reset token generated.", resetToken };
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[DEV RESET LINK] Doctor (${email}): resetToken=[REDACTED]`);
+  }
+  return { message: "If that email exists, password reset instructions have been sent." };
 };
 
 const handleResetPassword = async (resetToken, newPassword) => {

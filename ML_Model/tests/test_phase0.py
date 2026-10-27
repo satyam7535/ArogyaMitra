@@ -25,7 +25,7 @@ def test_symptoms_endpoint():
     data = get_symptoms()
     assert "symptoms" in data
     assert len(data["symptoms"]) > 100
-    assert "itching" in data["symptoms"] or "skin rash" in data["symptoms"]
+    assert any(isinstance(s, dict) and s.get("id") == "itching" for s in data["symptoms"])
 
 def test_prediction_contract():
     payload = PredictRequest(
@@ -92,3 +92,41 @@ def test_prediction_contract():
 def test_prediction_empty_symptoms_fails():
     with pytest.raises(ValidationError):
         PredictRequest(symptoms=[])
+
+def test_unauthenticated_predict_rejected():
+    from fastapi.testclient import TestClient
+
+    from ML_Model.app import app
+
+    client = TestClient(app)
+    res = client.post("/predict", json={"symptoms": ["itching"]})
+    assert res.status_code == 401
+    assert "Missing internal service authentication token" in res.json()["detail"]
+
+def test_invalid_token_predict_rejected():
+    from fastapi.testclient import TestClient
+
+    from ML_Model.app import app
+
+    client = TestClient(app)
+    res = client.post(
+        "/predict",
+        json={"symptoms": ["itching"]},
+        headers={"X-Internal-Service-Token": "invalid_forged_token_12345"}
+    )
+    assert res.status_code == 403
+    assert "Invalid internal service authentication token" in res.json()["detail"]
+
+def test_authenticated_predict_accepted():
+    from fastapi.testclient import TestClient
+
+    from ML_Model.app import INTERNAL_SERVICE_SECRET, app
+
+    client = TestClient(app)
+    res = client.post(
+        "/predict",
+        json={"symptoms": ["itching"]},
+        headers={"X-Internal-Service-Token": INTERNAL_SERVICE_SECRET}
+    )
+    assert res.status_code == 200
+    assert "primaryDiagnosis" in res.json()

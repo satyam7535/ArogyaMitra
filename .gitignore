@@ -100,3 +100,4 @@ generated_reports/
 logs/
 *.log
 example.md
+.pids
