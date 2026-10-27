@@ -2,7 +2,10 @@
 # Starts ML (:8000), Graph (:8001), Backend (:5000), and Streamlit (:8501)
 # Polls for health and records PIDs into .pids
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
+if ($PSVersionTable.PSVersion.Major -ge 7) {
+    $PSNativeCommandUseErrorActionPreference = $false
+}
 
 $repoRoot = (Get-Item $PSScriptRoot).Parent.FullName
 Set-Location $repoRoot
