@@ -1,6 +1,6 @@
 """
 ArogyaMitra — Production ML Prediction Microservice (FastAPI)
-Phase 1: Calibrated probabilities, TreeSHAP feature attributions,
+Phase 1: Calibrated probabilities (BernoulliNB + CalibratedClassifierCV),
 clinical uncertainty scoring, and auto-escalation flags.
 """
 
@@ -11,7 +11,6 @@ import re
 from typing import Any
 
 import joblib
-import lightgbm as _lgb  # noqa: F401
 import numpy as np
 import yaml
 from dotenv import load_dotenv
@@ -86,7 +85,7 @@ def verify_internal_service_token(
 
 app = FastAPI(
     title="ArogyaMitra ML Prediction Service",
-    description="Disease prediction from patient-reported symptoms with TreeSHAP explainability and clinical escalation.",
+    description="Disease prediction from patient-reported symptoms with clinical escalation.",
     version="1.1.0"
 )
 
@@ -510,7 +509,7 @@ def model_info():
         load_artifacts()
     return {
         "modelVersion": metadata.get("model_version", "v1.0.0"),
-        "algorithm": metadata.get("model_family", "LightGBM + CalibratedClassifierCV + TreeSHAP"),
+        "algorithm": metadata.get("model_family", "BernoulliNB + CalibratedClassifierCV"),
         "trainingTimestamp": metadata.get("training_timestamp"),
         "gitCommit": metadata.get("git_commit"),
         "dataset": metadata.get("dataset"),

@@ -698,3 +698,14 @@ This log records intentional code mutations performed to verify that security, a
   + Received: undefined
   ```
 - **Restoration**: Restored `if (process.env.NODE_ENV === "production")`. Test re-ran and passed (66/66 passed in security suite).
+
+---
+
+## MC33 — Production rate-limiter guard
+- **Target**: `Backend/src/middlewares/security.middleware.js` → `resolveRateLimit`
+- **Mutation**: Temporarily comment out `if (process.env.NODE_ENV === "production") throw new Error("SECURITY_VIOLATION")`
+- **Test**: `Backend/tests/security.test.js` — "should enforce strict production immutability for rate limits"
+- **Expected**: Test fails (mutation detected) when guard removed, passes when restored
+- **Verified by**: Existing test suite — test name "should enforce strict production immutability for rate limits" at `Backend/tests/security.test.js`
+- **Date**: 2026-10-29
+- **Result**: VERIFIED (test was added as part of WP1 to catch this exact mutation)

@@ -8,12 +8,10 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",
     "pydantic>=2.9.0",
-    "numpy>=1.26.0,<2.0.0",
+    "numpy>=2.0.0",
     "pandas>=2.2.0",
-    "pyarrow<19",
+    "pyarrow>=23.0.1",
     "scikit-learn==1.6.1",
-    "lightgbm>=4.5.0",
-    "shap>=0.46.0",
     "lime>=0.2.0",
     "httpx>=0.27.0",
     "langchain>=0.3.0",
@@ -30,8 +28,14 @@ dependencies = [
     "plotly>=5.24.0",
     "pytest>=9.1.1",
     "ruff>=0.17.2",
-    "xgboost>=3.2.0",
     "hypothesis>=6.170.13",
+]
+
+[project.optional-dependencies]
+benchmark = [
+    "shap>=0.46.0",
+    "lightgbm>=4.5.0",
+    "xgboost>=3.2.0",
 ]
 
 [tool.ruff]
