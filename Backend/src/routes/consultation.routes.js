@@ -18,6 +18,7 @@ import {
   storeFinalVerdictResult,
   storeAnalysisReportResult,
   getAdminConsultations,
+  getConsultationAnalytics,
 } from "../controller/consultation.controller.js";
 import verifyToken from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
@@ -65,6 +66,7 @@ consultationRouter.patch(
 );
 
 // Admin routes
+consultationRouter.get("/admin/analytics", verifyToken([ROLES.ADMIN]), getConsultationAnalytics);
 consultationRouter.get("/admin/all", verifyToken([ROLES.ADMIN]), getAdminConsultations);
 
 // Doctor routes

@@ -8,6 +8,9 @@ import {
   logout,
   getProfile,
   getAuditLogs,
+  downloadConsultationsCsv,
+  getActiveSessions,
+  revokeSession,
 } from "../controller/admin.controller.js";
 import verifyToken from "../middlewares/auth.middleware.js";
 import { authRateLimiter } from "../middlewares/security.middleware.js";
@@ -19,6 +22,7 @@ import {
   resetPasswordSchema,
   logoutSchema,
   auditLogsQuerySchema,
+  idParamSchema,
 } from "../validators/schemas.js";
 import ROLES from "../config/roles.js";
 
@@ -35,5 +39,8 @@ adminRouter.post("/reset-password", authRateLimiter, validate(resetPasswordSchem
 adminRouter.post("/logout", verifyToken([ROLES.ADMIN]), validate(logoutSchema), logout);
 adminRouter.get("/profile", verifyToken([ROLES.ADMIN]), getProfile);
 adminRouter.get("/audit-logs", verifyToken([ROLES.ADMIN]), validate(auditLogsQuerySchema, "query"), getAuditLogs);
+adminRouter.get("/consultations/export-csv", verifyToken([ROLES.ADMIN]), downloadConsultationsCsv);
+adminRouter.get("/sessions", verifyToken([ROLES.ADMIN]), getActiveSessions);
+adminRouter.delete("/sessions/:id", verifyToken([ROLES.ADMIN]), validate(idParamSchema, "params"), revokeSession);
 
 export default adminRouter;

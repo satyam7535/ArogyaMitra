@@ -10,6 +10,7 @@ import {
   getUserNotifications,
   triggerConsultationAnalysis,
   getAllConsultationsForAdmin,
+  getAdminAggregates,
 } from "../service/consultation.service.js";
 import {
   enqueueAnalysisJob,
@@ -426,6 +427,17 @@ const storeAnalysisReportResult = async (req, res) => {
   });
 };
 
+
+// Admin views aggregated organizational analytics (WP5)
+const getConsultationAnalytics = async (req, res) => {
+  try {
+    const analytics = await getAdminAggregates(req.user.organization);
+    return res.status(200).json({ analytics });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 export {
   submitConsultation,
   getMyConsultations,
@@ -444,5 +456,6 @@ export {
   storeFinalVerdictResult,
   storeAnalysisReportResult,
   getAdminConsultations,
+  getConsultationAnalytics,
   getNotifications,
 };

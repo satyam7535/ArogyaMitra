@@ -6,6 +6,9 @@ import {
   handleForgotPassword,
   handleResetPassword,
   rotateRefreshToken,
+  exportConsultationsCsv,
+  listActiveSessions,
+  revokeSessionById,
 } from "../service/admin.service.js";
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
 
@@ -205,6 +208,42 @@ const getProfile = (req, res) => {
   return res.status(200).json({ user: req.user });
 };
 
+
+const downloadConsultationsCsv = async (req, res) => {
+  try {
+    const csvData = await exportConsultationsCsv(req.user.organization);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="consultations_audit.csv"');
+    return res.status(200).send(csvData);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to export consultations CSV", error: error.message });
+  }
+};
+
+const getActiveSessions = async (req, res) => {
+  try {
+    const sessions = await listActiveSessions(req.user.organization);
+    return res.status(200).json({ sessions });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to retrieve active sessions", error: error.message });
+  }
+};
+
+const revokeSession = async (req, res) => {
+  try {
+    const result = await revokeSessionById(req.params.id, req.user.organization);
+    await logAuditEvent({
+      req,
+      action: "SESSION_REVOKED",
+      resourceType: "RefreshToken",
+      resourceId: req.params.id,
+    });
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(error.status || 500).json({ message: error.message || "Failed to revoke session" });
+  }
+};
+
 export {
   register,
   login,
@@ -214,4 +253,7 @@ export {
   logout,
   getAuditLogs,
   getProfile,
+  downloadConsultationsCsv,
+  getActiveSessions,
+  revokeSession,
 };

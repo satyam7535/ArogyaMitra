@@ -562,3 +562,77 @@ export {
   triggerConsultationAnalysis,
   getAllConsultationsForAdmin,
 };
+
+// Organization-scoped clinical aggregates for Admin Overview (WP5)
+export const getAdminAggregates = async (organization) => {
+  const allConsultations = await Consultation.find({ organization }).lean();
+
+  const total = allConsultations.length;
+  let escalatedCount = 0;
+  let redFlagCount = 0;
+  let overrideCount = 0;
+  const overrideReasons = {};
+  const diseaseCounts = {};
+  const workerActivity = {};
+  let totalDoctorResponseTimeHours = 0;
+  let resolvedDoctorCount = 0;
+  let agreedDiagnosisCount = 0;
+  let evaluatedAgreementCount = 0;
+
+  for (const c of allConsultations) {
+    if (c.workerDecision === "escalated" || c.status === "escalated" || c.assignedDoctor) {
+      escalatedCount++;
+    }
+    if (c.redFlag || (c.redFlagDetails && c.redFlagDetails.length > 0)) {
+      redFlagCount++;
+    }
+    if (c.overrideReason) {
+      overrideCount++;
+      overrideReasons[c.overrideReason] = (overrideReasons[c.overrideReason] || 0) + 1;
+    }
+    const disease = c.mlAnalysis?.disease || c.finalVerdict?.primaryDiagnosis;
+    if (disease) {
+      diseaseCounts[disease] = (diseaseCounts[disease] || 0) + 1;
+    }
+    const workerId = c.submittedBy ? String(c.submittedBy) : "unknown";
+    workerActivity[workerId] = (workerActivity[workerId] || 0) + 1;
+
+    if (c.doctorResponse?.respondedAt && c.escalatedAt) {
+      const diffHours = (new Date(c.doctorResponse.respondedAt) - new Date(c.escalatedAt)) / (1000 * 60 * 60);
+      if (diffHours >= 0) {
+        totalDoctorResponseTimeHours += diffHours;
+        resolvedDoctorCount++;
+      }
+    }
+
+    if (c.aiDoctorAgreement !== undefined && c.aiDoctorAgreement !== null) {
+      evaluatedAgreementCount++;
+      if (c.aiDoctorAgreement === true) {
+        agreedDiagnosisCount++;
+      }
+    }
+  }
+
+  const sortedDiseases = Object.entries(diseaseCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([disease, count]) => ({ disease, count }));
+
+  return {
+    totalConsultations: total,
+    escalationRate: total > 0 ? round((escalatedCount / total) * 100, 2) : 0,
+    escalatedCount,
+    redFlagCount,
+    overrideCount,
+    overrideReasons,
+    topPredictedDiseases: sortedDiseases,
+    averageDoctorResponseTimeHours: resolvedDoctorCount > 0 ? round(totalDoctorResponseTimeHours / resolvedDoctorCount, 2) : null,
+    aiDoctorAgreementRate: evaluatedAgreementCount > 0 ? round((agreedDiagnosisCount / evaluatedAgreementCount) * 100, 2) : null,
+    totalAgreedEvaluations: evaluatedAgreementCount,
+  };
+};
+
+function round(val, decimals = 2) {
+  return Number(Math.round(val + 'e' + decimals) + 'e-' + decimals);
+}
+

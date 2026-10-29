@@ -68,6 +68,9 @@ export const ROUTE_AUTH_MATRIX = [
   { method: "POST", path: "/api/v1/admin/logout", access: "protected", allowedRoles: [ROLES.ADMIN] },
   { method: "GET", path: "/api/v1/admin/profile", access: "protected", allowedRoles: [ROLES.ADMIN] },
   { method: "GET", path: "/api/v1/admin/audit-logs", access: "protected", allowedRoles: [ROLES.ADMIN] },
+  { method: "GET", path: "/api/v1/admin/consultations/export-csv", access: "protected", allowedRoles: [ROLES.ADMIN] },
+  { method: "GET", path: "/api/v1/admin/sessions", access: "protected", allowedRoles: [ROLES.ADMIN] },
+  { method: "DELETE", path: "/api/v1/admin/sessions/:id", access: "protected", allowedRoles: [ROLES.ADMIN] },
 
   // Worker Router (10 routes)
   { method: "POST", path: "/api/v1/worker/login", access: "public" },
@@ -110,6 +113,7 @@ export const ROUTE_AUTH_MATRIX = [
   { method: "GET", path: "/api/v1/consultation/my", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "PATCH", path: "/api/v1/consultation/:id/accept", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "PATCH", path: "/api/v1/consultation/:id/escalate", access: "protected", allowedRoles: [ROLES.WORKER] },
+  { method: "GET", path: "/api/v1/consultation/admin/analytics", access: "protected", allowedRoles: [ROLES.ADMIN] },
   { method: "GET", path: "/api/v1/consultation/admin/all", access: "protected", allowedRoles: [ROLES.ADMIN] },
   { method: "GET", path: "/api/v1/consultation/doctor/all", access: "protected", allowedRoles: [ROLES.DOCTOR] },
   { method: "GET", path: "/api/v1/consultation/pending", access: "protected", allowedRoles: [ROLES.DOCTOR] },
