@@ -47,3 +47,20 @@ exclude = [".venv", "node_modules", ".git"]
 dev = [
     "pypdfium2>=5.14.0",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+    "ML_Model",
+    "graph",
+    "ui"
+]
+testpaths = [
+    "ML_Model/tests",
+    "graph/tests",
+    "ui/tests"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning"
+]

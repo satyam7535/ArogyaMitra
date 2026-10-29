@@ -90,7 +90,7 @@ app.use((err, req, res, _next) => {
 
 export const startServer = async () => {
   await connectDB();
-  const host = process.env.HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
+  const host = process.env.HOST || "127.0.0.1";
   return app.listen(serverConfig.PORT, host, () => {
     console.log(`Server is running on http://${host}:${serverConfig.PORT} in ${serverConfig.NODE_ENV} mode`);
   });

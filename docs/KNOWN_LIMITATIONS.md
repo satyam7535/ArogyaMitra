@@ -59,3 +59,4 @@ This document candidly lists the known technical, architectural, and clinical li
 
 3. **Strict Zero-PII Privacy Boundary**:
    - In accordance with the Digital Personal Data Protection (DPDP) Act, no patient names, phone numbers, addresses, or personal identifiers are ever sent to the LLM. Only de-identified symptom tokens and demographic categories are transmitted.
+

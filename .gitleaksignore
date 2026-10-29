@@ -1,3 +1,4 @@
 # Gitleaks ignore file for test fixtures and false positives
 2f28743514cbaf36b828b9c0d9b556106ef020de:Backend/tests/raceOcc.test.js:generic-api-key:59
 fa04225773c30a4258acba01b5f615e54c7cac2e:Backend/src/config/serverConfig.js:generic-api-key:56
+

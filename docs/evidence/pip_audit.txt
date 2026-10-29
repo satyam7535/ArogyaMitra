@@ -1,6 +1,12 @@
-﻿Command: uv run --with pip-audit pip-audit
-Date: 2026-10-29 13:38:02 +05:30
-Tool Version: pip-audit 2.10.1
-Git Commit: fa04225773c30a4258acba01b5f615e54c7cac2e
-----------------------------------------
-No known vulnerabilities found
+﻿# Command: uv run --with pip-audit pip-audit
+# Date: 2026-10-29 18:02:42 +05:30
+# Git Commit: aae2258
+# Tool Version: pip-audit 2.10.1
+
+uv.exe : No known vulnerabilities found
+At line:5 char:1
++ & uv run --with pip-audit pip-audit 2>&1 | Out-File -FilePath docs/ev ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (No known vulnerabilities found:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

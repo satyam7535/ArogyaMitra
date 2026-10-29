@@ -58,6 +58,7 @@ export const ROUTE_AUTH_MATRIX = [
   // Top-Level Public Routes
   { method: "GET", path: "/", access: "public" },
   { method: "GET", path: "/health", access: "public" },
+  { method: "GET", path: "/api/v1/health", access: "public" },
 
   // Admin Router (8 routes)
   { method: "POST", path: "/api/v1/admin/register", access: "public_disabled" },

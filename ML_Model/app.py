@@ -540,7 +540,7 @@ def model_info():
         load_artifacts()
     return {
         "modelVersion": metadata.get("model_version", "v1.0.0"),
-        "algorithm": metadata.get("model_family", "BernoulliNB + CalibratedClassifierCV"),
+        "algorithm": metadata.get("model_family", "Bernoulli Naive Bayes + Exact Bayesian Log-Odds Explanation"),
         "trainingTimestamp": metadata.get("training_timestamp"),
         "gitCommit": metadata.get("git_commit"),
         "dataset": metadata.get("dataset"),

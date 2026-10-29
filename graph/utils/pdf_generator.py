@@ -164,8 +164,6 @@ try:
         DEFAULT_FONT = 'Helvetica'
 except Exception:
     DEFAULT_FONT = 'Helvetica'
-except Exception:
-    DEFAULT_FONT = 'Helvetica'
 
 # ── PDF Generator ──────────────────────────────────────────────────────────────
 def generate_pdf(data: dict, language: str = "en") -> bytes:
@@ -272,7 +270,7 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
     gender  = str(data.get('patientGender') or '—').capitalize()
     age     = str(data.get('patientAge') or '—')
     patient_data = [
-        [Paragraph(f'<b>{t["name"]}</b>', body_style),    Paragraph(data['patientName'], body_style),
+        [Paragraph(f'<b>{t["name"]}</b>', body_style),    Paragraph(str(data.get('patientName') or '—'), body_style),
          Paragraph(f'<b>{t["age"]}</b>', body_style),     Paragraph(age, body_style)],
         [Paragraph(f'<b>{t["gender"]}</b>', body_style),  Paragraph(gender, body_style),
          Paragraph(f'<b>{t["symptoms_reported"]}</b>', body_style), Paragraph(str(len(data.get('matchedSymptoms', []))), body_style)],
