@@ -3,6 +3,7 @@ import {
   registerPatient,
   getPatients,
   getPatient,
+  getPatientTimeline,
   exportPatient,
   deletePatient,
   withdrawConsent,
@@ -22,6 +23,7 @@ const patientRouter = express.Router();
 
 patientRouter.post("/", verifyToken([ROLES.WORKER]), validate(registerPatientSchema), registerPatient);
 patientRouter.get("/", verifyToken([ROLES.WORKER]), getPatients);
+patientRouter.get("/:id/timeline", verifyToken([ROLES.WORKER, ROLES.DOCTOR, ROLES.ADMIN]), validate(idParamSchema, "params"), getPatientTimeline);
 patientRouter.get("/:id/export", verifyToken([ROLES.WORKER, ROLES.DOCTOR, ROLES.ADMIN]), validate(idParamSchema, "params"), exportPatient);
 patientRouter.get("/:id", verifyToken([ROLES.WORKER]), validate(idParamSchema, "params"), getPatient);
 patientRouter.delete("/:id", verifyToken([ROLES.WORKER, ROLES.ADMIN]), validate(idParamSchema, "params"), deletePatient);

@@ -2,6 +2,7 @@ import {
   createPatient,
   getPatientsByOrg,
   getPatientByIdScoped,
+  getPatientTimelineScoped,
   exportPatientDataScoped,
   deletePatientScoped,
   withdrawConsentScoped,
@@ -205,10 +206,32 @@ const approveDelete = async (req, res) => {
   }
 };
 
+// Patient history timeline (organization-scoped) (WP 3.10)
+const getPatientTimeline = async (req, res) => {
+  try {
+    const data = await getPatientTimelineScoped(req.params.id, req.user.organization);
+    if (!data) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    await logAuditEvent({
+      req,
+      action: "PATIENT_TIMELINE_VIEWED",
+      resourceType: "Patient",
+      resourceId: req.params.id,
+    });
+
+    return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 export {
   registerPatient,
   getPatients,
   getPatient,
+  getPatientTimeline,
   exportPatient,
   deletePatient,
   withdrawConsent,

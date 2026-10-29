@@ -42,3 +42,8 @@ benchmark = [
 line-length = 120
 target-version = "py311"
 exclude = [".venv", "node_modules", ".git"]
+
+[dependency-groups]
+dev = [
+    "pypdfium2>=5.14.0",
+]

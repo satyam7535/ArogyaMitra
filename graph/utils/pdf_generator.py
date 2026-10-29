@@ -137,27 +137,33 @@ TRANSLATIONS = {
     }
 }
 
-# Try to register a font that supports Devanagari (bundled font first, then system)
+# Try to register a font that supports Devanagari (NotoSansDevanagari first, then Nirmala, DejaVu)
 try:
+    noto_devanagari = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fonts", "NotoSansDevanagari-Regular.ttf")
     bundled_font = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fonts", "DejaVuSans.ttf")
     linux_font = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     windows_nirmala = "C:/Windows/Fonts/nirmala.ttf"
     windows_arial = "C:/Windows/Fonts/arial.ttf"
 
-    if os.path.exists(bundled_font):
+    if os.path.exists(noto_devanagari):
+        pdfmetrics.registerFont(TTFont('NotoSansDevanagari', noto_devanagari))
+        DEFAULT_FONT = 'NotoSansDevanagari'
+    elif os.path.exists(windows_nirmala):
+        pdfmetrics.registerFont(TTFont('Nirmala', windows_nirmala))
+        DEFAULT_FONT = 'Nirmala'
+    elif os.path.exists(bundled_font):
         pdfmetrics.registerFont(TTFont('DejaVuBundled', bundled_font))
         DEFAULT_FONT = 'DejaVuBundled'
     elif os.path.exists(linux_font):
         pdfmetrics.registerFont(TTFont('DejaVu', linux_font))
         DEFAULT_FONT = 'DejaVu'
-    elif os.path.exists(windows_nirmala):
-        pdfmetrics.registerFont(TTFont('Nirmala', windows_nirmala))
-        DEFAULT_FONT = 'Nirmala'
     elif os.path.exists(windows_arial):
         pdfmetrics.registerFont(TTFont('Arial', windows_arial))
         DEFAULT_FONT = 'Arial'
     else:
         DEFAULT_FONT = 'Helvetica'
+except Exception:
+    DEFAULT_FONT = 'Helvetica'
 except Exception:
     DEFAULT_FONT = 'Helvetica'
 
@@ -475,6 +481,13 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
         ('RIGHTPADDING',  (0,0),(-1,-1), 12),
     ]))
     story.append(disc_table)
+    story.append(Spacer(1, 10))
+
+    # ── Report / Model Version Footer ─────────────────────────
+    model_ver = data.get('modelVersion', 'v2.0.0')
+    model_name = data.get('modelUsed', 'Bernoulli Naive Bayes')
+    footer_text = f"<font size=7 color='#7F8C8D'>ArogyaMitra Clinical Decision Support System | Model: {model_name} ({model_ver}) | Generated: {now} | ReportLab PDF Engine</font>"
+    story.append(Paragraph(footer_text, ParagraphStyle('Footer', alignment=TA_CENTER, fontName=font_name)))
 
     doc.build(story)
     buffer.seek(0)

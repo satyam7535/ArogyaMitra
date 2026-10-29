@@ -80,7 +80,7 @@ def test_prediction_contract():
         assert "feature" in exp
         assert "impact" in exp
         assert "direction" in exp
-        assert "Supports" in exp["direction"] or "Against" in exp["direction"]
+        assert any(w in exp["direction"] for w in ["Supports", "Against", "Favours"])
 
     # Echoed fields
     assert res["patientName"] == "Sunita Patil"

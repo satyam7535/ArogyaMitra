@@ -41,6 +41,17 @@ const submitConsultation = async (req, res) => {
     const attachmentFiles = req.files?.attachments || [];
     const aiReportFile = req.files?.aiReport?.[0] || null;
 
+    // Stage 2 D7: Magic-byte inspection for all uploaded files
+    const { validateFileMagicBytes } = await import("../utils/upload.js");
+    const allFiles = [...attachmentFiles, ...(aiReportFile ? [aiReportFile] : [])];
+    for (const f of allFiles) {
+      if (!validateFileMagicBytes(f.buffer, f.mimetype)) {
+        return res.status(400).json({
+          message: `File validation failed for '${f.originalname}': binary magic bytes do not match declared MIME type ${f.mimetype}. Disguised executables and polyglots are rejected.`,
+        });
+      }
+    }
+
     const consultation = await createConsultation(
       { patientId, symptoms: symptomsArray, notes, attachmentFiles, aiReportFile },
       req.user.id,

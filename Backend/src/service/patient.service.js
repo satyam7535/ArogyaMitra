@@ -1,6 +1,16 @@
 import Patient from "../models/patient/patientSchema.js";
 import Consultation from "../models/consultation/consultationSchema.js";
 import ROLES from "../config/roles.js";
+import crypto from "crypto";
+import serverConfig from "../config/serverConfig.js";
+
+// HMAC Blind Index helper for privacy-preserving duplicate detection
+export const computePatientBlindIndex = (name, phoneNumber) => {
+  const normName = String(name || "").toLowerCase().replace(/\s+/g, "").trim();
+  const normPhone = String(phoneNumber || "").replace(/[^0-9]/g, "").trim();
+  const key = serverConfig.ENCRYPTION_KEY || "default_hmac_secret_for_blind_index";
+  return crypto.createHmac("sha256", key).update(`${normName}:${normPhone}`).digest("hex");
+};
 
 // Worker registers a new patient in their organization
 const createPatient = async (
@@ -19,21 +29,34 @@ const createPatient = async (
   workerId,
   organization
 ) => {
-  // Duplicate-patient warning: check for existing active patient with matching name, age, gender in same org
-  const escapedName = name.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const potentialDuplicate = await Patient.findOne({
-    organization,
-    isDeleted: { $ne: true },
-    name: { $regex: `^${escapedName}$`, $options: "i" },
-    gender,
-    age: Number(age),
-  });
+  // Duplicate-patient warning: check keyed HMAC blind index of (phone + name), warning only
+  const blindIndex = phoneNumber ? computePatientBlindIndex(name, phoneNumber) : null;
+  let potentialDuplicate = null;
+  if (blindIndex) {
+    potentialDuplicate = await Patient.findOne({
+      organization,
+      isDeleted: { $ne: true },
+      blindIndex,
+    });
+  }
+
+  if (!potentialDuplicate) {
+    const escapedName = name.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    potentialDuplicate = await Patient.findOne({
+      organization,
+      isDeleted: { $ne: true },
+      name: { $regex: `^${escapedName}$`, $options: "i" },
+      gender,
+      age: Number(age),
+    });
+  }
 
   const patient = await Patient.create({
     name,
     age: Number(age),
     gender,
     phoneNumber,
+    blindIndex,
     address,
     medicalHistory,
     emergencyContact,
@@ -202,10 +225,75 @@ const deletePatientScoped = async (patientId, organization, userRole) => {
   };
 };
 
+// Patient history timeline endpoint (organization-scoped) (WP 3.10)
+const getPatientTimelineScoped = async (patientId, organization) => {
+  const patient = await Patient.findOne({ _id: patientId, organization, isDeleted: { $ne: true } });
+  if (!patient) return null;
+
+  const consultations = await Consultation.find({ patient: patientId, organization })
+    .populate("submittedBy", "name email")
+    .populate("assignedDoctor", "name specialization email")
+    .sort({ createdAt: -1 });
+
+  const timelineEvents = [
+    {
+      type: "PATIENT_REGISTERED",
+      timestamp: patient.createdAt,
+      title: "Patient Registered",
+      description: `Registered with DPDP consent (${patient.consentLanguage}, v${patient.consentVersion})`,
+    },
+  ];
+
+  if (patient.consentWithdrawnAt) {
+    timelineEvents.push({
+      type: "CONSENT_WITHDRAWN",
+      timestamp: patient.consentWithdrawnAt,
+      title: "Consent Withdrawn",
+      description: patient.consentWithdrawalReason || "Consent withdrawn under DPDP",
+    });
+  }
+
+  for (const c of consultations) {
+    timelineEvents.push({
+      type: "CONSULTATION_CREATED",
+      consultationId: c._id,
+      timestamp: c.createdAt,
+      title: `Consultation (${c.status})`,
+      symptoms: c.symptoms,
+      disease: c.mlAnalysis?.disease || "Pending Analysis",
+      needsEscalation: c.mlAnalysis?.needsEscalation || false,
+      redFlag: c.mlAnalysis?.redFlag || false,
+      workerDecision: c.workerDecision || null,
+      submittedBy: c.submittedBy?.name || "Healthcare Worker",
+    });
+
+    if (c.secondOpinion?.respondedAt) {
+      timelineEvents.push({
+        type: "DOCTOR_REVIEW",
+        consultationId: c._id,
+        timestamp: c.secondOpinion.respondedAt,
+        title: "Doctor Second Opinion",
+        doctor: c.assignedDoctor?.name || "Medical Officer",
+        diagnosis: c.secondOpinion.diagnosis,
+        recommendation: c.secondOpinion.recommendation,
+        agreement: c.aiDoctorAgreement?.agreement ?? null,
+      });
+    }
+  }
+
+  timelineEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  return {
+    patient: patient.getDecrypted(),
+    timeline: timelineEvents,
+  };
+};
+
 export {
   createPatient,
   getPatientsByOrg,
   getPatientByIdScoped,
+  getPatientTimelineScoped,
   exportPatientDataScoped,
   deletePatientScoped,
   withdrawConsentScoped,

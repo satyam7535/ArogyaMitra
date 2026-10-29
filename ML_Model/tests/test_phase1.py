@@ -88,7 +88,7 @@ def test_prediction_contract_complete():
     for exp in res["shapExplanation"]:
         assert "feature" in exp
         assert "impact" in exp
-        assert exp["direction"] in ["Supports Diagnosis", "Against Diagnosis"]
+        assert any(w in exp["direction"] for w in ["Supports", "Against", "Favours"])
     assert "limeExplanation" in res
     assert len(res["limeExplanation"]) == len(res["shapExplanation"])
 
@@ -173,7 +173,7 @@ def test_model_architecture_provenance():
     )
 
 # ── 7. Exact Bayesian Log-Odds Additivity Property ────────────────────────────
-def test_treeshap_additivity_property():
+def test_bayesian_contrastive_additivity_property():
     """
     Verifies mathematical additivity of the Bayesian log-odds feature attributions:
     phi_0 + sum(x_j * w_j) == model._joint_log_likelihood(x) within tolerance (< 1e-5).
@@ -265,15 +265,16 @@ def test_suggested_follow_up_symptoms_on_uncertainty():
             assert item["relevanceScore"] > 0
             assert item["symptom"] not in res["matchedSymptoms"]
 
-# ── 11. Production TreeSHAP Attribution Verification (MC22 Target) ───────────
-def test_production_treeshap_attribution_integrity():
-    """Verifies that run_prediction returns exact Bayesian log-odds attributions for matched symptoms."""
+# ── 11. Production Contrastive Attribution Verification (MC22 Target) ───────────
+def test_production_contrastive_attribution_integrity():
+    """Verifies that run_prediction returns exact additive contrastive log-odds attributions for matched symptoms."""
     symptoms = ["joint_pain", "vomiting", "fatigue", "high_fever"]
     req = PredictRequest(symptoms=symptoms)
     res = run_prediction(req)
 
     assert len(res["symptomContributions"]) > 0
     top_c = ml_app.label_encoder.transform([res["primaryDiagnosis"]])[0]
+    runner_up_c = ml_app.label_encoder.transform([res["topPredictions"][1]["disease"]])[0]
     log_theta = ml_app.base_model.feature_log_prob_
     log_one_minus_theta = np.log1p(-np.exp(log_theta))
     w = log_theta - log_one_minus_theta
@@ -281,5 +282,5 @@ def test_production_treeshap_attribution_integrity():
     for item in res["symptomContributions"]:
         s_name = item["feature"].replace(" present", "")
         s_idx = ml_app.symptom_columns.index(s_name)
-        expected_imp = round(float(w[top_c, s_idx]), 4)
-        assert item["impact"] == expected_imp, f"Attribution mismatch for {s_name}: got {item['impact']}, expected {expected_imp}"
+        expected_imp = round(float(w[top_c, s_idx] - w[runner_up_c, s_idx]), 4)
+        assert item["impact"] == expected_imp, f"Contrastive attribution mismatch for {s_name}: got {item['impact']}, expected {expected_imp}"

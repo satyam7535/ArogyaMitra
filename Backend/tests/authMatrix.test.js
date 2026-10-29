@@ -94,9 +94,10 @@ export const ROUTE_AUTH_MATRIX = [
   { method: "PATCH", path: "/api/v1/doctor/:id/reactivate", access: "protected", allowedRoles: [ROLES.ADMIN] },
   { method: "GET", path: "/api/v1/doctor/list", access: "protected", allowedRoles: [ROLES.WORKER, ROLES.ADMIN] },
 
-  // Patient Router (8 routes)
+  // Patient Router (9 routes)
   { method: "POST", path: "/api/v1/patient/", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "GET", path: "/api/v1/patient/", access: "protected", allowedRoles: [ROLES.WORKER] },
+  { method: "GET", path: "/api/v1/patient/:id/timeline", access: "protected", allowedRoles: [ROLES.WORKER, ROLES.DOCTOR, ROLES.ADMIN] },
   { method: "GET", path: "/api/v1/patient/:id/export", access: "protected", allowedRoles: [ROLES.WORKER, ROLES.DOCTOR, ROLES.ADMIN] },
   { method: "GET", path: "/api/v1/patient/:id", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "DELETE", path: "/api/v1/patient/:id", access: "protected", allowedRoles: [ROLES.WORKER, ROLES.ADMIN] },

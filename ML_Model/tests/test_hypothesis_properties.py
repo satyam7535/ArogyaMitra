@@ -4,7 +4,7 @@ Verifies mathematical and clinical invariance properties across synthetic and ra
 1. Probability Normalization: Sum(probabilities) == 1.0 +/- 1e-4
 2. Probability Bounds: 0.0 <= p_i <= 100.0 for all classes
 3. Monotonic Ordering: p_top1 >= p_top2 >= p_top3
-4. TreeSHAP Additivity: Sum(phi_i) + phi_0 == f(x) +/- 1e-4 across all classes
+4. Exact Additive Contrastive Log-Odds Additivity
 5. Empty / Invalid Input Rejection: Empty symptom array raises 422 Unprocessable Entity
 """
 

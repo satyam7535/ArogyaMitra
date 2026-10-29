@@ -342,24 +342,45 @@ def run_prediction(req: PredictRequest) -> dict[str, Any]:
     else:
         risk_level = "Low" 
 
-    # 5. Exact Additive Feature Attributions (Bayesian Log-Odds / Weight of Evidence)
+    # 5. Exact Additive Contrastive Feature Attributions (Top Class vs Runner-Up)
+    # Why this disease ranked above the next one:
+    # Delta log-odds: (w_{top, j} - w_{runner_up, j}) * x_j
+    # Baseline difference: log(P(top)) - log(P(runner_up)) + sum_{j}(log(1 - theta_{top, j}) - log(1 - theta_{runner_up, j}))
     symptom_explanations: list[dict[str, Any]] = []
     top_idx = top_indices[0]
+    runner_up_idx = top_indices[1] if len(top_indices) > 1 else None
 
     if base_model is not None and hasattr(base_model, "feature_log_prob_"):
-        # Bernoulli Naive Bayes exact additive log-odds
+        # Bernoulli Naive Bayes contrastive log-odds
         log_theta = base_model.feature_log_prob_
         log_one_minus_theta = np.log1p(-np.exp(log_theta))
         w = log_theta - log_one_minus_theta
 
+        # Baseline offset between top and runner-up class
+        class_log_prior = getattr(base_model, "class_log_prior_", np.zeros(len(label_encoder.classes_)))
+        if runner_up_idx is not None:
+            baseline_term = float(
+                (class_log_prior[top_idx] - class_log_prior[runner_up_idx]) +
+                np.sum(log_one_minus_theta[top_idx, :] - log_one_minus_theta[runner_up_idx, :])
+            )
+        else:
+            baseline_term = 0.0
+
         for s_name in matched:
             s_idx = symptom_columns.index(s_name)
-            imp = float(w[top_idx, s_idx])
+            if runner_up_idx is not None:
+                # Contrastive impact: how much symptom s favours top disease over runner-up
+                imp = float(w[top_idx, s_idx] - w[runner_up_idx, s_idx])
+            else:
+                imp = float(w[top_idx, s_idx])
+
             symptom_explanations.append({
                 "feature": f"{s_name} present",
                 "impact": round(imp, 4),
-                "direction": "Supports Diagnosis" if imp >= 0 else "Against Diagnosis",
-                "method": "Exact Bayesian Log-Odds"
+                "direction": "Supports Top Diagnosis over Alternative" if imp >= 0 else "Favours Alternative Diagnosis",
+                "method": "Additive Contrastive Log-Odds",
+                "contrastiveAgainst": str(label_encoder.classes_[runner_up_idx]) if runner_up_idx is not None else "None",
+                "baselineDifference": round(baseline_term, 4)
             })
 
         symptom_explanations.sort(key=lambda x: abs(x["impact"]), reverse=True)
