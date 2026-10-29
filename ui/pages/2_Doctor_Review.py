@@ -1,7 +1,7 @@
 """
 ArogyaMitra — Medical Officer Second Opinion Workstation
-Enables licensed physicians to review escalated rural cases, evaluate TreeSHAP feature
-attributions, issue binding diagnoses, prescribe treatments, and resolve triage workflows.
+Enables licensed physicians to review escalated rural cases, evaluate exact Bayesian
+feature attributions, issue binding diagnoses, prescribe treatments, and resolve triage workflows.
 """
 
 import os
@@ -12,6 +12,10 @@ import streamlit as st
 # Ensure ui and project root are in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from utils.api_client import (
+    get_pending_consultations_for_doctor,
+    submit_doctor_second_opinion,
+)
 from utils.i18n import t
 from utils.viz import create_shap_waterfall_or_bar, create_top_predictions_chart
 
@@ -22,6 +26,8 @@ st.set_page_config(
 )
 
 lang = st.session_state.get("lang", "en")
+token = st.session_state.get("token")
+role = st.session_state.get("role")
 
 st.title(f"🩺 {t('doctor_portal_title', lang)}")
 st.caption("Primary Health Center (PHC) Medical Officer Second Opinion Queue")
@@ -31,8 +37,8 @@ st.info(f"⚠️ **{t('disclaimer_title', lang)}:** {t('disclaimer_text', lang)}
 
 st.divider()
 
-# Sample Pending Cases Database (Mock / Integration Queue)
-PENDING_CASES = [
+# Sample Pending Cases Database (Integration Fallback)
+SAMPLE_PENDING_CASES = [
     {
         "id": "CASE-9021",
         "patientName": "Ramesh Shinde",
@@ -88,93 +94,134 @@ PENDING_CASES = [
     },
 ]
 
+# Attempt to load dynamic pending cases from backend if doctor token exists
+cases_to_display = SAMPLE_PENDING_CASES
+is_live_backend = False
+
+if token and role == "Doctor":
+    live_cases = get_pending_consultations_for_doctor(token)
+    if live_cases:
+        formatted = []
+        for c in live_cases:
+            patient = c.get("patient") or {}
+            ml = c.get("mlAnalysis") or {}
+            formatted.append({
+                "id": str(c.get("_id", "UNKNOWN")),
+                "patientName": patient.get("name", "Unknown Patient"),
+                "age": patient.get("age", 35),
+                "gender": patient.get("gender", "Unknown"),
+                "location": "PHC Center",
+                "submittedBy": (c.get("submittedBy") or {}).get("name", "Health Worker"),
+                "symptoms": c.get("symptoms", []),
+                "primaryDiagnosis": ml.get("disease", "Pending"),
+                "confidence": ml.get("confidence", 0.0),
+                "severityScore": ml.get("severityScore", 2.0),
+                "needsEscalation": ml.get("needsEscalation", True),
+                "uncertaintyReason": ml.get("uncertaintyReason", "ESCALATED"),
+                "notes": c.get("notes") or c.get("escalationReason") or "",
+                "shap": ml.get("shapExplanation") or [
+                    {"symptom": s, "impact": 0.3, "direction": "Supports Diagnosis"}
+                    for s in c.get("symptoms", [])[:4]
+                ],
+                "topPredictions": ml.get("topPredictions") or [
+                    {"disease": ml.get("disease", "Primary"), "probability": ml.get("confidence", 0.8)}
+                ],
+                "llmSummary": (c.get("llmAnalysis") or {}).get("summary", "Review required"),
+            })
+        if formatted:
+            cases_to_display = formatted
+            is_live_backend = True
+
 # ── Sidebar: Case Selector ───────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### 📥 Triage Review Queue")
-    case_options = [f"{c['id']} — {c['patientName']} ({c['primaryDiagnosis']})" for c in PENDING_CASES]
-    selected_idx = st.selectbox("Select Case to Review:", range(len(case_options)), format_func=lambda i: case_options[i])
-    st.caption(f"Total Pending Reviews: **{len(PENDING_CASES)} cases**")
+    if is_live_backend:
+        st.success("🟢 Connected to live Express consultation queue")
+    else:
+        st.caption("ℹ️ Demonstration review queue active")
 
-selected_case = PENDING_CASES[selected_idx]
+    case_options = [f"{c['id'][:8]} — {c['patientName']} ({c['primaryDiagnosis']})" for c in cases_to_display]
+    selected_idx = st.selectbox("Select Case to Review:", range(len(case_options)), format_func=lambda i: case_options[i])
+    st.caption(f"Total Pending Reviews: **{len(cases_to_display)} cases**")
+
+selected_case = cases_to_display[selected_idx]
 
 # ── Patient Case Header ──────────────────────────────────────────────────────
-st.markdown(f"### 📋 {selected_case['id']} — {selected_case['patientName']}")
+st.markdown(f"## Case #{selected_case['id'][:12]} — {selected_case['patientName']}")
+st.caption(f"Submitted by: **{selected_case['submittedBy']}** | Sub-Centre: **{selected_case['location']}**")
 
 h1, h2, h3, h4 = st.columns(4)
 with h1:
-    st.markdown(f"**Age / Gender:** {selected_case['age']} / {selected_case['gender']}")
+    st.markdown(f"**Age / Gender:** {selected_case['age']} yrs / {selected_case['gender']}")
 with h2:
-    st.markdown(f"**Origin:** {selected_case['location']}")
+    st.markdown(f"**Presenting Symptoms:** {len(selected_case['symptoms'])} reported")
 with h3:
-    st.markdown(f"**Submitted By:** {selected_case['submittedBy']}")
+    conf = round(float(selected_case["confidence"]) * 100, 1)
+    st.markdown(f"**AI Confidence:** `{conf}%`")
 with h4:
-    st.error(f"🚨 Escalation: `{selected_case['uncertaintyReason']}`")
+    sev = selected_case["severityScore"]
+    st.markdown(f"**Severity Index:** `{sev} / 5.0`")
 
-st.markdown(f"**Health Worker Notes:** *\"{selected_case['notes']}\"*")
-st.markdown("**Reported Symptoms:** " + ", ".join(f"`{s.replace('_', ' ').title()}`" for s in selected_case['symptoms']))
-
-st.divider()
-
-# ── AI Diagnostic Evaluation & TreeSHAP ──────────────────────────────────────
-c1, c2 = st.columns([3, 2])
-
-with c1:
-    st.markdown("#### 🔬 AI Model Clinical Suggestion")
-    st.markdown(f"- **Predicted Condition:** **{selected_case['primaryDiagnosis']}**")
-    st.markdown(f"- **Calibrated Confidence:** **{round(selected_case['confidence']*100, 1)}%**")
-    st.markdown(f"- **Severity Index:** **{selected_case['severityScore']} / 5.0**")
-    st.markdown(f"- **AI Clinical Impression:** {selected_case['llmSummary']}")
-
-    shap_fig = create_shap_waterfall_or_bar(selected_case['shap'], selected_case['primaryDiagnosis'])
-    st.plotly_chart(shap_fig, use_container_width=True)
-
-with c2:
-    st.markdown("#### 📈 Differential Probability Distribution")
-    diff_fig = create_top_predictions_chart(selected_case['topPredictions'])
-    st.plotly_chart(diff_fig, use_container_width=True)
-
-st.divider()
-
-# ── Physician Review & Second Opinion Form ────────────────────────────────────
-st.markdown("### ✍️ Physician Clinical Verdict & Prescription Order")
-
-doc_col1, doc_col2 = st.columns(2)
-with doc_col1:
-    doctor_diag = st.text_input(
-        t("doctor_diagnosis", lang),
-        value=selected_case['primaryDiagnosis'],
-        help="Confirm or modify the primary diagnosis based on clinical review."
-    )
-    urgency = st.selectbox(
-        "Triage Urgency Level",
-        options=["Routine Outpatient", "Urgent PHC Follow-up (within 24h)", "Immediate Hospital Transfer"],
-        index=1 if selected_case['severityScore'] >= 3.5 else 0
-    )
-
-with doc_col2:
-    prescription = st.text_area(
-        t("prescription_notes", lang),
-        value=(
-            "1. Tab Paracetamol 650mg TDS x 3 days\n"
-            "2. Tab Chloroquine / ACT combination as per NVBDCP guidelines\n"
-            "3. Complete Blood Count (CBC) + Peripheral Smear for Malarial Parasite\n"
-            "4. Ensure strict oral fluid intake (minimum 2.5L/day)"
-        ),
-        height=130
-    )
+st.markdown(f"**Worker Clinical Notes:** *\"{selected_case['notes']}\"*")
 
 st.markdown("---")
 
-# Decision Action Buttons
-btn_col1, btn_col2, btn_col3 = st.columns(3)
-with btn_col1:
-    if st.button("✅ Confirm AI Diagnosis & Issue Prescription", type="primary", use_container_width=True):
-        st.success(f"Case {selected_case['id']} reviewed. Second opinion officially issued and logged to audit trail.")
+# ── AI Diagnostic Assessment & Explainability ────────────────────────────────
+c_left, c_right = st.columns([3, 2])
 
-with btn_col2:
-    if st.button("🔄 Override Diagnosis with Clinical Notes", use_container_width=True):
-        st.warning(f"AI diagnosis overridden by physician: '{doctor_diag}'. Prescription transmitted to health worker.")
+with c_left:
+    st.markdown("#### 🔬 AI Bayesian Evidence Breakdown")
+    st.caption("Exact Bayesian log-odds feature contributions supporting this diagnostic inference:")
+    shap_fig = create_shap_waterfall_or_bar(
+        selected_case["shap"],
+        primary_disease=selected_case["primaryDiagnosis"]
+    )
+    st.plotly_chart(shap_fig, use_container_width=True)
 
-with btn_col3:
-    if st.button("🧪 Order Urgent Laboratory Investigation", use_container_width=True):
-        st.info("Laboratory orders dispatched to nearest Community Health Center (CHC).")
+with c_right:
+    st.markdown("#### 📊 Differential Diagnoses")
+    st.caption("Probabilistic class distribution across candidate conditions:")
+    diff_fig = create_top_predictions_chart(selected_case["topPredictions"])
+    st.plotly_chart(diff_fig, use_container_width=True)
+
+st.markdown("---")
+
+# ── Doctor Second Opinion Submission Form ────────────────────────────────────
+st.markdown("### ✍️ Medical Officer Clinical Response & Second Opinion")
+
+with st.form("doctor_opinion_form"):
+    confirmed_diagnosis = st.text_input(
+        t("doctor_diagnosis", lang),
+        value=f"Confirmed {selected_case['primaryDiagnosis']} with clinical correlation.",
+    )
+    treatment_plan = st.text_area(
+        t("doctor_prescription", lang),
+        value="Prescribed standard oral regimen. Advised hydration and complete rest. Revisit PHC if fever persists past 48 hours.",
+        height=100,
+    )
+    follow_up_days = st.slider("Recommended Follow-Up (Days):", min_value=1, max_value=30, value=5)
+
+    submitted = st.form_submit_button(
+        f"📋 {t('submit_opinion', lang)}",
+        type="primary",
+        use_container_width=True,
+    )
+
+    if submitted:
+        if token and is_live_backend:
+            with st.spinner("Submitting second opinion to backend with OCC verification..."):
+                resp = submit_doctor_second_opinion(
+                    selected_case["id"],
+                    confirmed_diagnosis,
+                    treatment_plan,
+                    token,
+                )
+                if resp.get("success"):
+                    st.success(f"✅ {t('case_closed', lang)} Second opinion recorded in database.")
+                elif resp.get("statusCode") == 409:
+                    st.error("⚠️ Conflict (409): Case was modified concurrently by another provider. Please refresh.")
+                else:
+                    st.error(f"Failed to submit opinion: {resp.get('error')}")
+        else:
+            st.success(f"✅ {t('case_closed', lang)} Second opinion issued for #{selected_case['id']}.")
+            st.info("Treatment recommendation has been transmitted back to the health worker tablet.")

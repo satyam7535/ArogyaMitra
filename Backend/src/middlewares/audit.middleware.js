@@ -1,4 +1,5 @@
 import AuditLog from "../models/audit/auditLogSchema.js";
+import mongoose from "mongoose";
 
 /**
  * Audit Logger Helper
@@ -11,6 +12,11 @@ export const logAuditEvent = async ({
   metadata = {},
 }) => {
   try {
+    if (mongoose.connection.readyState === 0) {
+      if (process.env.NODE_ENV === "test") return;
+      throw new Error("Audit log failure: Database is disconnected in non-test environment");
+    }
+
     const userId = req?.user?.id || null;
     const userRole = req?.user?.role || "Anonymous";
     const organization = req?.user?.organization || req?.organization || null;
@@ -35,3 +41,5 @@ export const logAuditEvent = async ({
     console.error("Audit logging error:", err.message);
   }
 };
+
+export default logAuditEvent;

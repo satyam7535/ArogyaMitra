@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary & Vision
 
-**ArogyaMitra** (आरोग्यमित्र) is an enterprise-grade, privacy-first, AI-assisted primary healthcare decision support platform tailored for rural health centers and underserved communities. Designed to bridge the severe shortage of specialized medical professionals in rural India, the platform empowers Community Health Workers (e.g., ASHA workers) to collect structured symptom observations, obtain calibrated, interpretable disease risk assessments via calibrated tree-ensemble models, and escalate high-risk cases to Medical Officers via a human-in-the-loop review pipeline.
+**ArogyaMitra** (आरोग्यमित्र) is an open-source, privacy-first, AI-assisted primary healthcare decision support platform tailored for rural health centers and underserved communities. Designed to bridge the severe shortage of specialized medical professionals in rural India, the platform empowers Community Health Workers (e.g., ASHA workers) to collect structured symptom observations, obtain calibrated, interpretable disease risk assessments via machine learning models, and escalate high-risk cases to Medical Officers via a human-in-the-loop review pipeline.
 
 ---
 

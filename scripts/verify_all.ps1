@@ -76,7 +76,7 @@ Run-Step -Name "ML Tests (ML_Model Phase 0 & Phase 1 contracts)" -OutputFile "ve
     $env:PYTHONPATH = (Join-Path $repoRoot "ML_Model")
     Push-Location (Join-Path $repoRoot "ML_Model")
     try {
-        uv run pytest tests/test_phase0.py tests/test_phase1.py -v
+        uv run pytest tests/test_phase0.py tests/test_phase1.py tests/test_model_consistency.py tests/test_hypothesis_properties.py tests/test_clinical_red_flags.py -v
     } finally {
         Pop-Location
     }

@@ -1,3 +1,8 @@
+[CmdletBinding()]
+param(
+    [switch]$KeepAlive
+)
+
 # ArogyaMitra — Local Services Startup Script (PowerShell)
 # Starts ML (:8000), Graph (:8001), Backend (:5000), and Streamlit (:8501)
 # Polls for health and records PIDs into .pids
@@ -47,25 +52,25 @@ $pidsMap["backend"] = $backendProc.Id
 # 4. Start Streamlit UI (:8501)
 Write-Host "[*] Launching Streamlit Clinical UI on port 8501..." -ForegroundColor Cyan
 $uiDir = Join-Path $repoRoot "ui"
-$uiProc = Start-Process -FilePath $pythonExe -ArgumentList @("-m", "streamlit", "run", "Home.py", "--server.port", "8501", "--server.headless", "true") -WorkingDirectory $uiDir -PassThru -WindowStyle Hidden
+$uiProc = Start-Process -FilePath $pythonExe -ArgumentList @("-m", "streamlit", "run", "Home.py", "--server.port", "8501", "--server.address", "127.0.0.1", "--server.headless", "true") -WorkingDirectory $uiDir -PassThru -WindowStyle Hidden
 $pidsMap["ui"] = $uiProc.Id
 
-# Write PIDs to .pids
-$pidContent = @()
-foreach ($k in $pidsMap.Keys) {
-    $pidContent += "$k=$($pidsMap[$k])"
+# Save PIDs to .pids file
+$pidLines = @()
+foreach ($key in $pidsMap.Keys) {
+    $pidLines += "$key=$($pidsMap[$key])"
 }
-$pidContent | Out-File -FilePath $pidFile -Encoding ascii
+$pidLines | Set-Content -Path $pidFile -Encoding UTF8
 Write-Host "[+] Saved process IDs to: $pidFile" -ForegroundColor Green
 
-# Poll for health on all 4 endpoints (up to 30 seconds)
+# Await health convergence
 Write-Host "`n[*] Awaiting health convergence on all 4 endpoints..." -ForegroundColor Cyan
 $maxAttempts = 15
 $endpoints = @(
-    @{ Name = "ML Microservice (:8000)";       Url = "http://127.0.0.1:8000/health" },
-    @{ Name = "Graph AI Service (:8001)";      Url = "http://127.0.0.1:8001/health" },
-    @{ Name = "Backend Gateway API (:5000)";   Url = "http://127.0.0.1:5000/health" },
-    @{ Name = "Streamlit Thin-Client (:8501)";  Url = "http://127.0.0.1:8501/" }
+    @{ Name = "ML (:8000)";       Url = "http://127.0.0.1:8000/health" },
+    @{ Name = "Graph (:8001)";    Url = "http://127.0.0.1:8001/health" },
+    @{ Name = "Backend (:5000)";  Url = "http://127.0.0.1:5000/health" },
+    @{ Name = "UI (:8501)";       Url = "http://127.0.0.1:8501/" }
 )
 
 $allUp = $false
@@ -90,6 +95,10 @@ for ($i = 1; $i -le $maxAttempts; $i++) {
 if ($allUp) {
     Write-Host "`n[+] All 4 services confirmed healthy and operational!" -ForegroundColor Green
     & (Join-Path $PSScriptRoot "health_check.ps1")
+    if ($KeepAlive) {
+        Write-Host "[*] KeepAlive enabled. Services will remain running indefinitely..." -ForegroundColor Cyan
+        while ($true) { Start-Sleep -Seconds 30 }
+    }
     exit 0
 } else {
     Write-Host "`n[!] Timeout waiting for services to converge." -ForegroundColor Red

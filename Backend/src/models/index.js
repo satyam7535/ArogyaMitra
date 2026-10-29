@@ -6,6 +6,7 @@ import Patient from "./patient/patientSchema.js";
 import Consultation from "./consultation/consultationSchema.js";
 import AuditLog from "./audit/auditLogSchema.js";
 import RefreshToken from "./auth/refreshTokenSchema.js";
+import AnalysisJob from "./job/jobSchema.js";
 
 export {
   Organization,
@@ -16,4 +17,5 @@ export {
   Consultation,
   AuditLog,
   RefreshToken,
+  AnalysisJob,
 };

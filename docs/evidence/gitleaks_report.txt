@@ -1,0 +1,15 @@
+﻿Command: D:\tools\gitleaks.exe git --verbose --redact
+Date: 2026-10-29 12:48:06 +05:30
+Tool Version: gitleaks 8.30.1
+Git Commit: 1408ebb51a7ea8950623a85861b664d388053730
+----------------------------------------
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m12:48PM[0m [32mINF[0m [1m17 commits scanned.[0m
+[90m12:48PM[0m [32mINF[0m [1mscanned ~2231421 bytes (2.23 MB) in 1.52s[0m
+[90m12:48PM[0m [32mINF[0m [1mno leaks found[0m

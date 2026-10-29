@@ -1,0 +1,272 @@
+Command: node src/scripts/runStage2Probes.js
+================================================================================
+AROGYAMITRA STAGE 2 — FLOW STEPS 3–4 & DPDP COMPLIANCE EVIDENCE
+Timestamp: 2026-10-28T15:22:44.507Z
+Database: MongoDB Atlas arogyamitra_dev
+================================================================================
+
+[FIXTURES IN DATABASE]
+Org 1 (Pune):   6ae1070ef57007c12dfe5bee (PUNE-RHM)
+Org 2 (Nashik): 6ae10765d7265b845af2b8af (NASHIK-RHM)
+Worker 1 (Org 1): 6ae10766d7265b845af2b8bc (worker@arogyamitra.gov.in)
+Worker 2 (Org 2): 6ae10767d7265b845af2b8bf (worker2@arogyamitra.gov.in)
+
+>>> SECTION 1: AUTHENTICATION BASELINE <<<
+--------------------------------------------------------------------------------
+[PROBE 1] Worker 1 Login (Org 1 Pune)
+Request: POST /api/v1/worker/login
+Response Status: HTTP 200
+Response Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "worker": {
+    "id": "6ae10766d7265b845af2b8bc",
+    "name": "Sunita Patil (ASHA Lead)",
+    "email": "worker@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 22221",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "role": "Worker"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE 2] Worker 2 Login (Org 2 Nashik)
+Request: POST /api/v1/worker/login
+Response Status: HTTP 200
+Response Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "worker": {
+    "id": "6ae10767d7265b845af2b8bf",
+    "name": "Anita Deshmukh (ASHA Lead Nashik)",
+    "email": "worker2@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 22222",
+    "organization": "6ae10765d7265b845af2b8af",
+    "role": "Worker"
+  }
+}
+
+>>> SECTION 2: FLOW STEP 3 — PATIENT REGISTRATION WITH AES-256 ENCRYPTION & DPDP CONSENT <<<
+--------------------------------------------------------------------------------
+[PROBE 3] Worker 1 Registers Patient with Full Consent & Medical History
+Request: POST /api/v1/patient
+Payload: {
+  "name": "Savita Ramesh Patil",
+  "age": 34,
+  "gender": "Female",
+  "phoneNumber": "+91 98230 12345",
+  "address": "Plot 42, Aundh Gaon, Pune, Maharashtra 411007",
+  "medicalHistory": "Type-2 Diabetes mellitus (diagnosed 2022), allergic to Sulfa drugs",
+  "consentGiven": true,
+  "consentVersion": "1.0"
+}
+Response Status: HTTP 201
+Response Body: {
+  "message": "Patient registered successfully",
+  "patient": {
+    "name": "Savita Ramesh Patil",
+    "age": 34,
+    "gender": "Female",
+    "phoneNumber": "+91 98230 12345",
+    "address": "Plot 42, Aundh Gaon, Pune, Maharashtra 411007",
+    "medicalHistory": "Type-2 Diabetes mellitus (diagnosed 2022), allergic to Sulfa drugs",
+    "consentGiven": true,
+    "consentTimestamp": "2026-10-28T15:22:46.066Z",
+    "consentVersion": "1.0",
+    "revokedAt": null,
+    "isDeleted": false,
+    "deletedAt": null,
+    "registeredBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "_id": "6ae21346c96b76c78ee5c484",
+    "createdAt": "2026-10-28T15:22:46.069Z",
+    "updatedAt": "2026-10-28T15:22:46.069Z",
+    "__v": 0
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE 4] Direct MongoDB Atlas Raw Document Inspection (Proving AES-256-GCM Ciphertext at Rest)
+Direct MongoDB Document (as stored on disk in Atlas):
+{
+  "_id": "6ae21346c96b76c78ee5c484",
+  "name": "Savita Ramesh Patil",
+  "age": 34,
+  "gender": "Female",
+  "phoneNumber": "fbfdb4f3ce3938a2e9d913a6:ae26d33d82045afb5c0e9a6da64493d6:ac40e0316890436a796a99878df86c",
+  "address": "41ffd8f74718702ee84928bf:f14820ec0868c0113afe43e278a1854f:3e34453780b2c7012147abbab3f0dbe0e6416dbd4a25df3c1543da7123a97805364f44245845265493f123c982",
+  "medicalHistory": "c42b559dcedb5d115f7690cc:fe879e520bd3db9392efc800fd9ea39a:0f7dc3d6f4746a9f29f92d104f082ee66be49d84901a3f0e86b73377a736c8c26f46e71a6227ec6b0b6693fa172c05cd527bf5d70ba2c480de1d55096f00d43a2957",
+  "consentGiven": true,
+  "consentTimestamp": "2026-10-28T15:22:46.066Z",
+  "consentVersion": "1.0",
+  "revokedAt": null,
+  "isDeleted": false,
+  "deletedAt": null,
+  "organization": "6ae1070ef57007c12dfe5bee"
+}
+Verification:
+  - phoneNumber is 3-part ciphertext (iv:tag:enc): CONFIRMED
+  - address is 3-part ciphertext (iv:tag:enc):     CONFIRMED
+  - medicalHistory is 3-part ciphertext (iv:tag:enc): CONFIRMED
+  - consentGiven: true
+  - consentVersion: 1.0
+--------------------------------------------------------------------------------
+[PROBE 5] Worker 1 Reads Registered Patient (Decrypted via Service)
+Request: GET /api/v1/patient/6ae21346c96b76c78ee5c484
+Response Status: HTTP 200
+Response Body: {
+  "patient": {
+    "_id": "6ae21346c96b76c78ee5c484",
+    "name": "Savita Ramesh Patil",
+    "age": 34,
+    "gender": "Female",
+    "phoneNumber": "+91 98230 12345",
+    "address": "Plot 42, Aundh Gaon, Pune, Maharashtra 411007",
+    "medicalHistory": "Type-2 Diabetes mellitus (diagnosed 2022), allergic to Sulfa drugs",
+    "consentGiven": true,
+    "consentTimestamp": "2026-10-28T15:22:46.066Z",
+    "consentVersion": "1.0",
+    "revokedAt": null,
+    "isDeleted": false,
+    "deletedAt": null,
+    "registeredBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "createdAt": "2026-10-28T15:22:46.069Z",
+    "updatedAt": "2026-10-28T15:22:46.069Z",
+    "__v": 0
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE 6] Worker 1 Exports Patient Data under DPDP Act (Portability & Audit)
+Request: GET /api/v1/patient/6ae21346c96b76c78ee5c484/export
+Response Status: HTTP 200
+Response Body: {
+  "message": "Patient data exported successfully",
+  "data": {
+    "patient": {
+      "_id": "6ae21346c96b76c78ee5c484",
+      "name": "Savita Ramesh Patil",
+      "age": 34,
+      "gender": "Female",
+      "phoneNumber": "+91 98230 12345",
+      "address": "Plot 42, Aundh Gaon, Pune, Maharashtra 411007",
+      "medicalHistory": "Type-2 Diabetes mellitus (diagnosed 2022), allergic to Sulfa drugs",
+      "consentGiven": true,
+      "consentTimestamp": "2026-10-28T15:22:46.066Z",
+      "consentVersion": "1.0",
+      "revokedAt": null,
+      "isDeleted": false,
+      "deletedAt": null,
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-28T15:22:46.069Z",
+      "updatedAt": "2026-10-28T15:22:46.069Z",
+      "__v": 0
+    },
+    "consent": {
+      "consentGiven": true,
+      "consentTimestamp": "2026-10-28T15:22:46.066Z",
+      "consentVersion": "1.0",
+      "revokedAt": null
+    },
+    "consultations": [],
+    "exportedAt": "2026-10-28T15:22:46.216Z"
+  }
+}
+
+>>> SECTION 3: FLOW STEP 4 — CROSS-TENANT ISOLATION & ANTI-ENUMERATION (404 RULE) <<<
+--------------------------------------------------------------------------------
+[PROBE 7] Worker 2 (Org 2 Nashik) Cross-Tenant Read Attempt on Org 1 Patient
+Request: GET /api/v1/patient/6ae21346c96b76c78ee5c484
+Authorization: Bearer [WORKER_2_NASHIK_TOKEN]
+Response Status: HTTP 404
+Response Body: {
+  "message": "Patient not found"
+}
+Anti-Enumeration Verification: Status is 404 Not Found (NOT 403 Forbidden). Prevents existence leakage.
+--------------------------------------------------------------------------------
+[PROBE 8] Worker 2 (Org 2 Nashik) Cross-Tenant Export Attempt on Org 1 Patient
+Request: GET /api/v1/patient/6ae21346c96b76c78ee5c484/export
+Authorization: Bearer [WORKER_2_NASHIK_TOKEN]
+Response Status: HTTP 404
+Response Body: {
+  "message": "Patient not found"
+}
+Anti-Enumeration Verification: Status is 404 Not Found.
+--------------------------------------------------------------------------------
+[PROBE 9] Worker 2 (Org 2 Nashik) Cross-Tenant Delete Attempt on Org 1 Patient
+Request: DELETE /api/v1/patient/6ae21346c96b76c78ee5c484
+Authorization: Bearer [WORKER_2_NASHIK_TOKEN]
+Response Status: HTTP 404
+Response Body: {
+  "message": "Patient not found"
+}
+Anti-Enumeration Verification: Status is 404 Not Found.
+--------------------------------------------------------------------------------
+[PROBE 10] Mass-Assignment Rejection on Patient Registration (Strict Zod Validation)
+Request: POST /api/v1/patient
+Payload (with malicious injected fields): {
+  "name": "Spoof Attempt Patient",
+  "age": 28,
+  "gender": "Male",
+  "phoneNumber": "+91 98200 99999",
+  "address": "Pune",
+  "organization": "6ae10765d7265b845af2b8af",
+  "role": "Admin"
+}
+Response Status: HTTP 400
+Response Body: {
+  "message": "Request validation failed",
+  "code": "VALIDATION_ERROR",
+  "errors": [
+    {
+      "field": "",
+      "message": "Unrecognized keys: \"organization\", \"role\""
+    }
+  ]
+}
+Verification: Rejected with HTTP 400 VALIDATION_ERROR (unrecognized keys).
+
+>>> SECTION 4: DPDP CONSENT REVOCATION & DATA ANONYMIZATION <<<
+--------------------------------------------------------------------------------
+[PROBE 11] Worker 1 Revokes Consent and Anonymizes Patient under DPDP Act
+Request: DELETE /api/v1/patient/6ae21346c96b76c78ee5c484
+Response Status: HTTP 200
+Response Body: {
+  "success": true,
+  "message": "Patient consent revoked and record anonymized under DPDP",
+  "patientId": "6ae21346c96b76c78ee5c484"
+}
+--------------------------------------------------------------------------------
+[PROBE 12] Direct MongoDB Atlas Inspection Post-DPDP Revocation
+Direct MongoDB Document (after revocation & anonymization):
+{
+  "_id": "6ae21346c96b76c78ee5c484",
+  "name": "[ANONYMIZED]",
+  "phoneNumber": "f5c8b1e6f11fda5821a551c4:fcd2ee1551f3828600039f2191194da8:3cc2377a894fc3ec8d0b54df",
+  "address": "5b84587ee68eda290f611de6:725b4cb5a9c0a18c1b5cb124dfaa7179:51dc3cf28646367281e481ac",
+  "medicalHistory": "c9daabb199b66a51f744e9d7:b72822b566d2b6941223b1125f3a7a88:efc8777f7fc2ac05f7904840",
+  "consentGiven": false,
+  "consentTimestamp": "2026-10-28T15:22:46.066Z",
+  "revokedAt": "2026-10-28T15:22:46.339Z",
+  "isDeleted": true,
+  "deletedAt": "2026-10-28T15:22:46.339Z"
+}
+Decrypted View of Anonymized Patient:
+  - name:           "[ANONYMIZED]"
+  - phoneNumber:    "[ANONYMIZED]"
+  - address:        "[ANONYMIZED]"
+  - medicalHistory: "[ANONYMIZED]"
+  - consentGiven:   false
+  - revokedAt:      Wed Oct 28 2026 20:52:46 GMT+0530 (India Standard Time)
+  - isDeleted:      true
+  - deletedAt:      Wed Oct 28 2026 20:52:46 GMT+0530 (India Standard Time)
+--------------------------------------------------------------------------------
+[PROBE 13] Post-Deletion Anti-Enumeration & List Scoping Verification
+Probe 13a: GET /api/v1/patient/6ae21346c96b76c78ee5c484 -> Status: HTTP 404 (Patient not found)
+Probe 13b: GET /api/v1/patient -> Status: HTTP 200, Total active patients: 9
+  - Soft-deleted patient excluded from active list: CONFIRMED
+
+================================================================================
+STAGE 2 PROBES EXECUTION COMPLETE: 13/13 PROBES PASSED WITH 100% GREEN OUTCOME
+================================================================================

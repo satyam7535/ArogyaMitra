@@ -12,10 +12,12 @@ This script provides an examiner-ready walkthrough demonstrating the complete hu
    - LangGraph Service: `http://localhost:8001/health` → `{"status":"ok"}`
    - Streamlit Workstation: `http://localhost:8501`
 
-2. **Demo Credentials**:
-   - **ASHA Worker**: `asha.shinde@arogyamitra.gov.in` / `Worker@Pass12345!`
-   - **Medical Officer (Doctor)**: `dr.patil@arogyamitra.gov.in` / `Doctor@Pass12345!`
-   - **Administrator**: `admin@arogyamitra.gov.in` / `Admin@Pass12345!`
+2. **Demo Credentials (TEST ONLY, GENERATED FOR EVALUATION)**:
+   > [!IMPORTANT]
+   > The credentials below are mock test accounts seeded strictly for local evaluation. They are not real user credentials and must never be used in production.
+   - **ASHA Worker**: `worker@arogyamitra.gov.in` / `Arogya@2026Secure!`
+   - **Medical Officer (Doctor)**: `doctor@arogyamitra.gov.in` / `Arogya@2026Secure!`
+   - **Administrator**: `admin@arogyamitra.gov.in` / `Arogya@2026Secure!`
 
 ---
 
@@ -43,12 +45,12 @@ This script provides an examiner-ready walkthrough demonstrating the complete hu
    - *Observe*: The 131-symptom searchable multiselect auto-populates with `itching`, `vomiting`, `fatigue`, `yellowish_skin`, `dark_urine`, `abdominal_pain`.
 4. Click **"Run Diagnostic Analysis"**.
 5. **Explain the Diagnostic Output**:
-   - **Primary Prediction**: **Jaundice** with **Calibrated Probability** (e.g., 94.2%). Explain to examiners: *"This is post-hoc Sigmoid/Platt calibrated, reflecting empirical posterior probabilities, not raw tree leaf purities."*
-   - **TreeSHAP Feature Attributions**: Hover over the horizontal bar chart. Explain: *"TreeSHAP proves mathematically why the model predicted Jaundice—yellowish skin and dark urine contributed +0.48 and +0.32 log-odds to the prediction."*
+   - **Primary Prediction**: **Jaundice** with **Calibrated Probability** (e.g., 94.2%). Explain to examiners: *"This is post-hoc calibrated via empirical validation likelihoods, reflecting true posterior class probabilities."*
+   - **Bayesian Evidence Attributions**: Hover over the horizontal bar chart. Explain: *"Bayesian Evidence proves mathematically why the model predicted Jaundice—yellowish skin and dark urine contributed +0.48 and +0.32 log-odds to the prediction."*
    - **Differential Diagnoses**: Point out the secondary probabilities (`Hepatitis A`, `Chronic Cholestasis`).
    - **Clinical Safety Banner**: If an acute condition is present or confidence is low, highlight the **Needs Escalation** banner advising immediate hospital transfer.
 6. Click **"Download Official Medical PDF Report"**.
-   - *Open the downloaded PDF*: Show the bilingual formatting, patient vitals, TreeSHAP summary, and blank physician sign-off section.
+   - *Open the downloaded PDF*: Show the bilingual formatting, patient vitals, Bayesian Evidence summary, and blank physician sign-off section.
 
 ---
 

@@ -3,6 +3,8 @@ import { cloudinary } from "../config/cloudinaryConfig.js";
 import jwt from "jsonwebtoken";
 import serverConfig from "../config/serverConfig.js";
 
+import ROLES from "../config/roles.js";
+
 // Helper: upload a buffer to Cloudinary
 const uploadToCloudinary = (buffer, folder, resourceType = "auto") => {
   return new Promise((resolve, reject) => {
@@ -225,12 +227,25 @@ const triggerConsultationAnalysis = async (consultationId, organization, request
   const consultation = await Consultation.findOne({
     _id: consultationId,
     organization,
-  }).populate("patient", "name age gender");
+  }).populate("patient", "name age gender consentGiven revokedAt isDeleted");
 
   if (!consultation) {
     const error = new Error("Consultation not found in your organization");
     error.statusCode = 404;
     error.code = "CONSULTATION_NOT_FOUND";
+    throw error;
+  }
+
+  // DPDP Consent Gate: refuse analysis if patient consent is inactive or withdrawn
+  if (
+    !consultation.patient ||
+    consultation.patient.consentGiven === false ||
+    consultation.patient.revokedAt ||
+    consultation.patient.isDeleted === true
+  ) {
+    const error = new Error("Patient consent is inactive or has been withdrawn. Processing refused under DPDP Act.");
+    error.statusCode = 403;
+    error.code = "CONSENT_REQUIRED";
     throw error;
   }
 
@@ -246,7 +261,9 @@ const triggerConsultationAnalysis = async (consultationId, organization, request
     {
       iss: "arogyamitra-backend",
       sub: requestingUser._id ? requestingUser._id.toString() : requestingUser.id,
-      role: requestingUser.role || "worker",
+      aud: "arogyamitra-internal",
+
+      role: requestingUser.role || ROLES.WORKER,
       organization: organization.toString(),
       consultationId: consultationId.toString(),
     },

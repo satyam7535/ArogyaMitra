@@ -16,6 +16,8 @@ import {
   getQueueMetrics,
 } from "../service/jobQueue.service.js";
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
+import Consultation from "../models/consultation/consultationSchema.js";
+import { getJobStatusFromDb } from "../service/jobQueue.service.js";
 
 // Worker submits a new consultation
 const submitConsultation = async (req, res) => {
@@ -117,6 +119,9 @@ const acceptAI = async (req, res) => {
 
     return res.status(200).json({ message: "AI result accepted. Consultation closed.", consultation });
   } catch (error) {
+    if (error.name === "VersionError") {
+      return res.status(409).json({ message: "Conflict: consultation was updated concurrently. Please refresh and try again." });
+    }
     return res.status(error.status || 400).json({ message: error.message });
   }
 };
@@ -124,7 +129,8 @@ const acceptAI = async (req, res) => {
 // Worker escalates to doctor for second opinion
 const escalate = async (req, res) => {
   try {
-    const { doctorId, reason } = req.body;
+    const doctorId = req.body.doctorId || req.body.targetDoctorId;
+    const reason = req.body.reason || "";
     if (!doctorId) return res.status(400).json({ message: "doctorId is required" });
 
     const consultation = await escalateToDoctor(
@@ -148,6 +154,9 @@ const escalate = async (req, res) => {
 
     return res.status(200).json({ message: "Consultation escalated to doctor", consultation });
   } catch (error) {
+    if (error.name === "VersionError") {
+      return res.status(409).json({ message: "Conflict: consultation was updated concurrently. Please refresh and try again." });
+    }
     return res.status(400).json({ message: error.message });
   }
 };
@@ -175,10 +184,11 @@ const getAllForDoctor = async (req, res) => {
 // Doctor submits second opinion
 const respondWithSecondOpinion = async (req, res) => {
   try {
-    const { diagnosis, recommendation } = req.body;
+    const diagnosis = req.body.diagnosis || req.body.doctorNotes;
+    const recommendation = req.body.recommendation || (req.body.prescription ? JSON.stringify(req.body.prescription) : "Review completed by doctor");
 
-    if (!diagnosis || !recommendation) {
-      return res.status(400).json({ message: "Diagnosis and recommendation are required" });
+    if (!diagnosis) {
+      return res.status(400).json({ message: "Diagnosis or doctorNotes is required" });
     }
 
     const consultation = await submitSecondOpinion(
@@ -201,6 +211,9 @@ const respondWithSecondOpinion = async (req, res) => {
 
     return res.status(200).json({ message: "Second opinion submitted successfully", consultation });
   } catch (error) {
+    if (error.name === "VersionError") {
+      return res.status(409).json({ message: "Conflict: consultation was updated concurrently. Please refresh and try again." });
+    }
     return res.status(error.status || 400).json({ message: error.message });
   }
 };
@@ -248,6 +261,30 @@ const triggerAnalysisAsync = async (req, res) => {
     const { id } = req.params;
     const { language } = req.body;
 
+    const consultation = await Consultation.findOne({
+      _id: id,
+      organization: req.user.organization,
+    }).populate("patient", "name age gender consentGiven revokedAt isDeleted");
+
+    if (!consultation) {
+      return res.status(404).json({
+        message: "Consultation not found in your organization",
+        code: "CONSULTATION_NOT_FOUND",
+      });
+    }
+
+    if (
+      !consultation.patient ||
+      consultation.patient.consentGiven === false ||
+      consultation.patient.revokedAt ||
+      consultation.patient.isDeleted === true
+    ) {
+      return res.status(403).json({
+        message: "Patient consent is inactive or has been withdrawn. Processing refused under DPDP Act.",
+        code: "CONSENT_REQUIRED",
+      });
+    }
+
     const job = enqueueAnalysisJob({
       consultationId: id,
       organization: req.user.organization,
@@ -279,7 +316,7 @@ const triggerAnalysisAsync = async (req, res) => {
 const checkAnalysisJobStatus = async (req, res) => {
   try {
     const { jobId } = req.params;
-    const job = getJobStatus(jobId, req.user.organization);
+    const job = await getJobStatusFromDb(jobId, req.user.organization);
 
     if (!job) {
       return res.status(404).json({

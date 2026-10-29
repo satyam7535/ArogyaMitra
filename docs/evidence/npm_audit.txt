@@ -1,0 +1,6 @@
+﻿Command: npm --prefix Backend audit
+Date: 2026-10-29 12:45:32 +05:30
+Tool Version: npm 10.9.2
+Git Commit: 1408ebb51a7ea8950623a85861b664d388053730
+----------------------------------------
+found 0 vulnerabilities

@@ -1,0 +1,54 @@
+================================================================================
+AROGYAMITRA — STAGE 3 BENCHMARK & REPEATED STRATIFIED CV EVALUATION
+Timestamp: 2026-10-28T18:15:49Z
+================================================================================
+
+[DATASET GROUND TRUTH]
+  - Unique Samples: 304
+  - Features:       131
+  - Classes:        41
+  - Raw Duplicates: 4616 (dropped before CV splitting)
+
+[EVALUATION PROTOCOL]
+  - Protocol: Repeated Stratified K-Fold (5 folds x 3 repeats = 15 splits)
+  - Data Leakage Guard: In-fold augmentation strictly applied to training folds only.
+  - Symptom Dropout Evaluated on Validation Folds: 0%, 30%, 50%
+  - Models Evaluated: 6 families (LogReg, BernoulliNB, RF, XGBoost, LightGBM, MLP)
+
+Running benchmark across all splits...
+Failed fitting LightGBM in split 0: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 0: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 1: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 1: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 2: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 2: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 3: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 3: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 4: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 4: exception: access violation reading 0x0000000000000000
+  - Completed 5/15 splits...
+Failed fitting LightGBM in split 5: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 5: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 6: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 6: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 7: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 7: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 8: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 8: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 9: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 9: exception: access violation reading 0x0000000000000000
+  - Completed 10/15 splits...
+Failed fitting LightGBM in split 10: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 10: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 11: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 11: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 12: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 12: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 13: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 13: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 14: exception: access violation reading 0x0000000000000000
+Failed fitting LightGBM in split 14: exception: access violation reading 0x0000000000000000
+  - Completed 15/15 splits...
+Benchmark finished in 117.98 seconds.
+
+[+] Raw fold results saved to: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\model_benchmark.csv

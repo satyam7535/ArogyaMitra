@@ -1,0 +1,91 @@
+# ArogyaMitra — Clinical Red Flags Configuration
+# Status: DRAFT (Pending Medical Board Review)
+# Rule Layer: Forces immediate physician escalation (needsEscalation: true, redFlag: true, risk: "High")
+
+version: "1.0.0"
+status: "DRAFT"
+reviewed_by: null
+review_status: "pending clinical review"
+last_updated: "2026-10-29T02:00:00Z"
+notice: "⚠️ DRAFT CONFIGURATION: PENDING CLINICAL REVIEW BY LICENSED MEDICAL PRACTITIONER. ALL RED-FLAG TRIGGERS MUST BE PHYSICIAN-VERIFIED BEFORE PRIMARY CARE ROLLOUT."
+
+# ── Red Flag Symptoms (Mapped Strictly to 131-Feature Clinical Vocabulary) ────
+# Every item in this list MUST strictly exist in symptom_columns.pkl.
+# Startup validation enforces vocabulary membership and will fail closed on unmapped terms.
+vocabulary_red_flags:
+  - symptom: "chest_pain"
+    acuity_level: "Critical"
+    clinical_rationale: "Potential acute coronary syndrome, myocardial infarction, pulmonary embolism, or aortic dissection."
+    forced_risk: "High"
+    immediate_action: "Immediate transfer/referral to emergency cardiac facility."
+
+  - symptom: "coma"
+    acuity_level: "Critical"
+    clinical_rationale: "Severe depression of consciousness indicating acute neurological crisis or severe metabolic failure."
+    forced_risk: "High"
+    immediate_action: "Immediate airway protection and emergency tertiary referral."
+
+  - symptom: "breathlessness"
+    acuity_level: "High"
+    clinical_rationale: "Respiratory distress suggesting acute pulmonary edema, severe bronchospasm, pneumonia, or cardiac decompensation."
+    forced_risk: "High"
+    immediate_action: "Administer high-flow oxygen if available, immediate physician evaluation."
+
+  - symptom: "blood_in_sputum"
+    acuity_level: "High"
+    clinical_rationale: "Hemoptysis indicating active pulmonary hemorrhage, tuberculosis, or bronchogenic malignancy."
+    forced_risk: "High"
+    immediate_action: "Urgent respiratory evaluation and infectious isolation precautions."
+
+  - symptom: "bloody_stool"
+    acuity_level: "High"
+    clinical_rationale: "Hematochezia / melena suggesting acute lower or upper gastrointestinal hemorrhage."
+    forced_risk: "High"
+    immediate_action: "Hemodynamic stabilization, IV fluid resuscitation, urgent surgeon/gastroenterologist referral."
+
+  - symptom: "loss_of_balance"
+    acuity_level: "High"
+    clinical_rationale: "Acute ataxia or cerebellar sign indicating potential ischemic stroke, intracranial hemorrhage, or labyrinthitis."
+    forced_risk: "High"
+    immediate_action: "Urgent stroke protocol evaluation within therapeutic thrombolysis window."
+
+  - symptom: "fast_heart_rate"
+    acuity_level: "High"
+    clinical_rationale: "Hemodynamically unstable tachyarrhythmia, severe sepsis, or hypovolemic shock."
+    forced_risk: "High"
+    immediate_action: "Continuous pulse check, ECG acquisition, immediate physician triage."
+
+# ── Candidate Symptoms Without Vocabulary Match (Requires Clinical Vocabulary Expansion) ─
+# These symptoms are critical emergency presentations but are NOT present in the 131-column benchmark vocabulary.
+# They are formally recorded below for clinical review and future intake vocabulary expansion.
+candidate_unmapped_symptoms:
+  - symptom: "unconsciousness"
+    clinical_rationale: "Sudden loss of consciousness (syncope vs cardiac arrest vs intracranial event)."
+    status: "UNMAPPED_TO_VOCABULARY"
+    recommended_future_token: "acute_syncope_unconsciousness"
+
+  - symptom: "convulsions_or_seizures"
+    clinical_rationale: "Active tonic-clonic convulsions or status epilepticus requiring immediate anticonvulsant therapy."
+    status: "UNMAPPED_TO_VOCABULARY"
+    recommended_future_token: "active_seizure"
+
+  - symptom: "cyanosis"
+    clinical_rationale: "Central cyanosis (blue lips/extremities) indicating profound arterial hypoxemia."
+    status: "UNMAPPED_TO_VOCABULARY"
+    recommended_future_token: "central_cyanosis"
+
+  - symptom: "severe_anaphylaxis_throat_swelling"
+    clinical_rationale: "Acute stridor, tongue swelling, or impending airway obstruction from systemic allergic reaction."
+    status: "UNMAPPED_TO_VOCABULARY"
+    recommended_future_token: "laryngeal_edema_stridor"
+
+  - symptom: "profuse_external_bleeding"
+    clinical_rationale: "Severe arterial or massive venous hemorrhage risking hemorrhagic shock."
+    status: "UNMAPPED_TO_VOCABULARY"
+    recommended_future_token: "active_hemorrhage"
+
+  - symptom: "severe_head_trauma"
+    clinical_rationale: "Blunt force cranial trauma with altered mental status or cerebrospinal fluid rhinorrhea."
+    status: "UNMAPPED_TO_VOCABULARY"
+    recommended_future_token: "traumatic_brain_injury"
+

@@ -1,6 +1,11 @@
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import { z } from "zod";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Prioritize Backend/.env, fallback to process.cwd()/.env
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 dotenv.config();
 
 const envSchema = z.object({
@@ -26,8 +31,8 @@ const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   if (process.env.NODE_ENV === "test") {
-    // In test environment, warn and provide mock test configuration if not supplied
-    console.warn("WARN: Missing test environment variables, falling back to ephemeral test config.");
+    // In test environment, fallback to valid testing defaults if required vars missing
+    console.error("WARN: Missing test environment variables, falling back to ephemeral test config.");
   } else {
     console.error("FATAL: Environment validation failed. System refusing to start:");
     console.error(JSON.stringify(parsed.error.format(), null, 2));
@@ -35,18 +40,20 @@ if (!parsed.success) {
   }
 }
 
-const config = parsed.success ? parsed.data : {
-  PORT: 5000,
-  DB_URL: process.env.DB_URL || "mongodb://127.0.0.1:27017/arogyamitra_test",
-  JWT_SECRET: process.env.JWT_SECRET || "ephemeral_test_secret_key_minimum_32_characters_length!",
-  JWT_EXPIRY: "15m",
-  REFRESH_TOKEN_EXPIRY: "7d",
-  NODE_ENV: "test",
-  FRONTEND_URL: "http://localhost:5173",
-  ML_API_URL: "http://localhost:8000",
-  GRAPH_API_URL: "http://localhost:8001",
-  INTERNAL_SERVICE_SECRET: process.env.INTERNAL_SERVICE_SECRET || "ephemeral_test_internal_token_secret_32chars!",
-  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || "ephemeral_test_aes_256_key_32chars_long!",
-};
+const serverConfig = parsed.success
+  ? parsed.data
+  : {
+      PORT: 5000,
+      DB_URL: "mongodb://127.0.0.1:27017/arogyamitra_test",
+      JWT_SECRET: "mock_jwt_secret_for_test_runs_must_be_over_32_characters!",
+      JWT_EXPIRY: "15m",
+      REFRESH_TOKEN_EXPIRY: "7d",
+      NODE_ENV: "test",
+      FRONTEND_URL: "http://localhost:5173",
+      ML_API_URL: "http://localhost:8000",
+      GRAPH_API_URL: "http://localhost:8001",
+      INTERNAL_SERVICE_SECRET: "mock_internal_secret_for_test_runs_32_chars!",
+      ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    };
 
-export default config;
+export default serverConfig;

@@ -88,6 +88,10 @@ export const rotateRefreshToken = async (rawRefreshToken) => {
     throw { status: 401, message: "User not found" };
   }
 
+  if (user.isActive === false) {
+    throw { status: 403, message: "Forbidden: Account has been deactivated", code: "ACCOUNT_DEACTIVATED" };
+  }
+
   // Issue new token pair within the SAME family
   return await generateTokenPair(user, tokenRecord.userModel, tokenRecord.familyId);
 };

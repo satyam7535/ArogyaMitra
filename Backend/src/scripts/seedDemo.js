@@ -18,6 +18,11 @@ import serverConfig from "../config/serverConfig.js";
 
 dotenv.config();
 
+// Refuse to run demo seeding in production environment
+if (process.env.NODE_ENV === "production") {
+  throw new Error("SECURITY_ERROR: seedDemo.js cannot be executed in production (NODE_ENV=production).");
+}
+
 const seed = async () => {
   try {
     console.log("Connecting to MongoDB:", serverConfig.DB_URL);

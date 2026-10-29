@@ -88,6 +88,9 @@ Thumbs.db
 Desktop.ini
 
 # =========================
+# Uploads & Private Storage
+storage/
+
 # Reports & Temporary Files
 # =========================
 *.pdf

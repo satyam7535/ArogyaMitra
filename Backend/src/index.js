@@ -1,3 +1,4 @@
+import { requestIdMiddleware, piiFreeLoggingMiddleware } from "./middlewares/logging.middleware.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -13,7 +14,14 @@ import consultationRouter from "./routes/consultation.routes.js";
 
 const app = express();
 
-// 1. Security Middlewares (Helmet, NoSQL Sanitize, HPP, disable x-powered-by)
+// Request ID and PII-Free Structured Logging
+app.use(requestIdMiddleware);
+app.use(piiFreeLoggingMiddleware);
+
+// Cookie Parser (needed for cookie-authenticated CSRF protection and auth)
+app.use(cookieParser());
+
+// 1. Security Middlewares (Helmet, NoSQL Sanitize, HPP, disable x-powered-by, CSRF)
 applySecurityMiddlewares(app);
 
 // 2. CORS configuration
@@ -36,14 +44,13 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With", "X-CSRF-Token"],
   })
 );
 
 // 3. Body Parsing & Rate Limiting
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
-app.use(cookieParser());
 app.use(generalApiLimiter);
 
 // 4. Health and Root Check
@@ -79,8 +86,8 @@ app.use((err, req, res, _next) => {
 
 export const startServer = async () => {
   await connectDB();
-  return app.listen(serverConfig.PORT, () => {
-    console.log(`Server is running on port ${serverConfig.PORT} in ${serverConfig.NODE_ENV} mode`);
+  return app.listen(serverConfig.PORT, "127.0.0.1", () => {
+    console.log(`Server is running on http://127.0.0.1:${serverConfig.PORT} in ${serverConfig.NODE_ENV} mode`);
   });
 };
 

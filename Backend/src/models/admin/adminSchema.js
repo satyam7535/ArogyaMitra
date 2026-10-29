@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { hashPassword } from "../../utils/crypto.js";
+import { ROLES, ALL_ROLES } from "../../config/roles.js";
 
 const adminSchema = new mongoose.Schema(
   {
@@ -36,7 +37,8 @@ const adminSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "Admin",
+      enum: ALL_ROLES,
+      default: ROLES.ADMIN,
       immutable: true,
     },
     failedLoginAttempts: {

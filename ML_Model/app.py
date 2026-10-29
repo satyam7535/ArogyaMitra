@@ -11,8 +11,9 @@ import re
 from typing import Any
 
 import joblib
+import lightgbm as _lgb  # noqa: F401
 import numpy as np
-import pandas as pd
+import yaml
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,7 +28,7 @@ INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "")
 REQUIRE_INTERNAL_AUTH = os.getenv("REQUIRE_INTERNAL_AUTH", "true").lower() in ("true", "1", "yes")
 
 if REQUIRE_INTERNAL_AUTH and not INTERNAL_SERVICE_SECRET:
-    logger.warning("SECURITY WARNING: INTERNAL_SERVICE_SECRET is not configured in environment.")
+    raise RuntimeError("FATAL: INTERNAL_SERVICE_SECRET must be configured when REQUIRE_INTERNAL_AUTH is true.")
 
 def verify_internal_service_token(
     x_internal_service_token: str | None = Header(None),
@@ -52,12 +53,31 @@ def verify_internal_service_token(
         return {"service": "internal-shared-secret"}
 
     if INTERNAL_SERVICE_SECRET:
+        import jwt
         try:
-            import jwt
-            payload = jwt.decode(token, INTERNAL_SERVICE_SECRET, algorithms=["HS256"])
+            # Check with audience verification
+            payload = jwt.decode(
+                token,
+                INTERNAL_SERVICE_SECRET,
+                algorithms=["HS256"],
+                audience=["arogyamitra-internal", "arogyamitra-ml"]
+            )
             return payload
-        except Exception:
-            pass
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Internal service token has expired.",
+            )
+        except jwt.InvalidAudienceError:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid service token: Invalid audience",
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Invalid service token: {e!s}",
+            )
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -75,7 +95,7 @@ allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
 allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins if allowed_origins else ["*"],
+    allow_origins=allowed_origins if allowed_origins else ["http://localhost:5000", "http://127.0.0.1:5000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -92,9 +112,15 @@ class PredictRequest(BaseModel):
 
 # ── Artifact Management ───────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Check v1 directory first, fallback to base model directory
+# Check v2 directory first, then v1, fallback to base model directory
+V2_DIR = os.path.join(BASE_DIR, "model", "v2")
 V1_DIR = os.path.join(BASE_DIR, "model", "v1")
-MODEL_DIR = V1_DIR if os.path.exists(os.path.join(V1_DIR, "disease_model.pkl")) else os.path.join(BASE_DIR, "model")
+if os.path.exists(os.path.join(V2_DIR, "disease_model.pkl")):
+    MODEL_DIR = V2_DIR
+elif os.path.exists(os.path.join(V1_DIR, "disease_model.pkl")):
+    MODEL_DIR = V1_DIR
+else:
+    MODEL_DIR = os.path.join(BASE_DIR, "model")
 
 base_model = None
 calibrator = None
@@ -104,6 +130,7 @@ symptom_columns: list[str] = []
 severity_map: dict[str, int] = {}
 description_map: dict[str, str] = {}
 precaution_map: dict[str, list[str]] = {}
+symptom_class_matrix: dict[str, dict[str, float]] = {}
 metadata: dict[str, Any] = {}
 model_loaded = False
 load_error_message = ""
@@ -119,12 +146,43 @@ def normalize_symptom_str(s: str) -> str:
     }
     return mappings.get(cleaned, cleaned)
 
+def load_red_flags():
+    global red_flags_config, red_flags_map
+    repo_root = os.path.dirname(BASE_DIR)
+    config_path = os.path.join(repo_root, "config", "red_flags.yaml")
+    if not os.path.exists(config_path):
+        logger.warning(f"Clinical red flags configuration not found at '{config_path}'")
+        return
+    with open(config_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if not isinstance(data, dict):
+        raise TypeError("config/red_flags.yaml must be a valid YAML mapping")
+    if data.get("status") != "DRAFT":
+        raise ValueError(f"Expected red_flags status 'DRAFT', got '{data.get('status')}'")
+    if data.get("reviewed_by") is not None:
+        raise ValueError(f"Expected reviewed_by: null, got '{data.get('reviewed_by')}'")
+
+    rf_items = data.get("vocabulary_red_flags", [])
+    rf_map = {}
+    for item in rf_items:
+        s = item.get("symptom")
+        if symptom_columns and s not in symptom_columns:
+            raise ValueError(f"Startup validation failure: red-flag symptom '{s}' is not in clinical vocabulary!")
+        rf_map[s] = item
+
+    red_flags_config = data
+    red_flags_map = rf_map
+    logger.info(f"Loaded {len(red_flags_map)} clinical red-flags from '{config_path}' (Status: DRAFT)")
+
 def load_artifacts():
     global base_model, calibrator, shap_explainer, label_encoder, symptom_columns
-    global severity_map, description_map, precaution_map, metadata, model_loaded, load_error_message, MODEL_DIR
+    global severity_map, description_map, precaution_map, symptom_class_matrix, metadata, model_loaded, load_error_message, MODEL_DIR
 
-    # Re-evaluate MODEL_DIR in case v1 was just created
-    if os.path.exists(os.path.join(V1_DIR, "disease_model.pkl")):
+    # Re-evaluate MODEL_DIR in case v2 was created
+    if os.path.exists(os.path.join(V2_DIR, "disease_model.pkl")):
+        MODEL_DIR = V2_DIR
+    elif os.path.exists(os.path.join(V1_DIR, "disease_model.pkl")):
         MODEL_DIR = V1_DIR
     else:
         MODEL_DIR = os.getenv("MODEL_DIR", os.path.join(BASE_DIR, "model"))
@@ -153,18 +211,29 @@ def load_artifacts():
         description_map = joblib.load(os.path.join(MODEL_DIR, required["description_map"]))
         precaution_map = joblib.load(os.path.join(MODEL_DIR, required["precaution_map"]))
 
-        # Optional calibrator
+        # Calibrated classifier (Platt / Isotonic)
         cal_path = os.path.join(MODEL_DIR, "calibrator.pkl")
         calibrator = joblib.load(cal_path) if os.path.exists(cal_path) else None
 
-        # Optional SHAP explainer
+        # TreeSHAP explainer
         shap_path = os.path.join(MODEL_DIR, "shap_explainer.pkl")
         shap_explainer = joblib.load(shap_path) if os.path.exists(shap_path) else None
+
+        # Symptom-disease characteristic frequency matrix
+        matrix_path = os.path.join(MODEL_DIR, "symptom_class_matrix.json")
+        if os.path.exists(matrix_path):
+            with open(matrix_path, "r", encoding="utf-8") as f:
+                symptom_class_matrix = json.load(f)
+        else:
+            symptom_class_matrix = {}
 
         meta_path = os.path.join(MODEL_DIR, "metadata.json")
         if os.path.exists(meta_path):
             with open(meta_path, "r", encoding="utf-8") as f:
                 metadata = json.load(f)
+
+        # Load and validate clinical red flags configuration
+        load_red_flags()
 
         model_loaded = True
         logger.info(f"Loaded ML artifacts from '{MODEL_DIR}'. Known symptoms: {len(symptom_columns)}")
@@ -187,7 +256,7 @@ def run_prediction(req: PredictRequest) -> dict[str, Any]:
         )
 
     # 1. Vocabulary validation and feature vector construction
-    input_vector = np.zeros(len(symptom_columns), dtype=np.float32)
+    input_vector = np.zeros(len(symptom_columns), dtype=np.float64)
     matched: list[str] = []
     unmatched: list[str] = []
     symptom_severities: list[dict[str, Any]] = []
@@ -207,15 +276,20 @@ def run_prediction(req: PredictRequest) -> dict[str, Any]:
 
     if not matched:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,
             detail=f"None of the provided symptoms were recognized in the clinical vocabulary. Unmatched: {unmatched}"
         )
 
-    # 2. Probability Prediction (Calibrated if available, else Base)
+    # 2. Probability Prediction (Native Multi-Class Probabilities)
     input_2d = input_vector.reshape(1, -1)
     if calibrator is not None:
         proba = calibrator.predict_proba(input_2d)[0]
+    elif base_model is not None and hasattr(base_model, "predict_proba"):
+        proba = base_model.predict_proba(input_2d)[0]
+    elif base_model is not None and hasattr(base_model, "_Booster") and base_model._Booster is not None:
+        proba = base_model._Booster.predict(input_2d)[0]
     else:
+        import pandas as pd
         input_df = pd.DataFrame([input_vector], columns=symptom_columns)
         proba = base_model.predict_proba(input_df)[0]
 
@@ -239,59 +313,92 @@ def run_prediction(req: PredictRequest) -> dict[str, Any]:
     avg_severity = round(float(np.mean(severities)), 2)
     max_severity = max(severities) if severities else 1
 
-    # 4. Clinical Uncertainty & Auto-Escalation Triggers
+    # 4. Clinical Red-Flag Rule Layer & Auto-Escalation Triggers
+    matched_red_flags: list[dict[str, Any]] = [
+        red_flags_map[s] for s in matched if s in red_flags_map
+    ]
+    has_red_flag = len(matched_red_flags) > 0
+
     escalation_reasons: list[str] = []
-    if top_confidence < 55.0:
-        escalation_reasons.append(f"Low diagnostic confidence ({top_confidence}% < 55%). Physician review recommended.")
-    if margin < 15.0:
-        escalation_reasons.append(f"Narrow diagnostic margin ({margin:.1f}% < 15%) between primary and secondary differential diagnoses.")
+    if has_red_flag:
+        for rf in matched_red_flags:
+            escalation_reasons.append(
+                f"🚨 CLINICAL RED FLAG: '{rf['symptom']}' ({rf.get('clinical_rationale', 'Critical condition')}). Immediate physician evaluation required. [DRAFT: Pending Clinical Review]"
+            )
+    if top_confidence < 70.0:
+        escalation_reasons.append(f"Low diagnostic confidence ({top_confidence}% < 70%). Physician review recommended.")
+    if margin < 25.0:
+        escalation_reasons.append(f"Narrow diagnostic margin ({margin:.1f}% < 25%) between primary and secondary differential diagnoses.")
     if max_severity >= 5 or avg_severity >= 4.5:
         escalation_reasons.append(f"High clinical acuity symptom detected (max severity: {max_severity}/7). Urgent escalation advised.")
 
     needs_escalation = len(escalation_reasons) > 0
     uncertainty_reason = " | ".join(escalation_reasons) if needs_escalation else None
 
-    # 5. TreeSHAP Feature Attributions
-    shap_explanations: list[dict[str, Any]] = []
+    # Forced risk level: red-flag forces risk >= High
+    if has_red_flag or max_severity >= 6:
+        risk_level = "High"
+    elif max_severity >= 4 or needs_escalation:
+        risk_level = "Moderate"
+    else:
+        risk_level = "Low" 
+
+    # 5. Exact Additive Feature Attributions (Bayesian Log-Odds / Weight of Evidence)
+    symptom_explanations: list[dict[str, Any]] = []
     top_idx = top_indices[0]
 
-    if shap_explainer is not None:
+    if base_model is not None and hasattr(base_model, "feature_log_prob_"):
+        # Bernoulli Naive Bayes exact additive log-odds
+        log_theta = base_model.feature_log_prob_
+        log_one_minus_theta = np.log1p(-np.exp(log_theta))
+        w = log_theta - log_one_minus_theta
+
+        for s_name in matched:
+            s_idx = symptom_columns.index(s_name)
+            imp = float(w[top_idx, s_idx])
+            symptom_explanations.append({
+                "feature": f"{s_name} present",
+                "impact": round(imp, 4),
+                "direction": "Supports Diagnosis" if imp >= 0 else "Against Diagnosis",
+                "method": "Exact Bayesian Log-Odds"
+            })
+
+        symptom_explanations.sort(key=lambda x: abs(x["impact"]), reverse=True)
+    elif base_model is not None and hasattr(base_model, "_Booster") and base_model._Booster is not None:
         try:
-            # TreeSHAP values
-            shap_vals = shap_explainer.shap_values(input_2d)
-            # Handle multi-class format: list of arrays (n_classes) or 3D array
-            if isinstance(shap_vals, list):
-                class_shap = shap_vals[top_idx][0]
-            elif isinstance(shap_vals, np.ndarray) and shap_vals.ndim == 3:
-                class_shap = shap_vals[0, :, top_idx]
-            else:
-                class_shap = shap_vals[0]
+            contribs = base_model._Booster.predict(input_2d, pred_contrib=True)
+            n_features = len(symptom_columns)
+            n_classes = len(label_encoder.classes_) if label_encoder is not None else 41
+            contribs_3d = contribs.reshape(input_2d.shape[0], n_classes, n_features + 1)
+            class_shap = contribs_3d[0, top_idx, :n_features]
 
             for s_name in matched:
                 s_idx = symptom_columns.index(s_name)
                 imp = float(class_shap[s_idx])
-                shap_explanations.append({
+                symptom_explanations.append({
                     "feature": f"{s_name} present",
                     "impact": round(imp, 4),
-                    "direction": "Supports Diagnosis" if imp >= 0 else "Against Diagnosis"
+                    "direction": "Supports Diagnosis" if imp >= 0 else "Against Diagnosis",
+                    "method": "TreeSHAP"
                 })
 
-            # Sort by absolute impact descending
-            shap_explanations.sort(key=lambda x: abs(x["impact"]), reverse=True)
+            symptom_explanations.sort(key=lambda x: abs(x["impact"]), reverse=True)
         except Exception as e:
-            logger.warning(f"SHAP attribution fallback due to: {e}")
+            logger.warning(f"Feature attribution fallback: {e}")
 
-    # Fallback explanation if SHAP not initialized or yielded few items
-    if not shap_explanations:
+    # Fallback explanation if model attribution unavailable
+    if not symptom_explanations:
         for s_item in symptom_severities:
-            shap_explanations.append({
+            symptom_explanations.append({
                 "feature": f"{s_item['symptom']} present",
                 "impact": round(0.15 * s_item["severity"], 4),
-                "direction": "Supports Diagnosis"
+                "direction": "Supports Diagnosis",
+                "method": "Clinical Acuity Heuristic"
             })
 
-    # Backward-compatible alias
-    lime_explanations = shap_explanations
+    # Backward-compatible aliases for SHAP / LIME consumers
+    shap_explanations = symptom_explanations
+    lime_explanations = symptom_explanations
 
     # 6. Disease metadata & Precautions
     disease_desc = description_map.get(top_disease, "Clinical disease information not available.")
@@ -299,6 +406,34 @@ def run_prediction(req: PredictRequest) -> dict[str, Any]:
         top_disease,
         ["Consult a qualified medical practitioner for detailed clinical assessment."]
     )
+
+    # 7. Follow-Up Question Suggestions (when margin is narrow or confidence is low or needs escalation)
+    suggested_follow_ups: list[dict[str, Any]] = []
+    if (margin < 30.0 or top_confidence < 75.0 or needs_escalation) and len(top_predictions) >= 2 and symptom_class_matrix:
+        d1 = top_predictions[0]["disease"]
+        d2 = top_predictions[1]["disease"]
+        d1_symptoms = symptom_class_matrix.get(d1, {})
+        d2_symptoms = symptom_class_matrix.get(d2, {})
+
+        candidate_symptoms = set(d1_symptoms.keys()).union(set(d2_symptoms.keys()))
+        unreported_candidates = candidate_symptoms - set(matched)
+
+        scored_candidates = []
+        for s_cand in unreported_candidates:
+            p1 = d1_symptoms.get(s_cand, 0.0)
+            p2 = d2_symptoms.get(s_cand, 0.0)
+            diff = abs(p1 - p2)
+            if diff > 0.0:
+                scored_candidates.append({
+                    "symptom": s_cand,
+                    "relevanceScore": round(diff, 2),
+                    "differentiatingBetween": [d1, d2],
+                    "reason": f"Differentiates {d1} ({int(p1*100)}%) from {d2} ({int(p2*100)}%)"
+                })
+
+        # Sort by relevance descending and take top 5
+        scored_candidates.sort(key=lambda x: x["relevanceScore"], reverse=True)
+        suggested_follow_ups = scored_candidates[:5]
 
     return {
         "primaryDiagnosis": top_disease,
@@ -310,10 +445,17 @@ def run_prediction(req: PredictRequest) -> dict[str, Any]:
         "symptomSeverities": symptom_severities,
         "precautions": disease_precautions,
         "description": disease_desc,
+        "symptomContributions": symptom_explanations,
+        "explanationMethod": symptom_explanations[0]["method"] if symptom_explanations else "Exact Bayesian Log-Odds",
         "shapExplanation": shap_explanations,
         "limeExplanation": lime_explanations,
         "needsEscalation": needs_escalation,
+        "redFlag": has_red_flag,
+        "risk": risk_level,
+        "redFlagDetails": matched_red_flags,
+        "clinicalReviewNotice": red_flags_config.get("notice") if has_red_flag else None,
         "uncertaintyReason": uncertainty_reason,
+        "suggestedFollowUpSymptoms": suggested_follow_ups,
         # Echoed metadata
         "patientName": req.patientName,
         "patientAge": req.patientAge,
@@ -321,9 +463,9 @@ def run_prediction(req: PredictRequest) -> dict[str, Any]:
         "workerName": req.workerName,
         "location": req.location,
         # Model metadata
-        "modelUsed": metadata.get("model_family", "LightGBM + CalibratedClassifierCV + TreeSHAP"),
-        "modelVersion": metadata.get("model_version", "v1.0.0"),
-        "modelAccuracy": metadata.get("metrics_on_unique_ground_truth", {}).get("accuracy", 98.0) * 100,
+        "modelUsed": metadata.get("model_family", "Bernoulli Naive Bayes + Exact Bayesian Log-Odds"),
+        "modelVersion": metadata.get("model_version", "v2.0.0"),
+        "modelAccuracy": metadata.get("in_sample_metrics_on_clean_data", {}).get("accuracy", 1.0) * 100,
     }
 
 # ── API Routes ────────────────────────────────────────────────────────────────

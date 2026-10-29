@@ -2,7 +2,7 @@
 ArogyaMitra — Safe Clinical LLM Orchestrator
 Uses Google Gemini via OpenAI-compatible endpoint with clinical prompt injection defenses,
 Pydantic v2 structured output validation, multilingual generation (en/hi/mr),
-and deterministic clinical fallback on failures.
+strict PII scrubbing, and deterministic clinical fallback on failures.
 """
 
 import json
@@ -23,6 +23,7 @@ LLM_API_KEY = os.getenv("LLM_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.gete
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
 LLM_MODEL = os.getenv("LLM_MODEL") or os.getenv("MODEL_NAME", "gemini-1.5-flash")
 
+
 class LLMConclusion(BaseModel):
     diagnosis_summary: str = Field(description="Summary of primary predicted condition")
     confidence_interpretation: str = Field(description="Clinical interpretation of model confidence score")
@@ -35,19 +36,41 @@ class LLMConclusion(BaseModel):
 
 def sanitize_clinical_input(val: Any) -> Any:
     """
-    Sanitize patient input to neutralize prompt injection attacks.
-    Removes system overrides, role manipulation, and delimiter smuggling.
+    Sanitize patient input to neutralize prompt injection attacks and scrub PII.
+    Removes system overrides, role manipulation, delimiter smuggling, and scrubs phone/email.
     """
     if isinstance(val, str):
+        # Scrub phone numbers (10 digits) and email addresses
+        val = re.sub(r"\b\d{10}\b", "[REDACTED_PHONE]", val)
+        val = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "[REDACTED_EMAIL]", val)
+
         # Disarm delimiter injection and system override triggers
-        cleaned = re.sub(r"<\/?(system|instruction|clinical_data|user|assistant)[^>]*>", " ", val, flags=re.IGNORECASE)
-        # Strip suspicious prompt injection patterns
+        cleaned = re.sub(r"<\/?(system|instruction|clinical_data|user|assistant|prompt|context|admin)[^>]*>", " ", val, flags=re.IGNORECASE)
+        # Strip LLM control tags
+        cleaned = re.sub(r"(\[INST\]|\[\/INST\]|```system|```instruction)", " ", cleaned, flags=re.IGNORECASE)
+
+        # Strip suspicious prompt injection and jailbreak patterns
         injection_patterns = [
-            r"ignore\s+(all\s+)?(previous|prior)\s+instructions",
-            r"you\s+are\s+now\s+in\s+developer\s+mode",
+            r"ignore\s+(all\s+)?(previous|prior|current)\s+instructions",
+            r"you\s+are\s+now\s+(in\s+)?(developer|dan|god)(\s+mode)?",
+            r"\bdan\s*\(do\s+anything\s+now\)",
+            r"\b(dan|god)\s+mode\b",
             r"system\s*:\s*",
             r"disregard\s+the\s+above",
             r"repeat\s+the\s+(system\s+)?prompt",
+            r"print\s+(the\s+)?(system\s+)?prompt",
+            r"reveal\s+(the\s+)?(initial\s+|system\s+)?instructions",
+            r"bypass\s+(safety|clinical|all)\s+checks?",
+            r"override\s+clinical\s+diagnosis",
+            r"forget\s+(all\s+)?previous\s+commands",
+            r"act\s+as\s+an\s+unrestricted\s+ai",
+            r"jailbreak",
+            r"sudo\s+mode",
+            r"pretend\s+you\s+are\s+not\s+an\s+ai",
+            r"assistant\s*:\s*",
+            r"markdown\s+injection",
+            r"execute\s+arbitrary\s+code",
+            r"base64\s+decode",
         ]
         for pattern in injection_patterns:
             cleaned = re.sub(pattern, "[redacted_injection]", cleaned, flags=re.IGNORECASE)
@@ -58,7 +81,6 @@ def sanitize_clinical_input(val: Any) -> Any:
         return {k: sanitize_clinical_input(v) for k, v in val.items()}
     return val
 
-
 def generate_deterministic_fallback(xai_data: dict[str, Any], language: str = "en") -> LLMConclusion:
     """
     Clinically safe, deterministic fallback conclusion generated when LLM
@@ -66,7 +88,7 @@ def generate_deterministic_fallback(xai_data: dict[str, Any], language: str = "e
     """
     disease = xai_data.get("primaryDiagnosis") or xai_data.get("disease") or "Undetermined Condition"
     confidence = xai_data.get("confidenceScore", 0)
-    if confidence < 1.0 and confidence > 0:
+    if 0 < confidence < 1.0:
         confidence = round(confidence * 100, 1)
     else:
         confidence = round(float(confidence), 1)
@@ -113,9 +135,24 @@ def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | No
     """
     Executes prompt-injection protected, structured LLM analysis.
     Safely falls back to deterministic clinical output if any failure occurs.
+    Enforces Rule 6: Never send patient names, workers, or contact details to external LLM.
     """
-    # Sanitize incoming clinical data
+    # 1. Sanitize incoming clinical data against injection attacks
     sanitized_xai = sanitize_clinical_input(xai_data)
+
+    # 2. Strict PII removal (Rule 6: Never send patient names or contact details to the LLM)
+    pii_free_data = {
+        k: v for k, v in sanitized_xai.items()
+        if k not in [
+            "patientName",
+            "workerName",
+            "location",
+            "phoneNumber",
+            "address",
+            "email",
+            "contactDetails",
+        ]
+    }
 
     lang_map = {
         "en": "English",
@@ -148,7 +185,7 @@ def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | No
     user_prompt = (
         f"Please analyze the following verified clinical model results for a patient triage report.\n\n"
         f"<clinical_data>\n"
-        f"{json.dumps(sanitized_xai, indent=2)}\n"
+        f"{json.dumps(pii_free_data, indent=2)}\n"
         f"</clinical_data>\n\n"
         f"Generate the clinical decision support JSON in {target_language}. Return raw JSON starting with '{{' and ending with '}}'."
     )
@@ -196,6 +233,33 @@ def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | No
         if not conclusion.diagnosis_summary or not conclusion.recommended_next_steps:
             logger.warning("LLM returned incomplete schema fields. Using deterministic fallback.")
             return generate_deterministic_fallback(xai_data, language)
+
+        # Output Sanity Check 1: Primary disease consistency check
+        # The diagnosis_summary MUST mention or reference the primary predicted disease from ML
+        primary_disease = (xai_data.get("primaryDiagnosis") or xai_data.get("disease") or "").strip().lower()
+        if language == "en" and primary_disease:
+            summary_lower = conclusion.diagnosis_summary.lower()
+            disease_keywords = [w for w in re.split(r"[\s_]+", primary_disease) if len(w) > 3]
+            if not any(kw in summary_lower for kw in disease_keywords):
+                logger.warning(
+                    f"LLM output sanity check failed: diagnosis_summary omitted primary disease '{primary_disease}'. Engaging fallback."
+                )
+                return generate_deterministic_fallback(xai_data, language)
+
+        # Output Sanity Check 2: Unauthorized prescription drug prohibition
+        # AI decision support must NEVER prescribe specific scheduled pharmaceutical drugs
+        forbidden_drugs = [
+            "amoxicillin", "azithromycin", "ciprofloxacin", "prednisone", "dexamethasone",
+            "metformin", "atorvastatin", "tramadol", "hydrocodone", "ibuprofen 800",
+            "penicillin", "cephalexin", "warfarin", "insulin glargine"
+        ]
+        combined_text = f"{conclusion.diagnosis_summary} {conclusion.recommended_next_steps} {conclusion.referral_recommendation}".lower()
+        for drug in forbidden_drugs:
+            if re.search(r"\b" + re.escape(drug) + r"\b", combined_text):
+                logger.warning(
+                    f"LLM output sanity check failed: unauthorized prescription drug '{drug}' detected. Engaging deterministic fallback."
+                )
+                return generate_deterministic_fallback(xai_data, language)
 
         return conclusion
 

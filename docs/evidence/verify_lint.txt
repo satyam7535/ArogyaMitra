@@ -4,19 +4,35 @@
 > eslint src/
 
 
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\admin.controller.js
+  155:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\consultation.controller.js
+  15:3  warning  'getJobStatus' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\doctor.controller.js
+  258:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\worker.controller.js
+  244:12  warning  'err' is defined but never used  no-unused-vars
+
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runProbes.js
    18:8  warning  'Admin' is defined but never used                 no-unused-vars
   151:9  warning  'doc1Token' is assigned a value but never used    no-unused-vars
   165:9  warning  'admin1Token' is assigned a value but never used  no-unused-vars
 
-D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\admin.service.js
-  31:9  warning  'resetToken' is assigned a value but never used  no-unused-vars
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage1Probes.js
+  16:8  warning  'Consultation' is defined but never used  no-unused-vars
 
-D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\doctor.service.js
-  66:9  warning  'resetToken' is assigned a value but never used  no-unused-vars
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage2Probes.js
+  11:8  warning  'jwt' is defined but never used    no-unused-vars
+  13:8  warning  'ROLES' is defined but never used  no-unused-vars
 
-D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\worker.service.js
-  58:9  warning  'resetToken' is assigned a value but never used  no-unused-vars
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage3Probes.js
+  49:10  warning  'redactBody' is defined but never used  no-unused-vars
 
-✖ 6 problems (0 errors, 6 warnings)
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\run_load_test.js
+  58:16  warning  '_err' is defined but never used  no-unused-vars
+
+✖ 12 problems (0 errors, 12 warnings)
 

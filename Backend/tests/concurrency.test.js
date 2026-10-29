@@ -4,7 +4,15 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import mongoose from "mongoose";
-import { enqueueAnalysisJob, getJobStatus, getQueueMetrics } from "../src/service/jobQueue.service.js";
+import {
+  enqueueAnalysisJob,
+  getJobStatus,
+  getQueueMetrics,
+  claimNextJob,
+  releaseOrRetryJob,
+  completeJob,
+} from "../src/service/jobQueue.service.js";
+import AnalysisJob from "../src/models/job/jobSchema.js";
 import Consultation from "../src/models/consultation/consultationSchema.js";
 import serverConfig from "../src/config/serverConfig.js";
 
@@ -75,38 +83,6 @@ describe("Phase 4 — Concurrency & Asynchronous Job Pipeline", () => {
       expect(Consultation.schema.options.optimisticConcurrency).toBe(true);
     });
 
-    it("should detect version conflicts when concurrent writers update the same consultation", async () => {
-      // Simulate two concurrent actors fetching the same consultation at version 0
-      const docA = {
-        _id: new mongoose.Types.ObjectId(),
-        __v: 0,
-        status: "pending",
-        workerDecision: undefined,
-      };
-
-      const docB = {
-        ...docA,
-        __v: 0,
-      };
-
-      // Actor A updates and increments __v to 1
-      docA.__v = 1;
-      docA.workerDecision = "escalated";
-
-      // Actor B tries to update using stale version __v: 0
-      const simulateConcurrentWrite = (staleDoc, currentVersion) => {
-        if (staleDoc.__v !== currentVersion) {
-          const err = new Error(
-            `VersionError: No matching document found for id "${staleDoc._id}" version ${staleDoc.__v}`
-          );
-          err.name = "VersionError";
-          throw err;
-        }
-        return { ...staleDoc, __v: currentVersion + 1 };
-      };
-
-      expect(() => simulateConcurrentWrite(docB, docA.__v)).toThrowError(/VersionError/);
-    });
   });
 
   describe("3. High-Concurrency Job Throughput Simulation", () => {
@@ -131,6 +107,130 @@ describe("Phase 4 — Concurrency & Asynchronous Job Pipeline", () => {
         const poll = getJobStatus(id, org1);
         expect(poll).not.toBeNull();
       }
+    });
+  });
+
+  describe("4. Atomic findOneAndUpdate Job Claims, Lease Expiry & Dead-Letter Queue", () => {
+    it("should simulate 50 parallel concurrent worker claim requests with mutually exclusive atomic locking", async () => {
+      // Create a pool of 10 available queued jobs
+      const mockDbQueue = [];
+      for (let i = 0; i < 10; i++) {
+        mockDbQueue.push({
+          jobId: `job-uuid-${i}`,
+          status: "queued",
+          attempts: 0,
+          maxAttempts: 3,
+          lockedAt: null,
+          lockedBy: null,
+          leaseExpiresAt: null,
+          nextRetryAt: null,
+          createdAt: new Date(Date.now() + i * 1000),
+        });
+      }
+
+      // Simulate atomic findOneAndUpdate with lock-free atomic semantics
+      let lockCounter = 0;
+      vi.spyOn(AnalysisJob, "findOneAndUpdate").mockImplementation(async (filter, update, options) => {
+        // Atomic compare-and-swap on simulated in-memory store
+        const now = new Date();
+        const candidate = mockDbQueue.find((j) => {
+          if (j.status === "queued" && j.attempts < 3) return true;
+          if (j.status === "processing" && j.leaseExpiresAt && j.leaseExpiresAt < now && j.attempts < 3) return true;
+          return false;
+        });
+
+        if (!candidate) return null;
+
+        // Mutate document atomically
+        candidate.status = update.$set.status;
+        candidate.lockedAt = update.$set.lockedAt;
+        candidate.lockedBy = update.$set.lockedBy;
+        candidate.leaseExpiresAt = update.$set.leaseExpiresAt;
+        candidate.startedAt = update.$set.startedAt;
+        candidate.attempts = (candidate.attempts || 0) + (update.$inc?.attempts || 1);
+
+        return { ...candidate };
+      });
+
+      // 50 parallel workers simultaneously execute claimNextJob
+      const workerPromises = [];
+      for (let w = 0; w < 50; w++) {
+        workerPromises.push(claimNextJob(`worker-${w}`, 300000));
+      }
+
+      const results = await Promise.all(workerPromises);
+
+      // Verify outcomes:
+      // Exactly 10 workers must succeed in claiming a job
+      const claimedJobs = results.filter((j) => j !== null);
+      expect(claimedJobs.length).toBe(10);
+
+      // Exactly 40 workers receive null (no jobs left, graceful backoff)
+      const emptyClaims = results.filter((j) => j === null);
+      expect(emptyClaims.length).toBe(40);
+
+      // 0 duplicate claims: every claimed jobId must be distinct
+      const claimedIds = claimedJobs.map((j) => j.jobId);
+      const uniqueIds = new Set(claimedIds);
+      expect(uniqueIds.size).toBe(10);
+
+      // 0 lost updates: all 10 jobs in mockDbQueue are in 'processing' status
+      expect(mockDbQueue.every((j) => j.status === "processing")).toBe(true);
+      expect(mockDbQueue.every((j) => j.attempts === 1)).toBe(true);
+    });
+
+    it("should recover abandoned jobs after worker lease expires", async () => {
+      const abandonedJob = {
+        jobId: "abandoned-job-1",
+        status: "processing",
+        lockedAt: new Date(Date.now() - 600000), // 10 minutes ago
+        leaseExpiresAt: new Date(Date.now() - 300000), // expired 5 minutes ago
+        attempts: 1,
+        maxAttempts: 3,
+        save: vi.fn().mockResolvedValue(true),
+      };
+
+      vi.spyOn(AnalysisJob, "findOneAndUpdate").mockImplementation(async (filter, update) => {
+        abandonedJob.status = update.$set.status;
+        abandonedJob.lockedBy = update.$set.lockedBy;
+        abandonedJob.leaseExpiresAt = update.$set.leaseExpiresAt;
+        abandonedJob.attempts += 1;
+        return abandonedJob;
+      });
+
+      const recovered = await claimNextJob("worker-recovery-node", 300000);
+      expect(recovered).not.toBeNull();
+      expect(recovered.status).toBe("processing");
+      expect(recovered.lockedBy).toBe("worker-recovery-node");
+      expect(recovered.attempts).toBe(2);
+    });
+
+    it("should retry transient failures with exponential backoff and transition to dead_letter after 3 attempts", async () => {
+      const mockJobDoc = {
+        jobId: "retry-job-99",
+        status: "processing",
+        attempts: 1,
+        maxAttempts: 3,
+        error: null,
+        nextRetryAt: null,
+        save: vi.fn().mockResolvedValue(true),
+      };
+
+      vi.spyOn(AnalysisJob, "findOne").mockResolvedValue(mockJobDoc);
+
+      // Attempt 1 failure -> retry with backoff
+      const retry1 = await releaseOrRetryJob("retry-job-99", { message: "AI pipeline network timeout" });
+      expect(retry1.status).toBe("queued");
+      expect(retry1.nextRetryAt).toBeInstanceOf(Date);
+      expect(retry1.error.code).toBe("RETRYABLE_ERROR");
+
+      // Simulate attempt 3 reaching maxAttempts
+      mockJobDoc.attempts = 3;
+      const deadLetterJob = await releaseOrRetryJob("retry-job-99", { message: "Persistent model inference failure" });
+      expect(deadLetterJob.status).toBe("dead_letter");
+      expect(deadLetterJob.deadLetterReason).toContain("Persistent model inference failure");
+      expect(deadLetterJob.error.code).toBe("DEAD_LETTER_EXHAUSTED");
+      expect(deadLetterJob.failedAt).toBeInstanceOf(Date);
     });
   });
 });

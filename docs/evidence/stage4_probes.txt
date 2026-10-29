@@ -1,0 +1,111 @@
+Command: node src/scripts/runStage4Probes.js
+================================================================================
+AROGYAMITRA STAGE 4 — ASYNC QUEUE, SAFE LLM & MULTILINGUAL PDF EVIDENCE
+Timestamp: 2026-10-28T17:22:17.428Z
+Database: MongoDB Atlas arogyamitra_dev
+Backend URL: http://127.0.0.1:5000
+Graph URL:   http://127.0.0.1:8001
+================================================================================
+
+[FIXTURES IN DATABASE]
+Org 1 (Pune):     6ae1070ef57007c12dfe5bee (PUNE-RHM)
+Org 2 (Nashik):   6ae10765d7265b845af2b8af (NASHIK-RHM)
+Worker 1 (Org 1): 6ae10766d7265b845af2b8bc (worker@arogyamitra.gov.in)
+Worker 2 (Org 2): 6ae10767d7265b845af2b8bf (worker2@arogyamitra.gov.in)
+Patient 1 (Org 1): 6ae10768d7265b845af2b8c8 (Kavita Devi)
+
+>>> SECTION 1: AUTHENTICATION BASELINE <<<
+[PROBE 1.1] Worker 1 Login (Org 1 Pune)
+Status: HTTP 200
+[PROBE 1.2] Worker 2 Login (Org 2 Nashik)
+Status: HTTP 200
+
+>>> SECTION 2: FLOW STEP 6 — ASYNC QUEUE ENQUEUE, POLLING & DURABILITY <<<
+--------------------------------------------------------------------------------
+[PROBE 2.1] Worker 1 Submits Consultation for Asynchronous Analysis
+Response Status: HTTP 201
+Consultation ID: 6ae22f4b1836f3dab1480fd0
+
+--------------------------------------------------------------------------------
+[PROBE 2.2] Worker 1 Enqueues Background Analysis Job
+Request: POST /api/v1/consultation/6ae22f4b1836f3dab1480fd0/analyze/async
+Response Status: HTTP 202 (Expected: 202 Accepted) -> PASS
+Response Body: {
+  "message": "Analysis job accepted for processing",
+  "job": {
+    "jobId": "ca612da5-a263-4d26-bf19-cb8117258dfe",
+    "status": "queued",
+    "createdAt": "2026-10-28T17:22:19.445Z",
+    "message": "Analysis job accepted for asynchronous processing"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE 2.3] Immediate Job Status Poll
+Request: GET /api/v1/consultation/6ae22f4b1836f3dab1480fd0/analyze/status/ca612da5-a263-4d26-bf19-cb8117258dfe
+Response Status: HTTP 200
+Current State: "processing" -> PASS
+
+[PROBE 2.4] Polling Background Job to Terminal Completion...
+Terminal Status Reached: "completed" (Completed in 4.1s)
+Job Result: {
+  "consultationId": "6ae22f4b1836f3dab1480fd0",
+  "status": "analyzed",
+  "disease": "Fungal infection",
+  "confidence": 0.6873,
+  "llmFallback": true
+}
+Assertions:
+  - Job Status is "completed" -> PASS
+  - Disease in Result: "Fungal infection" -> PASS
+  - Fallback Status: true
+
+--------------------------------------------------------------------------------
+[PROBE 2.5] Direct MongoDB Atlas Inspection of AnalysisJob Document (Durability Audit)
+Document Found in Database: YES
+  - _id:          6ae22f4b1836f3dab1480fd2
+  - jobId:        ca612da5-a263-4d26-bf19-cb8117258dfe
+  - status:       "completed"
+  - organization: 6ae1070ef57007c12dfe5bee
+  - createdAt:    Wed Oct 28 2026 22:52:19 GMT+0530 (India Standard Time)
+  - startedAt:    Wed Oct 28 2026 22:52:19 GMT+0530 (India Standard Time)
+  - completedAt:  Wed Oct 28 2026 22:52:22 GMT+0530 (India Standard Time)
+  - Durable Persistence: Confirmed stored in Atlas -> PASS
+
+--------------------------------------------------------------------------------
+[PROBE 2.6] Cross-Tenant Job Isolation Probe: Worker 2 (Org 2) Polls Org 1 Job
+Request: GET /api/v1/consultation/6ae22f4b1836f3dab1480fd0/analyze/status/ca612da5-a263-4d26-bf19-cb8117258dfe
+Response Status: HTTP 404 (Expected: 404 Not Found) -> PASS
+Response Body: {
+  "message": "Analysis job not found in your organization",
+  "code": "JOB_NOT_FOUND"
+}
+
+>>> SECTION 3: FLOW STEPS 7 & 8 — LANGGRAPH ORCHESTRATION & PDF GENERATION <<<
+--------------------------------------------------------------------------------
+[PROBE 3.1] Direct LangGraph Pipeline Orchestration (/analyze/json in Hindi)
+Request: POST http://127.0.0.1:8001/analyze/json
+Response Status: HTTP 200 -> PASS
+  - ML Disease:          Fungal infection
+  - ML Confidence:       0.6873%
+  - TreeSHAP Features:   3 features recorded
+  - LLM Summary:         "मरीज में Fungal infection के लक्षण दिखाई दे रहे हैं, जिसकी मॉडल विश्वसनीयता 68.7..."
+  - Fallback Status:     true
+  - PDF Base64 Present:  YES
+
+--------------------------------------------------------------------------------
+[PROBE 3.2] Direct LangGraph Multilingual PDF Generation (/analyze/pdf in Marathi)
+Request: POST http://127.0.0.1:8001/analyze/pdf
+Response Status: HTTP 200 -> PASS
+Content-Type:    "application/pdf"
+Binary PDF Valid: YES (%PDF- header confirmed)
+PDF Byte Size:    34,916 bytes
+
+--------------------------------------------------------------------------------
+[PROBE 3.3] Negative Security Probe: Unauthenticated Call to Graph Service Rejected
+Request: POST http://127.0.0.1:8001/analyze/json (no token)
+Response Status: HTTP 401 (Expected: 401 Unauthorized) -> PASS
+Response Detail: "Missing internal service authentication token."
+
+================================================================================
+STAGE 4 LIVE PROBES COMPLETE: ALL CHECKS VERIFIED AGAINST ATLAS & LOCAL SERVICES
+================================================================================

@@ -35,7 +35,7 @@ INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "")
 REQUIRE_AUTH = os.getenv("REQUIRE_INTERNAL_AUTH", "true").lower() in ("true", "1", "yes")
 
 if REQUIRE_AUTH and not INTERNAL_SERVICE_SECRET:
-    logger.warning("SECURITY WARNING: INTERNAL_SERVICE_SECRET is not configured in environment.")
+    raise RuntimeError("FATAL: INTERNAL_SERVICE_SECRET must be configured when REQUIRE_INTERNAL_AUTH is true.")
 
 app = FastAPI(title="ArogyaMitra Graph API", version="1.1.0")
 
@@ -75,12 +75,22 @@ def verify_service_token(
         )
 
     try:
-        payload = jwt.decode(token, INTERNAL_SERVICE_SECRET, algorithms=["HS256"])
+        payload = jwt.decode(
+            token,
+            INTERNAL_SERVICE_SECRET,
+            algorithms=["HS256"],
+            audience=["arogyamitra-internal", "arogyamitra-graph"]
+        )
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Internal service token has expired.",
+        )
+    except jwt.InvalidAudienceError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid service token: Invalid audience",
         )
     except Exception as e:
         raise HTTPException(
@@ -110,6 +120,7 @@ def health():
 
 
 @app.post("/analyze")
+@app.post("/analyze/pdf")
 def analyze(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)):  # noqa: B008
     """
     Runs full LangGraph pipeline (ML inference → Safe LLM → Multilingual PDF).
@@ -198,4 +209,4 @@ def analyze_json(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", "8001"))
-    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)
+    uvicorn.run(app, host="127.0.0.1", port=port, reload=False)

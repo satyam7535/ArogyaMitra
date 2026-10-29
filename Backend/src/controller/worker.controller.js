@@ -3,31 +3,56 @@ import {
   getWorkersByOrg,
   loginWorker,
   deleteWorkerScoped,
+  reactivateWorkerScoped,
   handleForgotPassword,
   handleResetPassword,
   rotateRefreshToken,
 } from "../service/worker.service.js";
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
+import RefreshToken from "../models/auth/refreshTokenSchema.js";
+import { hashToken } from "../utils/crypto.js";
 
-// Admin deletes a worker (strictly scoped to admin's organization)
+// Admin soft-deactivates a worker (strictly scoped to admin's organization)
 const deleteWorker = async (req, res) => {
   try {
     const { id } = req.params;
-    const worker = await deleteWorkerScoped(id, req.user.organization);
+    const worker = await deleteWorkerScoped(id, req.user.organization, req.user.id);
 
     if (!worker) {
-      // 404 Not Found to prevent leaking existence of cross-org worker
       return res.status(404).json({ message: "Worker not found" });
     }
 
     await logAuditEvent({
       req,
-      action: "WORKER_DELETED",
+      action: "WORKER_DEACTIVATED",
       resourceType: "Worker",
       resourceId: id,
     });
 
-    return res.status(200).json({ message: "Worker deleted successfully" });
+    return res.status(200).json({ message: "Worker deactivated successfully", worker });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// Admin reactivates a worker
+const reactivateWorker = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const worker = await reactivateWorkerScoped(id, req.user.organization);
+
+    if (!worker) {
+      return res.status(404).json({ message: "Worker not found" });
+    }
+
+    await logAuditEvent({
+      req,
+      action: "WORKER_REACTIVATED",
+      resourceType: "Worker",
+      resourceId: id,
+    });
+
+    return res.status(200).json({ message: "Worker reactivated successfully", worker });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -207,7 +232,19 @@ const resetPassword = async (req, res) => {
   }
 };
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
+  try {
+    const rawRefreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
+    if (rawRefreshToken) {
+      const tokenHash = hashToken(rawRefreshToken);
+      await RefreshToken.updateOne({ tokenHash }, { isRevoked: true });
+    } else if (req.user?.id) {
+      await RefreshToken.updateMany({ userId: req.user.id }, { isRevoked: true });
+    }
+  } catch (err) {
+    // Ignore revoke errors on logout
+  }
+
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -230,4 +267,5 @@ export {
   resetPassword,
   logout,
   deleteWorker,
+  reactivateWorker,
 };

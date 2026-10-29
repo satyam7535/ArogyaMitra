@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { hashPassword } from "../../utils/crypto.js";
+import { ROLES, ALL_ROLES } from "../../config/roles.js";
 
 const doctorSchema = new mongoose.Schema(
   {
@@ -26,7 +27,8 @@ const doctorSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "Doctor",
+      enum: ALL_ROLES,
+      default: ROLES.DOCTOR,
       immutable: true,
     },
     specialization: {
@@ -54,6 +56,20 @@ const doctorSchema = new mongoose.Schema(
     },
     lockUntil: {
       type: Date,
+      default: null,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    deactivatedAt: {
+      type: Date,
+      default: null,
+    },
+    deactivatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
       default: null,
     },
     resetPasswordToken: {

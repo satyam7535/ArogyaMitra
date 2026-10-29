@@ -1,4 +1,8 @@
+import mongoose from "mongoose";
 import Doctor from "../models/doctor/doctorSchema.js";
+import RefreshToken from "../models/auth/refreshTokenSchema.js";
+import ROLES from "../config/roles.js";
+import { dispatchPasswordReset } from "../utils/emailAdapter.js";
 import {
   generateTokenPair,
   authenticateWithLockout,
@@ -22,7 +26,7 @@ const addDoctor = async ({ name, email, phoneNumber, password, specialization },
     specialization,
     addedBy: adminId,
     organization,
-    role: "Doctor",
+    role: ROLES.DOCTOR,
   });
 
   return doctor;
@@ -40,15 +44,36 @@ const loginDoctor = async ({ email, password }) => {
     throw { status: 401, message: "Invalid email or password", code: "INVALID_CREDENTIALS" };
   }
 
+  if (doctor.isActive === false) {
+    throw { status: 403, message: "Account has been deactivated. Please contact your administrator.", code: "ACCOUNT_DEACTIVATED" };
+  }
+
   await authenticateWithLockout(doctor, password);
   const tokens = await generateTokenPair(doctor, "Doctor");
 
   return { ...tokens, doctor };
 };
 
-// Delete a doctor strictly scoped to the admin's organization (returns null if cross-org)
-const deleteDoctorScoped = async (doctorId, organization) => {
-  return await Doctor.findOneAndDelete({ _id: doctorId, organization });
+// Soft-deactivate a doctor strictly scoped to the admin's organization (no hard delete)
+const deleteDoctorScoped = async (doctorId, organization, adminId = null) => {
+  const updated = await Doctor.findOneAndUpdate(
+    { _id: doctorId, organization },
+    { isActive: false, deactivatedAt: new Date(), deactivatedBy: adminId },
+    { new: true }
+  );
+  if (updated && mongoose.connection.readyState !== 0) {
+    await RefreshToken.updateMany({ userId: doctorId }, { isRevoked: true });
+  }
+  return updated;
+};
+
+// Reactivate a deactivated doctor strictly scoped to the admin's organization
+const reactivateDoctorScoped = async (doctorId, organization) => {
+  return await Doctor.findOneAndUpdate(
+    { _id: doctorId, organization },
+    { isActive: true, deactivatedAt: null, deactivatedBy: null },
+    { new: true }
+  );
 };
 
 // Get available doctors in the organization (for escalation dropdown)
@@ -64,9 +89,7 @@ const handleForgotPassword = async (email) => {
     return { message: "If that email exists, password reset instructions have been sent." };
   }
   const resetToken = await initiatePasswordReset(doctor);
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[DEV RESET LINK] Doctor (${email}): resetToken=[REDACTED]`);
-  }
+  dispatchPasswordReset({ email, role: ROLES.DOCTOR, resetToken });
   return { message: "If that email exists, password reset instructions have been sent." };
 };
 
@@ -80,6 +103,7 @@ export {
   getAllDoctorsFromDB,
   loginDoctor,
   deleteDoctorScoped,
+  reactivateDoctorScoped,
   handleForgotPassword,
   handleResetPassword,
   rotateRefreshToken,

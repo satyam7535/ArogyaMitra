@@ -1,6 +1,6 @@
 """
 ArogyaMitra — Interactive Plotly Visualization Module
-Renders TreeSHAP feature attributions, calibrated probability distributions,
+Renders Bayesian Evidence feature attributions, calibrated probability distributions,
 and epidemiological prevalence graphs.
 """
 
@@ -12,14 +12,14 @@ import plotly.graph_objects as go
 
 def create_shap_waterfall_or_bar(shap_explanations: list[dict[str, Any]], primary_disease: str) -> go.Figure:
     """
-    Renders an interactive horizontal bar chart showing TreeSHAP feature contributions.
+    Renders an interactive horizontal bar chart showing Bayesian Evidence feature contributions.
     Positive impacts (supports diagnosis) are displayed in teal/emerald,
     while negative impacts are displayed in coral/amber.
     """
     if not shap_explanations:
         fig = go.Figure()
         fig.add_annotation(
-            text="No TreeSHAP feature attributions available for this prediction",
+            text="No Bayesian Evidence feature attributions available for this prediction",
             showarrow=False,
             font={"size": 14, "color": "#718096"},
         )
@@ -56,7 +56,7 @@ def create_shap_waterfall_or_bar(shap_explanations: list[dict[str, Any]], primar
 
     fig.update_layout(
         title={
-            "text": f"<b>TreeSHAP Diagnostic Feature Importance — {primary_disease}</b>",
+            "text": f"<b>Bayesian Evidence Weight Feature Attributions — {primary_disease}</b>",
             "font": {"size": 16, "color": "#0F172A"},
         },
         xaxis={

@@ -52,17 +52,19 @@ ArogyaMitra processes sensitive personal data, including health data, biometric 
 
 | Right | DPDP Section | ArogyaMitra Technical Mechanism |
 |:------|:------------:|:--------------------------------|
-| **Right to Access** | Sec. 11 | Patients may request a complete printed or digital summary of their consultation, diagnosis, and physician second opinions via the multilingual PDF export. |
+| **Right to Access** | Sec. 11 | Patients may request a complete printed or digital summary of their consultation, diagnosis, and physician second opinions via multilingual PDF export, or via admin-approved data export (`POST /api/v1/patient/:id/approve-export`). |
 | **Right to Correction** | Sec. 12 | Health workers and physicians can correct clerical errors or append clinical observations directly through versioned consultation updates. |
-| **Right to Erasure** | Sec. 12 | Administrators can execute soft/hard deletion of patient records upon formal request, anonymizing symptom data to preserve statistical epidemiological indices. |
-| **Right to Grievance Redressal** | Sec. 13 | Each deployment designates a Data Protection Officer (DPO). Contact channels and grievance tracking IDs are recorded in the audit log. |
+| **Right to Erasure** | Sec. 12 | Patients may request record erasure; requires administrative verification and sign-off via `POST /api/v1/patient/:id/approve-delete`, which anonymizes PII while preserving epidemiology metrics. |
+| **Right to Withdraw Consent** | Sec. 6(4) | Patients can withdraw consent at any time via `POST /api/v1/patient/:id/withdraw-consent`, recording timestamp, language, version, and reason, immediately halting all automated processing. |
+| **Right to Grievance Redressal** | Sec. 13 | Each deployment designates a Data Protection Officer (DPO). Contact channels and grievance tracking IDs are recorded in the immutable audit log. |
 
 ---
 
 ## 5. Technical and Organizational Security Measures (TOMs)
 
-1. **Cryptographic Protection at Rest:**
-   - Patient phone numbers and physical residential addresses are encrypted using authenticated **AES-256-GCM** with 96-bit initialization vectors and 128-bit authentication tags.
+1. **Cryptographic Protection at Rest & Key Lifecycle:**
+   - Patient phone numbers, physical residential addresses, and emergency contact details are encrypted using authenticated **AES-256-GCM** with 96-bit initialization vectors and 128-bit authentication tags.
+   - Ciphertext strings are stored with versioned Key IDs (`keyId:iv:authTag:enc`), enabling seamless, zero-downtime key rotation (`rotateFieldEncryption`) across cryptographic generations without service interruption.
    - Decryption keys are managed via environment variables (`serverConfig.ENCRYPTION_KEY`) and are inaccessible to frontend clients or database administrators.
 2. **Cryptographic Protection in Transit:**
    - TLS 1.3 encryption with HTTP Strict Transport Security (HSTS) enforced across all API endpoints.

@@ -1,0 +1,10 @@
+﻿Command: uv run --with pip-audit pip-audit
+Date: 2026-10-29 12:44:47 +05:30
+Tool Version: pip-audit 2.10.1
+Git Commit: 1408ebb51a7ea8950623a85861b664d388053730
+----------------------------------------
+Found 2 known vulnerabilities in 1 package
+Name    Version ID             Fix Versions
+------- ------- -------------- ------------
+pyarrow 18.1.0  PYSEC-2026-113 23.0.1
+pyarrow 18.1.0  PYSEC-2026-113 23.0.1

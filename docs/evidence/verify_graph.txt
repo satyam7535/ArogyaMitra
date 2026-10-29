@@ -1,28 +1,33 @@
 ﻿============================= test session starts =============================
 platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
 cachedir: .pytest_cache
-rootdir: D:\Document\Projects\Internship\Arogyamitra\graph
-plugins: anyio-4.15.1, langsmith-0.3.45
-collecting ... collected 13 items
+hypothesis profile 'default'
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
+collecting ... collected 22 items
 
-tests/test_phase3.py::test_prompt_injection_sanitization PASSED          [  7%]
-tests/test_phase3.py::test_sanitize_nested_data PASSED                   [ 15%]
-tests/test_phase3.py::test_deterministic_fallback_multilingual PASSED    [ 23%]
-tests/test_phase3.py::test_call_llm_valid_mock_response PASSED           [ 30%]
-tests/test_phase3.py::test_call_llm_malformed_json_triggers_fallback PASSED [ 38%]
-tests/test_phase3.py::test_call_llm_exception_triggers_fallback PASSED   [ 46%]
-tests/test_phase3.py::test_verify_service_token_valid PASSED             [ 53%]
-tests/test_phase3.py::test_verify_service_token_missing PASSED           [ 61%]
-tests/test_phase3.py::test_verify_service_token_forged PASSED            [ 69%]
-tests/test_phase3.py::test_verify_service_token_expired PASSED           [ 76%]
-tests/test_phase3.py::test_pdf_generation_multilingual PASSED            [ 84%]
-tests/test_phase3.py::test_e2e_graph_invocation PASSED                   [ 92%]
-tests/test_phase3.py::test_pdf_generator_labels_use_treeshap PASSED      [100%]
+tests\test_phase3.py::test_prompt_injection_sanitization PASSED          [  4%]
+tests\test_phase3.py::test_sanitize_nested_data PASSED                   [  9%]
+tests\test_phase3.py::test_deterministic_fallback_multilingual PASSED    [ 13%]
+tests\test_phase3.py::test_call_llm_valid_mock_response PASSED           [ 18%]
+tests\test_phase3.py::test_call_llm_malformed_json_triggers_fallback PASSED [ 22%]
+tests\test_phase3.py::test_call_llm_exception_triggers_fallback PASSED   [ 27%]
+tests\test_phase3.py::test_verify_service_token_valid PASSED             [ 31%]
+tests\test_phase3.py::test_verify_service_token_missing PASSED           [ 36%]
+tests\test_phase3.py::test_verify_service_token_expired PASSED           [ 40%]
+tests\test_phase3.py::test_verify_service_token_wrong_audience PASSED    [ 45%]
+tests\test_phase3.py::test_verify_service_token_forged PASSED            [ 50%]
+tests\test_phase3.py::test_pdf_generation_multilingual PASSED            [ 54%]
+tests\test_phase3.py::test_pdf_generation_includes_red_flag_banner PASSED [ 59%]
+tests\test_phase3.py::test_e2e_graph_invocation PASSED                   [ 63%]
+tests\test_phase3.py::test_pdf_generator_labels_use_bayesian_evidence PASSED [ 68%]
+tests\test_phase3.py::test_prompt_injection_corpus_twenty_attacks PASSED [ 72%]
+tests\test_phase3.py::test_pii_never_transmitted_to_llm PASSED           [ 77%]
+tests\test_phase3.py::test_langgraph_node_sequence_per_scenario PASSED   [ 81%]
+tests\test_phase3.py::test_20_prompt_injection_attacks_suite PASSED      [ 86%]
+tests\test_phase3.py::test_llm_output_sanity_check_disease_omission PASSED [ 90%]
+tests\test_phase3.py::test_llm_output_sanity_check_forbidden_prescription_drugs PASSED [ 95%]
+tests\test_phase3.py::test_multilingual_pdf_generation_bundled_font PASSED [100%]
 
-============================== warnings summary ===============================
-..\.venv\Lib\site-packages\langgraph\checkpoint\base\__init__.py:18
-  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\langgraph\checkpoint\base\__init__.py:18: LangChainPendingDeprecationWarning: The default value of `allowed_objects` will change in a future version. Pass an explicit value (e.g., allowed_objects='messages' or allowed_objects='core') to suppress this warning.
-    from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================== 13 passed, 1 warning in 4.35s ========================
+============================= 22 passed in 5.73s ==============================

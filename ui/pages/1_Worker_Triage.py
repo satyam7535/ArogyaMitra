@@ -1,7 +1,7 @@
 """
 ArogyaMitra — Community Health Worker Triage Interface
 Enables village health workers to register patient vitals, select presenting symptoms,
-trigger calibrated AI analysis, inspect TreeSHAP explainability, and escalate to doctors.
+trigger calibrated AI analysis, inspect Bayesian evidence weights, and escalate to doctors.
 """
 
 import base64
@@ -13,7 +13,10 @@ import streamlit as st
 # Ensure ui and project root are in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.api_client import get_clinical_symptoms, run_triage_analysis
+from utils.api_client import (
+    get_clinical_symptoms,
+    run_triage_analysis,
+)
 from utils.i18n import t
 from utils.viz import create_shap_waterfall_or_bar, create_top_predictions_chart
 
@@ -24,6 +27,8 @@ st.set_page_config(
 )
 
 lang = st.session_state.get("lang", "en")
+token = st.session_state.get("token")
+user = st.session_state.get("user") or {}
 
 st.title(f"👩‍⚕️ {t('nav_triage', lang)}")
 st.caption("Primary Health Centre Community Outreach & Triage Workstation")
@@ -60,8 +65,8 @@ with preset_cols[1]:
     if st.button("🦟 Malaria / Fever Case", use_container_width=True):
         selected_preset = ["chills", "vomiting", "high_fever", "sweating", "headache"]
 with preset_cols[2]:
-    if st.button("🫁 Bronchial / Respiratory", use_container_width=True):
-        selected_preset = ["cough", "high_fever", "breathlessness", "chest_pain"]
+    if st.button("🚨 Cardiac Emergency (Red Flag)", use_container_width=True):
+        selected_preset = ["chest_pain", "breathlessness", "sweating"]
 with preset_cols[3]:
     if st.button("🧴 Fungal Skin Case", use_container_width=True):
         selected_preset = ["itching", "skin_rash", "nodal_skin_eruptions"]
@@ -93,9 +98,9 @@ if st.button(f"🔍 {t('run_analysis', lang)}", type="primary", use_container_wi
                 "age": patient_age,
                 "gender": patient_gender,
                 "location": patient_location,
-                "workerName": "Sunita Patil (ASHA Worker)",
+                "workerName": user.get("name", "Sunita Patil (ASHA Worker)"),
             }
-            results = run_triage_analysis(selected_symptoms, patient_info, language=lang)
+            results = run_triage_analysis(selected_symptoms, patient_info, language=lang, token=token)
             st.session_state["triage_results"] = results
             st.session_state["triage_patient"] = patient_info
 
@@ -109,12 +114,19 @@ if "triage_results" in st.session_state:
 
     st.markdown(f"## 📊 {t('results_title', lang)}")
 
-    # Auto-Escalation Alert Banner
-    if ml.get("needsEscalation", False):
-        reason = ml.get("uncertaintyReason", "Clinical threshold exceeded")
+    # Red-Flag Emergency Banner (Decision A Requirement)
+    if ml.get("redFlag"):
+        rf_details = ml.get("redFlagDetails", [])
+        reasons_str = ", ".join([f"{r.get('symptom')} ({r.get('category')})" for r in rf_details]) if rf_details else "Critical presentation"
         st.error(
-            f"🚨 **{t('escalation_alert', lang)}:** The model confidence is low or clinical severity is high. "
-            f"Mandatory second opinion escalation recommended. (Reason: `{reason}`)"
+            f"🚨 **CRITICAL RED-FLAG ALERT (EMERGENCY REFERRAL REQUIRED):** {reasons_str}. "
+            "Case automatically escalated with highest clinical priority. Do not delay hospital transport."
+        )
+    elif ml.get("needsEscalation", False):
+        reason = ml.get("uncertaintyReason", "Clinical threshold exceeded")
+        st.warning(
+            f"⚠️ **{t('escalation_alert', lang)}:** The model confidence is low or clinical severity is high. "
+            f"Physician second opinion review recommended. (Reason: `{reason}`)"
         )
 
     # Top Metric Tiles
@@ -147,11 +159,11 @@ if "triage_results" in st.session_state:
 
     st.markdown("---")
 
-    # Visualizations: TreeSHAP Bar & Differential Probabilities
+    # Visualizations: Bayesian Evidence Bar & Differential Probabilities
     c_left, c_right = st.columns([3, 2])
     with c_left:
         st.markdown(f"#### 🔍 {t('shap_chart_title', lang)}")
-        st.caption(t("shap_chart_desc", lang))
+        st.caption("Exact Bayesian log-odds feature contributions for presenting symptoms:")
         shap_fig = create_shap_waterfall_or_bar(
             ml.get("shapExplanation", []),
             primary_disease=ml.get("disease", "Condition")

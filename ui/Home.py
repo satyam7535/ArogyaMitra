@@ -11,7 +11,7 @@ import streamlit as st
 # Ensure ui and project root are in sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from utils.api_client import check_services_health
+from utils.api_client import check_services_health, login_user
 from utils.i18n import t
 
 st.set_page_config(
@@ -24,6 +24,12 @@ st.set_page_config(
 # Initialize Session State
 if "lang" not in st.session_state:
     st.session_state["lang"] = "en"
+if "token" not in st.session_state:
+    st.session_state["token"] = None
+if "user" not in st.session_state:
+    st.session_state["user"] = None
+if "role" not in st.session_state:
+    st.session_state["role"] = None
 
 # Sidebar: Language & System Health
 with st.sidebar:
@@ -53,7 +59,18 @@ with st.sidebar:
     st.markdown(f"- **Backend API:** {backend_color} {'Operational' if health['backend'] else 'Standalone Mode'}")
 
     st.divider()
-    st.caption("ArogyaMitra v1.0.0 | DPDP Act (2023) Compliant")
+    if st.session_state.get("token"):
+        user_info = st.session_state.get("user") or {}
+        st.success(f"👤 Logged in as: **{user_info.get('name', 'User')}** ({st.session_state.get('role')})")
+        if st.button("🚪 Logout", use_container_width=True):
+            st.session_state["token"] = None
+            st.session_state["user"] = None
+            st.session_state["role"] = None
+            st.rerun()
+    else:
+        st.info("🔐 Session: Not logged in (Public view)")
+
+    st.caption("ArogyaMitra v2.0.0 | DPDP Act (2023) Compliant")
 
 # Hero Banner
 lang = st.session_state["lang"]
@@ -65,6 +82,45 @@ st.warning(f"⚠️ **{t('disclaimer_title', lang)}:** {t('disclaimer_text', lan
 
 st.divider()
 
+# Authentication Portal Section
+with st.expander("🔑 Healthcare Provider Authentication & Sign-In", expanded=not st.session_state.get("token")):
+    if st.session_state.get("token"):
+        user = st.session_state.get("user") or {}
+        st.success(f"✅ Active session: **{user.get('name', 'User')}** | Role: `{st.session_state.get('role')}` | Email: `{user.get('email', '')}`")
+        if st.button("Sign Out of Session", key="sign_out_btn"):
+            st.session_state["token"] = None
+            st.session_state["user"] = None
+            st.session_state["role"] = None
+            st.rerun()
+    else:
+        st.markdown("Sign in with your verified institutional health center credentials to access clinical workflows:")
+        auth_col1, auth_col2, auth_col3 = st.columns([1, 1, 1])
+        with auth_col1:
+            role_choice = st.selectbox("Role", ["Worker", "Doctor", "Admin"])
+        with auth_col2:
+            default_email = (
+                "worker@arogyamitra.gov.in" if role_choice == "Worker"
+                else ("doctor@arogyamitra.gov.in" if role_choice == "Doctor"
+                else "admin@arogyamitra.gov.in")
+            )
+            email_input = st.text_input("Institutional Email", value=default_email)
+        with auth_col3:
+            password_input = st.text_input("Password", type="password", value="Arogya@2026Secure!")
+
+        if st.button("🔓 Sign In to ArogyaMitra", type="primary", use_container_width=True):
+            with st.spinner("Authenticating with Express security layer..."):
+                auth_res = login_user(email_input, password_input, role_choice)
+                if auth_res.get("success"):
+                    st.session_state["token"] = auth_res["accessToken"]
+                    st.session_state["user"] = auth_res["user"]
+                    st.session_state["role"] = auth_res["role"]
+                    st.success(f"Authentication successful! Logged in as {auth_res['role']}.")
+                    st.rerun()
+                else:
+                    st.error(f"Sign-in failed: {auth_res.get('error', 'Invalid credentials')}")
+
+st.divider()
+
 # Quick Navigation Portals
 col1, col2, col3 = st.columns(3)
 
@@ -73,7 +129,7 @@ with col1:
     st.markdown(
         "Triage patients at village sub-centers or home visits. "
         "Select presenting symptoms from 131 clinical categories, run calibrated AI predictions, "
-        "inspect TreeSHAP feature attributions, and escalate high-risk cases to physicians."
+        "inspect Bayesian evidence weights, and escalate high-risk cases to physicians."
     )
     if st.button("🚀 Launch Worker Triage", type="primary", use_container_width=True):
         st.switch_page("pages/1_Worker_Triage.py")
@@ -82,7 +138,7 @@ with col2:
     st.markdown("### 🩺 Medical Officer Review")
     st.markdown(
         "Remote physician review workstation. Review escalated cases, "
-        "evaluate calibrated differential diagnoses alongside TreeSHAP feature attributions, "
+        "evaluate calibrated differential diagnoses alongside exact Bayesian log-odds feature attributions, "
         "issue binding clinical second opinions, and prescribe treatments."
     )
     if st.button("📋 Open Doctor Workstation", use_container_width=True):
@@ -105,16 +161,16 @@ st.markdown("### 🛡️ Core Clinical & Architectural Pillars")
 
 c1, c2, c3, c4 = st.columns(4)
 with c1:
-    st.markdown("#### 🔬 Calibrated ML")
-    st.markdown("LightGBM ensemble calibrated via sigmoid regression on 304 deduplicated clinical ground-truth rows.")
+    st.markdown("#### 🔬 Bernoulli Naive Bayes")
+    st.markdown("Robust probabilistic classifier (v2.0.0) achieving 98.9% top-1 accuracy under 30% missing symptoms.")
 
 with c2:
-    st.markdown("#### 🔍 TreeSHAP XAI")
-    st.markdown("True marginal feature contributions explaining exactly why a diagnosis was recommended.")
+    st.markdown("#### 🔍 Exact Bayesian XAI")
+    st.markdown("Exact log-odds feature contributions explaining symptom evidence weight with proven additivity.")
 
 with c3:
     st.markdown("#### 🔒 Zero-Trust Security")
-    st.markdown("Argon2id hashing, AES-256-GCM patient encryption, and DPDP Act 2023 compliance.")
+    st.markdown("Argon2id hashing, AES-256-GCM patient encryption with key rotation, and DPDP Act 2023 compliance.")
 
 with c4:
     st.markdown("#### 🌐 Multilingual Edge")

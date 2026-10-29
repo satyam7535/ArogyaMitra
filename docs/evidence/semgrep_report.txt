@@ -1,0 +1,42 @@
+﻿Command: uv run --with semgrep semgrep scan --config auto Backend/src ML_Model graph ui
+Date: 2026-10-29 12:52:14 +05:30
+Tool Version: semgrep 1.182.1
+Git Commit: 1408ebb51a7ea8950623a85861b664d388053730
+Ruleset: auto (Community 1074 Code rules, 484 active)
+Targets: 99 files tracked by git across Backend/src, ML_Model, graph, ui
+----------------------------------------
+               
+               
+┌─────────────┐
+│ Scan Status │
+└─────────────┘
+  Scanning 99 files tracked by git with 1074 Code rules:
+                                                                                                                        
+  Language      Rules   Files          Origin      Rules                                                                
+ ─────────────────────────────        ───────────────────                                                               
+  <multilang>      47      99          Community    1074                                                                
+  js              153      51                                                                                           
+  python          243      33                                                                                           
+  dockerfile        6       3                                                                                           
+  yaml             35       1                                                                                           
+  json              4       1                                                                                           
+                                                                                                                        
+                
+                
+┌──────────────┐
+│ Scan Summary │
+└──────────────┘
+✅ Scan completed successfully.
+ • Findings: 0 (0 blocking)
+ • Rules run: 484
+ • Targets scanned: 99
+ • Parsed lines: ~99.6%
+ • Scan skipped: 
+   ◦ Files matching .semgrepignore patterns: 7
+ • Scan was limited to files tracked by git
+ • For a detailed list of skipped files and lines, run semgrep with the --verbose flag
+Ran 484 rules on 99 files: 0 findings.
+(need more rules? `semgrep login` for additional free Semgrep Registry rules)
+
+If Semgrep missed a finding, please send us feedback to let us know!
+See https://semgrep.dev/docs/reporting-false-negatives/

@@ -1,15 +1,20 @@
 ﻿============================= test session starts =============================
 platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
 cachedir: .pytest_cache
-rootdir: D:\Document\Projects\Internship\Arogyamitra\ui
-plugins: anyio-4.15.1, langsmith-0.3.45
-collecting ... collected 6 items
+hypothesis profile 'default'
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
+collecting ... collected 9 items
 
-tests/test_streamlit.py::test_home_page_initialization PASSED            [ 16%]
-tests/test_streamlit.py::test_worker_triage_page_initialization PASSED   [ 33%]
-tests/test_streamlit.py::test_doctor_review_page_initialization PASSED   [ 50%]
-tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 66%]
-tests/test_streamlit.py::test_i18n_localization_integrity PASSED         [ 83%]
-tests/test_streamlit.py::test_viz_module_robustness PASSED               [100%]
+tests\test_streamlit.py::test_home_page_initialization PASSED            [ 11%]
+tests\test_streamlit.py::test_worker_triage_page_initialization PASSED   [ 22%]
+tests\test_streamlit.py::test_doctor_review_page_initialization PASSED   [ 33%]
+tests\test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 44%]
+tests\test_streamlit.py::test_i18n_localization_integrity PASSED         [ 55%]
+tests\test_streamlit.py::test_viz_module_robustness PASSED               [ 66%]
+tests\test_streamlit.py::test_api_client_thin_client_auth_helpers PASSED [ 77%]
+tests\test_streamlit.py::test_api_client_no_service_secret_or_bypass PASSED [ 88%]
+tests\test_streamlit.py::test_triage_analysis_with_bayesian_evidence_and_red_flags PASSED [100%]
 
-============================= 6 passed in 10.06s ==============================
+============================= 9 passed in 18.08s ==============================

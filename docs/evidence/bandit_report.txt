@@ -1,0 +1,150 @@
+﻿Command: uv run --with bandit bandit -r ML_Model graph ui -x ML_Model/data,ML_Model/tests,graph/tests,ui/tests
+Date: 2026-10-29 12:46:33 +05:30
+Tool Version: bandit 1.9.4 python version = 3.11.15 (main, Mar  3 2026, 14:55:34) [MSC v.1944 64 bit (AMD64)]
+Git Commit: 1408ebb51a7ea8950623a85861b664d388053730
+Severity Breakdown: High: 0, Medium: 0, Low: 11
+----------------------------------------
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.11.15
+Run started:2026-10-29 07:16:49.669410+00:00
+
+Test results:
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: ML_Model\scripts\train_baseline.py:17:4
+16	        sys.stdout.reconfigure(encoding='utf-8')
+17	    except Exception:
+18	        pass
+19	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: ML_Model\training\benchmark.py:19:4
+18	        sys.stdout.reconfigure(encoding='utf-8')
+19	    except Exception:
+20	        pass
+21	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: ML_Model\training\evaluate.py:18:4
+17	        sys.stdout.reconfigure(encoding='utf-8')
+18	    except Exception:
+19	        pass
+20	
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: ML_Model\training\train_v2_naive_bayes.py:10:0
+9	import os
+10	import subprocess
+11	import sys
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html
+   Location: ML_Model\training\train_v2_naive_bayes.py:28:14
+27	    try:
+28	        res = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True)
+29	        return res.stdout.strip()
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: ML_Model\training\train_v2_naive_bayes.py:28:14
+27	    try:
+28	        res = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True)
+29	        return res.stdout.strip()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: ui\utils\api_client.py:81:4
+80	            return r.json().get("symptoms", [])
+81	    except Exception:
+82	        pass
+83	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: ui\utils\api_client.py:138:4
+137	            return res.json().get("consultations", [])
+138	    except Exception:
+139	        pass
+140	    return []
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: ui\utils\api_client.py:178:4
+177	            return res.json()
+178	    except Exception:
+179	        pass
+180	    return {"auditLogs": [], "total": 0, "page": 1, "totalPages": 1}
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: ui\utils\api_client.py:190:4
+189	            return res.json().get("consultations", [])
+190	    except Exception:
+191	        pass
+192	    return []
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: ui\utils\api_client.py:202:4
+201	            return res.json()
+202	    except Exception:
+203	        pass
+204	    return {
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 4528
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 11
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 11
+Files skipped (0):

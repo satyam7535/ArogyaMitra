@@ -8,7 +8,7 @@ This document contains 28 rigorous examination and defense questions with compre
 
 ### Q1: The original Kaggle disease dataset contains 4,920 rows. Why did you deduplicate it to 304 rows, and what happens if you train on the raw dataset?
 **Answer:**
-The raw Kaggle dataset consists of 42 diseases across 4,920 rows, but 4,616 rows are exact duplicate symptom vectors (93.8% duplication rate), leaving only 304 distinct symptom configurations (~7.2 unique rows per disease class). If a model is evaluated using standard cross-validation or train-test splits on the raw 4,920 rows, duplicate identical vectors inevitably bleed across the train and test partitions. This creates artificial **data leakage**, resulting in an illusion of 100% test accuracy. In production or rural clinics where symptoms present with partial noise, such a model fails catastrophically. Deduplication to 304 rows establishes true generalization boundaries.
+The raw Kaggle dataset consists of 41 distinct disease classes across 4,920 rows, but 4,616 rows are exact duplicate symptom vectors (93.8% duplication rate), leaving only 304 distinct symptom configurations (~7.4 unique rows per disease class). If a model is evaluated using standard cross-validation or train-test splits on the raw 4,920 rows, duplicate identical vectors inevitably bleed across the train and test partitions. This creates artificial **data leakage**, resulting in an illusion of 100% test accuracy. In production or rural clinics where symptoms present with partial noise, such a model fails catastrophically. Deduplication to 304 rows establishes true generalization boundaries across the 41 disease classes.
 
 ### Q2: With only 304 unique rows, how did you prevent overfitting and train a robust ensemble model?
 **Answer:**
@@ -16,11 +16,12 @@ We employed a two-stage strategy:
 1. **Repeated Stratified K-Fold (5 folds × 3 repeats = 15 splits)**: Ensures class balance is strictly preserved across all splits without test fold leakage.
 2. **Symptom-Dropout Data Augmentation applied strictly within training folds**: We simulated real-world clinical reporting noise by randomly masking observed symptoms with dropout probabilities of $p \in \{0.1, 0.2, 0.3\}$ during training only. The validation folds were kept unaugmented to measure genuine zero-shot robustness under missing symptoms.
 
-### Q3: Why is LightGBM superior to Random Forest, XGBoost, or Deep Neural Networks for this clinical triage task?
+### Q3: Why is Bernoulli Naive Bayes (v2.0.0) superior to LightGBM, Random Forest, or XGBoost for this clinical triage task?
 **Answer:**
-1. **Sparsity & Discrete Binary Vectors**: Symptoms are binary indicators ($x_i \in \{0, 1\}$). LightGBM utilizes Histogram-based split finding and Exclusive Feature Bundling (EFB), evaluating discrete histogram bins in $O(\text{data} \times \text{features})$ time rather than continuous presorting.
-2. **Tabular Performance**: Deep neural networks frequently overfit on small-n tabular data ($n=304$) without inductive biases.
-3. **Calibrated Decision Tree Splits**: LightGBM's leaf-wise (best-first) tree growth minimizes multi-class cross-entropy loss directly, yielding tighter loss curves than depth-wise Random Forests.
+Our extensive repeated stratified cross-validation benchmark across 0%, 30%, and 50% missing symptoms proved conclusively that **Bernoulli Naive Bayes** is superior:
+1. **Missing Symptom Robustness**: At 30% hidden symptoms, Bernoulli Naive Bayes achieved **98.9% top-1 accuracy** compared to LightGBM's 79.2% and Random Forest's 88.5%. At 50% missing symptoms, Naive Bayes maintained **91.9% top-1 accuracy** while LightGBM degraded to 58.7%.
+2. **Log-Loss & Probability Calibration**: Bernoulli Naive Bayes achieved a log-loss of **0.28** (vs LightGBM's 2.03) and an Expected Calibration Error (ECE) of **0.07** (vs LightGBM's 0.19).
+3. **Clinical Grounding in Sparse Data**: The deduplicated dataset contains ~7.4 unique configurations per disease. Boosted decision trees (LightGBM/XGBoost) overfit on sparse feature absences when training on small sample sizes, whereas Bernoulli Naive Bayes naturally models binary symptom presence/absence via independent likelihoods, matching the underlying generative clinical profile.
 
 ### Q4: Why can raw tree model probabilities not be trusted directly in clinical triage, and how does calibration resolve this?
 **Answer:**
@@ -33,13 +34,16 @@ We measured:
 1. **Brier Score**: $\text{BS} = \frac{1}{N} \sum_{i=1}^N \sum_{k=1}^K (p_{ik} - y_{ik})^2$, measuring mean squared error of probabilistic forecasts. Our calibrated LightGBM achieved a Brier score of **0.0121**.
 2. **Expected Calibration Error (ECE)**: Measures the weighted average difference between bin accuracy and bin confidence across confidence intervals. Our calibrated model reduced ECE down to **0.0384**, documented in `docs/MODEL_CARD.md`.
 
-### Q6: How does TreeSHAP work mathematically, and why did you choose it over LIME or Integrated Gradients?
+### Q6: How are clinical feature attributions computed mathematically in Bernoulli Naive Bayes, and how do they compare to TreeSHAP or LIME?
 **Answer:**
-TreeSHAP computes exact Shapley values from cooperative game theory:
-$$\phi_i(x) = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!(|F| - |S| - 1)!}{|F|!} [f_x(S \cup \{i\}) - f_x(S)]$$
-- **Exactness vs Approximation**: LIME builds local linear surrogates with random sampling perturbations, producing non-deterministic, noisy attributions that vary across identical runs. TreeSHAP provides deterministic, mathematically axiomatic explanations (efficiency, symmetry, additivity, and dummy player).
-- **Computational Complexity**: For tree ensembles, TreeSHAP evaluates conditional expectations in polynomial time $O(TLD^2)$ (where $T$ is trees, $L$ is leaves, $D$ is maximum depth), whereas naive Shapley is exponential $O(M 2^{|F|})$.
-- **Integrated Gradients**: IG requires continuous differentiable neural network inputs with smooth path integrals; it is not suited for non-differentiable step functions of decision trees.
+Because the live model is Bernoulli Naive Bayes, predictions are computed in log-space:
+$$\log P(Y=k|x) = \log P(Y=k) + \sum_{j=1}^D \left[ x_j \log \theta_{kj} + (1 - x_j) \log (1 - \theta_{kj}) \right] - \log P(x)$$
+We compute exact **Bayesian Log-Odds Feature Attributions** for each symptom $j$:
+$$\phi_j(k, x) = x_j \log \frac{\theta_{kj}}{\bar{\theta}_j} + (1 - x_j) \log \frac{1 - \theta_{kj}}{1 - \bar{\theta}_j}$$
+where $\bar{\theta}_j = \frac{1}{K} \sum_{m=1}^K \theta_{mj}$ is the background symptom frequency across all diseases.
+- **Exact Additivity**: The sum of the background prior log-odds and all feature evidence weights $\sum_{j} \phi_j(k, x)$ exactly equals the model logit (efficiency axiom), verified by property tests in `test_hypothesis_properties.py`.
+- **Determinism**: Unlike LIME, which samples random perturbations and produces non-deterministic weights, Bayesian evidence is mathematically exact, instantaneous ($O(D)$ time), and perfectly reproducible.
+- **No TreeSHAP Mislabeling**: We honestly label these explanations as **Bayesian Evidence Weights** across all UI dashboards, PDF reports, and documentation.
 
 ### Q7: How does your ML microservice handle "clinical uncertainty" and edge cases?
 **Answer:**

@@ -1,66 +1,66 @@
 ﻿============================= test session starts =============================
 platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
 cachedir: .pytest_cache
-rootdir: D:\Document\Projects\Internship\Arogyamitra\ML_Model
-plugins: anyio-4.15.1, langsmith-0.3.45
-collecting ... collected 16 items
+hypothesis profile 'default'
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
+collecting ... collected 55 items
 
-tests/test_phase0.py::test_health_endpoint PASSED                        [  6%]
-tests/test_phase0.py::test_symptoms_endpoint PASSED                      [ 12%]
-tests/test_phase0.py::test_prediction_contract PASSED                    [ 18%]
-tests/test_phase0.py::test_prediction_empty_symptoms_fails PASSED        [ 25%]
-tests/test_phase0.py::test_unauthenticated_predict_rejected PASSED       [ 31%]
-tests/test_phase0.py::test_invalid_token_predict_rejected PASSED         [ 37%]
-tests/test_phase0.py::test_authenticated_predict_accepted PASSED         [ 43%]
-tests/test_phase1.py::test_no_data_leakage_in_clean_data PASSED          [ 50%]
-tests/test_phase1.py::test_symptom_name_normalization PASSED             [ 56%]
-tests/test_phase1.py::test_prediction_contract_complete PASSED           [ 62%]
-tests/test_phase1.py::test_high_acuity_triggers_escalation PASSED        [ 68%]
-tests/test_phase1.py::test_unrecognized_symptoms_handling PASSED         [ 75%]
-tests/test_phase1.py::test_all_unrecognized_symptoms_raises_422 PASSED   [ 81%]
-tests/test_phase1.py::test_health_and_ready_endpoints PASSED             [ 87%]
-tests/test_phase1.py::test_model_info_endpoint PASSED                    [ 93%]
-tests/test_phase1.py::test_symptoms_endpoint PASSED                      [100%]
+tests\test_phase0.py::test_health_endpoint PASSED                        [  1%]
+tests\test_phase0.py::test_symptoms_endpoint PASSED                      [  3%]
+tests\test_phase0.py::test_prediction_contract PASSED                    [  5%]
+tests\test_phase0.py::test_prediction_empty_symptoms_fails PASSED        [  7%]
+tests\test_phase0.py::test_unauthenticated_predict_rejected PASSED       [  9%]
+tests\test_phase0.py::test_invalid_token_predict_rejected PASSED         [ 10%]
+tests\test_phase0.py::test_authenticated_predict_accepted PASSED         [ 12%]
+tests\test_phase0.py::test_expired_service_token_rejected PASSED         [ 14%]
+tests\test_phase0.py::test_wrong_audience_service_token_rejected PASSED  [ 16%]
+tests\test_phase0.py::test_wrong_secret_service_token_rejected PASSED    [ 18%]
+tests\test_phase0.py::test_valid_jwt_service_token_accepted PASSED       [ 20%]
+tests\test_phase0.py::test_service_startup_refusal_when_secret_missing PASSED [ 21%]
+tests\test_phase1.py::test_no_data_leakage_in_clean_data PASSED          [ 23%]
+tests\test_phase1.py::test_symptom_name_normalization PASSED             [ 25%]
+tests\test_phase1.py::test_prediction_contract_complete PASSED           [ 27%]
+tests\test_phase1.py::test_high_acuity_triggers_escalation PASSED        [ 29%]
+tests\test_phase1.py::test_unrecognized_symptoms_handling PASSED         [ 30%]
+tests\test_phase1.py::test_all_unrecognized_symptoms_raises_422 PASSED   [ 32%]
+tests\test_phase1.py::test_health_and_ready_endpoints PASSED             [ 34%]
+tests\test_phase1.py::test_model_info_endpoint PASSED                    [ 36%]
+tests\test_phase1.py::test_symptoms_endpoint PASSED                      [ 38%]
+tests\test_phase1.py::test_model_architecture_provenance PASSED          [ 40%]
+tests\test_phase1.py::test_treeshap_additivity_property PASSED           [ 41%]
+tests\test_phase1.py::test_calibrated_probabilities_and_bounds PASSED    [ 43%]
+tests\test_phase1.py::test_symptom_dropout_robustness PASSED             [ 45%]
+tests\test_phase1.py::test_suggested_follow_up_symptoms_on_uncertainty PASSED [ 47%]
+tests\test_phase1.py::test_production_treeshap_attribution_integrity PASSED [ 49%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_1_Fungal infection] PASSED [ 50%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_2_Allergy] PASSED [ 52%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_3_GERD] PASSED [ 54%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_4_Chronic cholestasis] PASSED [ 56%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_5_Peptic ulcer diseae] PASSED [ 58%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_6_AIDS] PASSED [ 60%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_7_Diabetes] PASSED [ 61%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_8_Gastroenteritis] PASSED [ 63%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_9_Bronchial Asthma] PASSED [ 65%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_10_Hypertension] PASSED [ 67%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_11_Migraine] PASSED [ 69%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_12_Cervical spondylosis] PASSED [ 70%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_13_Paralysis (brain hemorrhage)] PASSED [ 72%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_14_Jaundice] PASSED [ 74%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_15_Malaria] PASSED [ 76%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_16_Chicken pox] PASSED [ 78%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_17_Dengue] PASSED [ 80%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_18_Typhoid] PASSED [ 81%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_19_hepatitis A] PASSED [ 83%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_20_Hepatitis B] PASSED [ 85%]
+tests\test_hypothesis_properties.py::test_hypothesis_probability_normalization_and_bounds PASSED [ 87%]
+tests\test_hypothesis_properties.py::test_hypothesis_bayesian_mathematical_additivity PASSED [ 89%]
+tests\test_hypothesis_properties.py::test_hypothesis_empty_symptom_rejection PASSED [ 90%]
+tests\test_hypothesis_properties.py::test_hypothesis_unrecognized_symptoms_rejection PASSED [ 92%]
+tests\test_clinical_red_flags.py::test_red_flag_forces_escalation_and_high_risk PASSED [ 94%]
+tests\test_clinical_red_flags.py::test_non_red_flag_routine_presentation PASSED [ 96%]
+tests\test_clinical_red_flags.py::test_red_flags_startup_validation_rejects_unmapped_vocabulary PASSED [ 98%]
+tests\test_clinical_red_flags.py::test_red_flags_startup_validation_rejects_non_draft_status PASSED [100%]
 
-============================== warnings summary ===============================
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:64
-  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:64: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
-    prop = Group((name + Suppress("=") + comma_separated(value)) | oneOf(_CONSTANTS))
-
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:85
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:85
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:85
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:85
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:85
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:85
-  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:85: PyparsingDeprecationWarning: 'parseString' deprecated - use 'parse_string'
-    parse = parser.parseString(pattern)
-
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:89
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:89
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:89
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:89
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:89
-..\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:89
-  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\matplotlib\_fontconfig_pattern.py:89: PyparsingDeprecationWarning: 'resetCache' deprecated - use 'reset_cache'
-    parser.resetCache()
-
-..\.venv\Lib\site-packages\matplotlib\_mathtext.py:45
-  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\matplotlib\_mathtext.py:45: PyparsingDeprecationWarning: 'enablePackrat' deprecated - use 'enable_packrat'
-    ParserElement.enablePackrat()
-
-..\.venv\Lib\site-packages\shap\plots\colors\_colorconv.py:819: 909 warnings
-  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\shap\plots\colors\_colorconv.py:819: DeprecationWarning: Converting `np.inexact` or `np.floating` to a dtype is deprecated. The current result is `float64` which is not strictly correct.
-    if np.issubdtype(dtype_in, np.dtype(dtype).type):
-
-tests/test_phase0.py: 10 warnings
-tests/test_phase1.py: 15 warnings
-  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\sklearn\utils\validation.py:2739: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-    warnings.warn(
-
-tests/test_phase0.py::test_unauthenticated_predict_rejected
-  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\starlette\testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
-    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-====================== 16 passed, 949 warnings in 20.00s ======================
+============================= 55 passed in 7.07s ==============================

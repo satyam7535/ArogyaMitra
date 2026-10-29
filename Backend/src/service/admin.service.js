@@ -1,4 +1,6 @@
 import Admin from "../models/admin/adminSchema.js";
+import ROLES from "../config/roles.js";
+import { dispatchPasswordReset } from "../utils/emailAdapter.js";
 import {
   generateTokenPair,
   authenticateWithLockout,
@@ -25,13 +27,11 @@ const loginAdmin = async ({ email, password }) => {
 const handleForgotPassword = async (email) => {
   const admin = await Admin.findOne({ email });
   if (!admin) {
-    // Return dummy token or success message to prevent user enumeration
+    // Return generic success message to prevent user enumeration
     return { message: "If that email exists, password reset instructions have been sent." };
   }
   const resetToken = await initiatePasswordReset(admin);
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[DEV RESET LINK] Admin (${email}): resetToken=[REDACTED]`);
-  }
+  dispatchPasswordReset({ email, role: ROLES.ADMIN, resetToken });
   return { message: "If that email exists, password reset instructions have been sent." };
 };
 

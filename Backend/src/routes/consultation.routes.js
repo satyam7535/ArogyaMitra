@@ -1,65 +1,112 @@
 import express from "express";
 import {
-    submitConsultation,
-    getMyConsultations,
-    getConsultation,
-    acceptAI,
-    escalate,
-    getPendingForDoctor,
-    getAllForDoctor,
-    respondWithSecondOpinion,
-    triggerAnalysis,
-    triggerAnalysisAsync,
-    checkAnalysisJobStatus,
-    getJobQueueDiagnostics,
-    storeMlAnalysisResult,
-    storeLlmAnalysisResult,
-    storeFinalVerdictResult,
-    storeAnalysisReportResult,
-    getAdminConsultations,
+  submitConsultation,
+  getMyConsultations,
+  getConsultation,
+  acceptAI,
+  escalate,
+  getPendingForDoctor,
+  getAllForDoctor,
+  respondWithSecondOpinion,
+  triggerAnalysis,
+  triggerAnalysisAsync,
+  checkAnalysisJobStatus,
+  getJobQueueDiagnostics,
+  storeMlAnalysisResult,
+  storeLlmAnalysisResult,
+  storeFinalVerdictResult,
+  storeAnalysisReportResult,
+  getAdminConsultations,
 } from "../controller/consultation.controller.js";
 import verifyToken from "../middlewares/auth.middleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import {
+  idParamSchema,
+  jobIdParamSchema,
+  submitConsultationSchema,
+  acceptConsultationSchema,
+  escalateConsultationSchema,
+  respondConsultationSchema,
+  analyzeConsultationSchema,
+} from "../validators/schemas.js";
 import upload from "../utils/upload.js";
+import ROLES from "../config/roles.js";
 
 const consultationRouter = express.Router();
 
 // Worker routes
 // multipart/form-data: fields: patientId, symptoms, notes | files: attachments[], aiReport
 consultationRouter.post(
-    "/",
-    verifyToken(["worker"]),
-    upload.fields([
-        { name: "attachments", maxCount: 5 },
-        { name: "aiReport", maxCount: 1 },
-    ]),
-    submitConsultation
-); // POST /api/v1/consultation
+  "/",
+  verifyToken([ROLES.WORKER]),
+  upload.fields([
+    { name: "attachments", maxCount: 5 },
+    { name: "aiReport", maxCount: 1 },
+  ]),
+  validate(submitConsultationSchema),
+  submitConsultation
+);
 
-consultationRouter.get("/my", verifyToken(["worker"]), getMyConsultations);                    // GET  /api/v1/consultation/my
-consultationRouter.patch("/:id/accept", verifyToken(["worker"]), acceptAI);                    // PATCH /api/v1/consultation/:id/accept
-consultationRouter.patch("/:id/escalate", verifyToken(["worker"]), escalate);                  // PATCH /api/v1/consultation/:id/escalate
+consultationRouter.get("/my", verifyToken([ROLES.WORKER]), getMyConsultations);
+consultationRouter.patch(
+  "/:id/accept",
+  verifyToken([ROLES.WORKER]),
+  validate(idParamSchema, "params"),
+  validate(acceptConsultationSchema),
+  acceptAI
+);
+consultationRouter.patch(
+  "/:id/escalate",
+  verifyToken([ROLES.WORKER]),
+  validate(idParamSchema, "params"),
+  validate(escalateConsultationSchema),
+  escalate
+);
 
 // Admin routes
-consultationRouter.get("/admin/all", verifyToken(["admin"]), getAdminConsultations);          // GET  /api/v1/consultation/admin/all
+consultationRouter.get("/admin/all", verifyToken([ROLES.ADMIN]), getAdminConsultations);
 
 // Doctor routes
-consultationRouter.get("/doctor/all", verifyToken(["doctor"]), getAllForDoctor);                // GET  /api/v1/consultation/doctor/all
-consultationRouter.get("/pending", verifyToken(["doctor"]), getPendingForDoctor);              // GET  /api/v1/consultation/pending
-consultationRouter.patch("/:id/respond", verifyToken(["doctor"]), respondWithSecondOpinion);   // PATCH /api/v1/consultation/:id/respond
+consultationRouter.get("/doctor/all", verifyToken([ROLES.DOCTOR]), getAllForDoctor);
+consultationRouter.get("/pending", verifyToken([ROLES.DOCTOR]), getPendingForDoctor);
+consultationRouter.patch(
+  "/:id/respond",
+  verifyToken([ROLES.DOCTOR]),
+  validate(idParamSchema, "params"),
+  validate(respondConsultationSchema),
+  respondWithSecondOpinion
+);
 
 // Shared (worker or doctor can view)
-consultationRouter.get("/:id", verifyToken(["worker", "doctor"]), getConsultation);            // GET  /api/v1/consultation/:id
+consultationRouter.get("/:id", verifyToken([ROLES.WORKER, ROLES.DOCTOR]), validate(idParamSchema, "params"), getConsultation);
 
 // Server-Side Orchestrated AI Analysis (ML -> LLM -> PDF)
-consultationRouter.post("/:id/analyze", verifyToken(["worker", "doctor"]), triggerAnalysis);               // POST /api/v1/consultation/:id/analyze (Sync)
-consultationRouter.post("/:id/analyze/async", verifyToken(["worker", "doctor"]), triggerAnalysisAsync);    // POST /api/v1/consultation/:id/analyze/async (Async Queue)
-consultationRouter.get("/:id/analyze/status/:jobId", verifyToken(["worker", "doctor"]), checkAnalysisJobStatus); // GET /api/v1/consultation/:id/analyze/status/:jobId (Poll)
-consultationRouter.get("/queue/metrics", verifyToken(["admin", "doctor"]), getJobQueueDiagnostics);        // GET  /api/v1/consultation/queue/metrics
+consultationRouter.post(
+  "/:id/analyze",
+  verifyToken([ROLES.WORKER, ROLES.DOCTOR]),
+  validate(idParamSchema, "params"),
+  validate(analyzeConsultationSchema),
+  triggerAnalysis
+);
+consultationRouter.post(
+  "/:id/analyze/async",
+  verifyToken([ROLES.WORKER, ROLES.DOCTOR]),
+  validate(idParamSchema, "params"),
+  validate(analyzeConsultationSchema),
+  triggerAnalysisAsync
+);
+consultationRouter.get(
+  "/:id/analyze/status/:jobId",
+  verifyToken([ROLES.WORKER, ROLES.DOCTOR]),
+  validate(jobIdParamSchema, "params"),
+  checkAnalysisJobStatus
+);
+consultationRouter.get("/queue/metrics", verifyToken([ROLES.ADMIN, ROLES.DOCTOR]), getJobQueueDiagnostics);
 
 // Direct client analysis mutation routes (Blocked with 403)
-consultationRouter.post("/:id/analysis/ml", verifyToken(["worker"]), storeMlAnalysisResult);   // POST /api/v1/consultation/:id/analysis/ml
-consultationRouter.post("/:id/analysis/llm", verifyToken(["worker"]), storeLlmAnalysisResult); // POST /api/v1/consultation/:id/analysis/llm
-consultationRouter.post("/:id/analysis/verdict", verifyToken(["worker"]), storeFinalVerdictResult); // POST /api/v1/consultation/:id/analysis/verdict
-consultationRouter.post("/:id/analysis/report", verifyToken(["worker"]), storeAnalysisReportResult); // POST /api/v1/consultation/:id/analysis/report
+consultationRouter.post("/:id/analysis/ml", verifyToken([ROLES.WORKER]), validate(idParamSchema, "params"), storeMlAnalysisResult);
+consultationRouter.post("/:id/analysis/llm", verifyToken([ROLES.WORKER]), validate(idParamSchema, "params"), storeLlmAnalysisResult);
+consultationRouter.post("/:id/analysis/verdict", verifyToken([ROLES.WORKER]), validate(idParamSchema, "params"), storeFinalVerdictResult);
+consultationRouter.post("/:id/analysis/report", verifyToken([ROLES.WORKER]), validate(idParamSchema, "params"), storeAnalysisReportResult);
 
 export default consultationRouter;

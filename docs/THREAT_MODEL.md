@@ -46,9 +46,9 @@ ArogyaMitra is deployed in primary healthcare centers (PHCs) and community outre
 |  | TRUST BOUNDARY 4: INTERNAL     |           | TRUST BOUNDARY 5: DATA LAYER          | |
 |  | MICROSERVICES NETWORK          |           |                                       | |
 |  | [ FastAPI ML Service :8000 ]   |           | [ MongoDB Multi-Tenant Cluster ]      | |
-|  | - LightGBM + CalibratedCV      |           | - Encrypted Patient PII               | |
-|  | - TreeSHAP Attributions        |           | - AuditLog Collection (Append-Only)   | |
-|  |                                |           | - Versioned Consultations (OCC)       | |
+|  | - Bernoulli Naive Bayes v2.0.0 |           | - Encrypted Patient PII (AES-256-GCM) | |
+|  | - Exact Bayesian Attributions  |           | - AuditLog Collection (Append-Only)   | |
+|  | - Clinical Red Flags Filter    |           | - Versioned Consultations (OCC)       | |
 |  | [ LangGraph Service :8001 ]    |           |                                       | |
 |  | - Safe Gemini LLM Pipeline     |           | [ Cloudinary Object Store ]           | |
 |  | - Prompt Injection Guardrail   |           | - Signed Report Attachments           | |
@@ -138,9 +138,18 @@ ArogyaMitra is deployed in primary healthcare centers (PHCs) and community outre
 ## 4. Clinical Safety Safeguards
 
 1. **Mandatory Non-Diagnostic Disclaimer:** Every PDF report, UI dashboard, and API response embeds an explicit clinical disclaimer stating the system provides decision support and does not replace a licensed medical practitioner.
-2. **Automated Clinical Escalation:**
+2. **Automated Clinical Escalation & Threshold Coverage:**
    - Any prediction with model confidence < 45% automatically sets `needsEscalation: true` (`uncertaintyReason: "LOW_CONFIDENCE"`).
    - Any prediction with symptom severity >= 4.0 sets `needsEscalation: true` (`uncertaintyReason: "HIGH_SEVERITY"`).
-   - When escalated, the case is routed directly into the assigned doctor's review queue.
-3. **Deterministic Safety Fallback:**
-   - If the Gemini LLM endpoint is unreachable, throttled, or returns malformed text, the deterministic clinical rule engine generates localized clinical precautions directly from the validated ML feature attributions without crashing.
+   - Threshold coverage derived from validation data routes low-confidence and high-uncertainty cases safely to a physician.
+3. **Clinical Red Flags Fail-Closed Intercept (`config/red_flags.yaml`):**
+   - Startup validation strictly fails if `config/red_flags.yaml` contains unrecognized symptoms, unreviewed status, or missing notices.
+   - Any patient presentation containing a red-flag symptom immediately forces `redFlag: true`, `needsEscalation: true`, `risk: "High"`, and displays an urgent red-flag banner in UI and multilingual PDF.
+4. **DPDP Act (2023) Consent Refusal Gate:**
+   - `/api/v1/consultation/:id/analyze` and `/analyze/async` enforce strict consent verification. If patient consent is missing (`consentGiven === false`), withdrawn (`revokedAt != null`), or the patient is soft-deleted, analysis is refused with `HTTP 403 CONSENT_REQUIRED`.
+5. **Human-in-the-Loop Clinical Workflows (Flow Steps 10 & 11):**
+   - Frontline health workers review AI recommendations and either accept (`PATCH /:id/accept`) or escalate to a medical officer (`PATCH /:id/escalate`).
+   - Medical officers query assigned pending cases (`GET /pending`) and submit second opinions (`PATCH /:id/respond`).
+   - Optimistic Concurrency Control (`optimisticConcurrency: true`) rejects concurrent modifications with `HTTP 409 Conflict`, preventing lost updates.
+6. **Deterministic Safety Fallback:**
+   - If the Gemini LLM endpoint is unreachable, throttled, or returns malformed text, the deterministic clinical rule engine generates localized clinical precautions directly from the validated ML feature attributions without crashing (`llmFallback: true`).

@@ -44,7 +44,7 @@ TRANSLATIONS = {
         "high": "High",
         "moderate": "Moderate",
         "low": "Low",
-        "ai_explanation": "AI Explanation (TreeSHAP)",
+        "ai_explanation": "AI Explanation (Bayesian Evidence Weights)",
         "lime_desc": "The following factors most influenced this prediction. Positive impact = supports the diagnosis. Negative impact = evidence against it.",
         "impact_score": "Impact Score",
         "direction": "Direction",
@@ -82,7 +82,7 @@ TRANSLATIONS = {
         "high": "उच्च",
         "moderate": "मध्यम",
         "low": "कम",
-        "ai_explanation": "AI स्पष्टीकरण (TreeSHAP)",
+        "ai_explanation": "AI स्पष्टीकरण (बायेसियन साक्ष्य भार)",
         "lime_desc": "निम्नलिखित कारकों ने इस भविष्यवाणी को सबसे अधिक प्रभावित किया। सकारात्मक प्रभाव = निदान का समर्थन करता है। नकारात्मक प्रभाव = इसके विरुद्ध साक्ष्य।",
         "impact_score": "प्रभाव स्कोर",
         "direction": "दिशा",
@@ -120,7 +120,7 @@ TRANSLATIONS = {
         "high": "उच्च",
         "moderate": "मध्यम",
         "low": "कमी",
-        "ai_explanation": "AI स्पष्टीकरण (TreeSHAP)",
+        "ai_explanation": "AI स्पष्टीकरण (बायेशियन पुरावा भार)",
         "lime_desc": "खालील घटकांनी या भविष्यवाणीवर सर्वात जास्त प्रभाव टाकला. सकारात्मक प्रभाव = निदानाचे समर्थन करतो. नकारात्मक प्रभाव = त्याविरुद्ध पुरावा.",
         "impact_score": "प्रभाव स्कोर",
         "direction": "दिशा",
@@ -137,29 +137,27 @@ TRANSLATIONS = {
     }
 }
 
-# Try to register a font that supports Devanagari
+# Try to register a font that supports Devanagari (bundled font first, then system)
 try:
-    # On most Ubuntu/Debian systems (like Hugging Face)
-    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" 
-    if os.path.exists(font_path):
-        pdfmetrics.registerFont(TTFont('DejaVu', font_path))
+    bundled_font = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fonts", "DejaVuSans.ttf")
+    linux_font = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    windows_nirmala = "C:/Windows/Fonts/nirmala.ttf"
+    windows_arial = "C:/Windows/Fonts/arial.ttf"
+
+    if os.path.exists(bundled_font):
+        pdfmetrics.registerFont(TTFont('DejaVuBundled', bundled_font))
+        DEFAULT_FONT = 'DejaVuBundled'
+    elif os.path.exists(linux_font):
+        pdfmetrics.registerFont(TTFont('DejaVu', linux_font))
         DEFAULT_FONT = 'DejaVu'
+    elif os.path.exists(windows_nirmala):
+        pdfmetrics.registerFont(TTFont('Nirmala', windows_nirmala))
+        DEFAULT_FONT = 'Nirmala'
+    elif os.path.exists(windows_arial):
+        pdfmetrics.registerFont(TTFont('Arial', windows_arial))
+        DEFAULT_FONT = 'Arial'
     else:
-        # Fallback for Windows or systems without DejaVu
-        import platform
-        if platform.system() == "Windows":
-            font_path = "C:/Windows/Fonts/arial.ttf"
-            nirmala = "C:/Windows/Fonts/nirmala.ttf"
-            if os.path.exists(nirmala):
-                pdfmetrics.registerFont(TTFont('Nirmala', nirmala))
-                DEFAULT_FONT = 'Nirmala'
-            elif os.path.exists(font_path):
-                pdfmetrics.registerFont(TTFont('Arial', font_path))
-                DEFAULT_FONT = 'Arial'
-            else:
-                DEFAULT_FONT = 'Helvetica'
-        else:
-            DEFAULT_FONT = 'Helvetica'
+        DEFAULT_FONT = 'Helvetica'
 except Exception:
     DEFAULT_FONT = 'Helvetica'
 
@@ -234,6 +232,31 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
     ]))
     story.append(meta_table)
     story.append(Spacer(1, 14))
+
+    # ── Urgent Clinical Red Flag Banner (Decision A) ───────────
+    if data.get("redFlag") or str(data.get("risk", "")).lower() == "high" or any("RED FLAG" in str(r) for r in data.get("escalationReasons", [])):
+        rf_text = (
+            "<b>🚨 URGENT CLINICAL RED FLAG DETECTED — IMMEDIATE PHYSICIAN ESCALATION REQUIRED</b><br/>"
+            "<i>Status: DRAFT Configuration — Pending Clinical Review by Licensed Medical Officer</i>"
+        )
+        rf_style = style(
+            'RedFlagAlert',
+            fontName=font_name,
+            fontSize=10,
+            leading=14,
+            textColor=colors.HexColor('#991B1B'),
+        )
+        rf_table = Table([[Paragraph(rf_text, rf_style)]], colWidths=[17*cm])
+        rf_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#FEE2E2')),
+            ('BOX',        (0,0), (-1,-1), 1.5, colors.HexColor('#DC2626')),
+            ('TOPPADDING', (0,0), (-1,-1), 8),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ('LEFTPADDING', (0,0), (-1,-1), 12),
+            ('RIGHTPADDING', (0,0), (-1,-1), 12),
+        ]))
+        story.append(rf_table)
+        story.append(Spacer(1, 12))
 
     # ── Patient Information ───────────────────────────────────
     story.append(Paragraph(t["patient_info"], section_style))

@@ -1,4 +1,8 @@
+import mongoose from "mongoose";
 import Worker from "../models/worker/workerSchema.js";
+import RefreshToken from "../models/auth/refreshTokenSchema.js";
+import ROLES from "../config/roles.js";
+import { dispatchPasswordReset } from "../utils/emailAdapter.js";
 import {
   generateTokenPair,
   authenticateWithLockout,
@@ -21,22 +25,28 @@ const addWorker = async ({ name, email, phoneNumber, password }, adminId, organi
     password,
     addedBy: adminId,
     organization,
-    role: "Worker",
+    role: ROLES.WORKER,
   });
 
   return worker;
 };
 
-// Get all workers scoped to the organization
+// Admin gets all workers in their organization
 const getWorkersByOrg = async (organization) => {
-  return await Worker.find({ organization }).select("-password");
+  return await Worker.find({ organization })
+    .select("-password")
+    .sort({ createdAt: -1 });
 };
 
-// Worker login with lockout and token rotation
+// Worker login with lockout check and token family generation
 const loginWorker = async ({ email, password }) => {
   const worker = await Worker.findOne({ email }).populate("organization");
   if (!worker) {
     throw { status: 401, message: "Invalid email or password", code: "INVALID_CREDENTIALS" };
+  }
+
+  if (worker.isActive === false) {
+    throw { status: 403, message: "Account has been deactivated. Please contact your administrator.", code: "ACCOUNT_DEACTIVATED" };
   }
 
   await authenticateWithLockout(worker, password);
@@ -45,9 +55,26 @@ const loginWorker = async ({ email, password }) => {
   return { ...tokens, worker };
 };
 
-// Delete a worker strictly scoped to the admin's organization (returns null if cross-org)
-const deleteWorkerScoped = async (workerId, organization) => {
-  return await Worker.findOneAndDelete({ _id: workerId, organization });
+// Soft-deactivate a worker strictly scoped to the admin's organization (no hard delete)
+const deleteWorkerScoped = async (workerId, organization, adminId = null) => {
+  const updated = await Worker.findOneAndUpdate(
+    { _id: workerId, organization },
+    { isActive: false, deactivatedAt: new Date(), deactivatedBy: adminId },
+    { new: true }
+  );
+  if (updated && mongoose.connection.readyState !== 0) {
+    await RefreshToken.updateMany({ userId: workerId }, { isRevoked: true });
+  }
+  return updated;
+};
+
+// Reactivate a deactivated worker strictly scoped to the admin's organization
+const reactivateWorkerScoped = async (workerId, organization) => {
+  return await Worker.findOneAndUpdate(
+    { _id: workerId, organization },
+    { isActive: true, deactivatedAt: null, deactivatedBy: null },
+    { new: true }
+  );
 };
 
 const handleForgotPassword = async (email) => {
@@ -56,9 +83,7 @@ const handleForgotPassword = async (email) => {
     return { message: "If that email exists, password reset instructions have been sent." };
   }
   const resetToken = await initiatePasswordReset(worker);
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[DEV RESET LINK] Worker (${email}): resetToken=[REDACTED]`);
-  }
+  dispatchPasswordReset({ email, role: ROLES.WORKER, resetToken });
   return { message: "If that email exists, password reset instructions have been sent." };
 };
 
@@ -71,6 +96,7 @@ export {
   getWorkersByOrg,
   loginWorker,
   deleteWorkerScoped,
+  reactivateWorkerScoped,
   handleForgotPassword,
   handleResetPassword,
   rotateRefreshToken,

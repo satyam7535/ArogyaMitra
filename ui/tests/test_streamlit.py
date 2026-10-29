@@ -92,3 +92,50 @@ def test_viz_module_robustness():
     sample_shap = [{"symptom": "itching", "impact": 0.42, "direction": "Supports Diagnosis"}]
     f4 = create_shap_waterfall_or_bar(sample_shap, "Fungal infection")
     assert len(f4.data) >= 1
+
+
+def test_api_client_thin_client_auth_helpers():
+    """Verify that API client thin client methods enforce proper role constraints."""
+    from utils.api_client import get_auth_headers, login_user
+
+    # Test invalid role rejection
+    res = login_user("fake@test.com", "pass", "SuperAdmin")
+    assert res["success"] is False
+    assert "Invalid role" in res["error"]
+
+    # Test header generation
+    h_none = get_auth_headers(None)
+    assert "Authorization" not in h_none
+    assert h_none["Content-Type"] == "application/json"
+
+    h_token = get_auth_headers("mock_jwt_token_123")
+    assert h_token["Authorization"] == "Bearer mock_jwt_token_123"
+
+
+def test_api_client_no_service_secret_or_bypass():
+    """Verify that api_client.py strictly avoids service secret imports or bypasses."""
+    import utils.api_client as ac
+    assert not hasattr(ac, "INTERNAL_SERVICE_SECRET"), "Direct service secret bypass must be eliminated from UI"
+
+
+def test_triage_analysis_with_bayesian_evidence_and_red_flags():
+    """Verify run_triage_analysis returns exact Bayesian attributions and red-flag escalation."""
+    from utils.api_client import run_triage_analysis
+
+    # 1. Normal case
+    res1 = run_triage_analysis(
+        ["itching", "skin_rash", "nodal_skin_eruptions"],
+        {"name": "Patient A", "age": 28, "gender": "Female"}
+    )
+    assert "mlResult" in res1
+    assert "shapExplanation" in res1["mlResult"]
+    assert res1["mlResult"]["disease"] is not None
+
+    # 2. Red-flag cardiac case
+    res2 = run_triage_analysis(
+        ["chest_pain", "breathlessness", "sweating"],
+        {"name": "Patient B", "age": 55, "gender": "Male"}
+    )
+    assert res2["mlResult"]["redFlag"] is True
+    assert res2["mlResult"]["needsEscalation"] is True
+    assert res2["mlResult"]["risk"] == "High"
