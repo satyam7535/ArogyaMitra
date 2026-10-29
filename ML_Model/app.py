@@ -148,8 +148,18 @@ def normalize_symptom_str(s: str) -> str:
 def load_red_flags():
     global red_flags_config, red_flags_map
     repo_root = os.path.dirname(BASE_DIR)
-    config_path = os.path.join(repo_root, "config", "red_flags.yaml")
-    if not os.path.exists(config_path):
+    config_path = os.getenv("RED_FLAGS_CONFIG_PATH")
+    if not config_path or not os.path.exists(config_path):
+        candidates = [
+            "/config/red_flags.yaml",
+            os.path.join(repo_root, "config", "red_flags.yaml"),
+            os.path.join(BASE_DIR, "config", "red_flags.yaml"),
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                config_path = c
+                break
+    if not config_path or not os.path.exists(config_path):
         logger.warning(f"Clinical red flags configuration not found at '{config_path}'")
         return
     with open(config_path, "r", encoding="utf-8") as f:

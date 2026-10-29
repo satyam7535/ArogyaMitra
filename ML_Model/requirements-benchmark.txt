@@ -1,0 +1,10 @@
+# Offline Benchmark & Evaluation Dependencies (not needed for runtime serving)
+xgboost==2.1.4
+lightgbm==4.6.0
+lime==0.2.0.1
+shap==0.46.0
+optuna==4.2.1
+pandas==2.2.3
+matplotlib==3.10.1
+seaborn==0.13.2
+scipy==1.15.2

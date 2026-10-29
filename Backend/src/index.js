@@ -62,6 +62,10 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "healthy", service: "backend" });
 });
 
+app.get("/api/v1/health", (req, res) => {
+  res.status(200).json({ status: "healthy", service: "backend" });
+});
+
 // 5. Versioned API Routes
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/worker", workerRouter);
@@ -86,8 +90,9 @@ app.use((err, req, res, _next) => {
 
 export const startServer = async () => {
   await connectDB();
-  return app.listen(serverConfig.PORT, "127.0.0.1", () => {
-    console.log(`Server is running on http://127.0.0.1:${serverConfig.PORT} in ${serverConfig.NODE_ENV} mode`);
+  const host = process.env.HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
+  return app.listen(serverConfig.PORT, host, () => {
+    console.log(`Server is running on http://${host}:${serverConfig.PORT} in ${serverConfig.NODE_ENV} mode`);
   });
 };
 

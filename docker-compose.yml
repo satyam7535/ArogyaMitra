@@ -20,7 +20,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider --no-check-certificate http://127.0.0.1:80/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -53,13 +53,15 @@ services:
     restart: unless-stopped
     expose:
       - "8000"
+    volumes:
+      - ./config:/config:ro
     environment:
       - PORT=8000
       - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
     networks:
       - arogya-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -87,7 +89,7 @@ services:
       ml:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8001/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -104,6 +106,7 @@ services:
       - "5000"
     environment:
       - PORT=5000
+      - HOST=0.0.0.0
       - NODE_ENV=production
       - DB_URL=mongodb://mongo:27017/arogyamitra
       - JWT_SECRET=${JWT_SECRET}
@@ -121,7 +124,7 @@ services:
       mongo:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5000/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -147,7 +150,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8501/_stcore/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3

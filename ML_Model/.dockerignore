@@ -12,3 +12,7 @@ docs
 notebook
 dataset/*.csv
 *.md
+model/shap_explainer.pkl
+model/v1/
+model/calibrator.pkl
+model/X_train.pkl

@@ -1,19 +1,12 @@
-# Command: docker compose version; docker info
-# Timestamp: 2026-10-26T10:42:18+05:30
-# Status: DAEMON NOT ACCESSIBLE / INSUFFICIENT DISK (2.41 GB free on C:)
+﻿# Command: docker compose ps
+# Date: 2026-10-29 17:10:11 +05:30
+# Git Commit: 2f28743
+# Tool Version: Docker version 29.9.2, build a82e528
 
-docker : The term 'docker' is not recognized as the name of a cmdlet, function, script file, or operable program. 
-Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
-At line:1 char:1
-+ docker compose version; docker info
-+ ~~~~~~
-    + CategoryInfo          : ObjectNotFound: (docker:String) [], CommandNotFoundException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
-# Additional System Diagnostic:
-# Command: wsl --list -v
-Windows Subsystem for Linux has no installed distributions.
-
-# Command: Get-PSDrive C, D
-# C: Free = 2.41 GB (insufficient for Docker Desktop / WSL ext4 disk image)
-# D: Free = 90.93 GB
+NAME              IMAGE                  COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+arogya-backend    arogyamitra-backend    "docker-entrypoint.s…"   backend    42 seconds ago   Up 31 seconds (healthy)   5000/tcp
+arogya-frontend   arogyamitra-frontend   "streamlit run Home.…"   frontend   4 minutes ago    Up 4 minutes (healthy)    8501/tcp
+arogya-graph      arogyamitra-graph      "sh -c 'uvicorn serv…"   graph      4 minutes ago    Up 4 minutes (healthy)    8001/tcp
+arogya-ml         arogyamitra-ml         "sh -c 'uvicorn app:…"   ml         4 minutes ago    Up 4 minutes (healthy)    8000/tcp
+arogya-mongo      mongo:7.0              "docker-entrypoint.s…"   mongo      12 minutes ago   Up 11 minutes (healthy)   27017/tcp
+arogya-proxy      nginx:1.27-alpine      "/docker-entrypoint.…"   proxy      49 seconds ago   Up 41 seconds (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp

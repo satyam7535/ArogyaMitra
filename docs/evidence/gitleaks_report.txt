@@ -1,15 +1,21 @@
-﻿Command: D:\tools\gitleaks.exe git --verbose --redact
-Date: 2026-10-29 12:48:06 +05:30
-Tool Version: gitleaks 8.30.1
-Git Commit: 1408ebb51a7ea8950623a85861b664d388053730
-----------------------------------------
+﻿# Command: d:\tools\gitleaks.exe detect --source . -v --redact --gitleaks-ignore-path .gitleaksignore
+# Date: 2026-10-29 17:15:57 +05:30
+# Git Commit: 2f28743
+# Tool Version: 8.30.1
 
+gitleaks.exe : 
+At line:5 char:1
++ & d:\tools\gitleaks.exe detect --source . -v --redact --gitleaks-igno ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
     ○
     │╲
     │ ○
     ○ ░
     ░    gitleaks
 
-[90m12:48PM[0m [32mINF[0m [1m17 commits scanned.[0m
-[90m12:48PM[0m [32mINF[0m [1mscanned ~2231421 bytes (2.23 MB) in 1.52s[0m
-[90m12:48PM[0m [32mINF[0m [1mno leaks found[0m
+[90m5:16PM[0m [32mINF[0m [1m23 commits scanned.[0m
+[90m5:16PM[0m [32mINF[0m [1mscanned ~3229109 bytes (3.23 MB) in 2.63s[0m
+[90m5:16PM[0m [32mINF[0m [1mno leaks found[0m
