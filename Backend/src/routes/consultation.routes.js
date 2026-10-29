@@ -8,6 +8,7 @@ import {
   getPendingForDoctor,
   getAllForDoctor,
   respondWithSecondOpinion,
+  getNotifications,
   triggerAnalysis,
   triggerAnalysisAsync,
   checkAnalysisJobStatus,
@@ -76,6 +77,9 @@ consultationRouter.patch(
   validate(respondConsultationSchema),
   respondWithSecondOpinion
 );
+
+// Notifications for worker / doctor / admin
+consultationRouter.get("/notifications", verifyToken([ROLES.WORKER, ROLES.DOCTOR, ROLES.ADMIN]), getNotifications);
 
 // Shared (worker or doctor can view)
 consultationRouter.get("/:id", verifyToken([ROLES.WORKER, ROLES.DOCTOR]), validate(idParamSchema, "params"), getConsultation);

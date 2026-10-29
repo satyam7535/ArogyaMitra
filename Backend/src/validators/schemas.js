@@ -92,6 +92,15 @@ export const submitConsultationSchema = z.object({
 
 export const acceptConsultationSchema = z.object({
   notes: z.string().optional(),
+  decisionOutcome: z.enum(["accepted", "referred_to_hospital"]).optional(),
+  overrideReason: z.enum([
+    "patient_improved",
+    "referred_in_person",
+    "doctor_unreachable",
+    "patient_declined_referral",
+    "other",
+  ]).optional(),
+  overrideNote: z.string().min(10, "Override note must be at least 10 characters").optional(),
 }).strict();
 
 export const escalateConsultationSchema = z.object({

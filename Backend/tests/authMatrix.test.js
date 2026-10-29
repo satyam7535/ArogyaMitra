@@ -122,6 +122,7 @@ export const ROUTE_AUTH_MATRIX = [
   { method: "POST", path: "/api/v1/consultation/:id/analysis/llm", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "POST", path: "/api/v1/consultation/:id/analysis/verdict", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "POST", path: "/api/v1/consultation/:id/analysis/report", access: "protected", allowedRoles: [ROLES.WORKER] },
+  { method: "GET", path: "/api/v1/consultation/notifications", access: "protected", allowedRoles: [ROLES.WORKER, ROLES.DOCTOR, ROLES.ADMIN] },
 ];
 
 describe("1.1 Dynamic Authorization Matrix & Route Table Verification", () => {

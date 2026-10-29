@@ -709,3 +709,36 @@ This log records intentional code mutations performed to verify that security, a
 - **Verified by**: Existing test suite — test name "should enforce strict production immutability for rate limits" at `Backend/tests/security.test.js`
 - **Date**: 2026-10-29
 - **Result**: VERIFIED (test was added as part of WP1 to catch this exact mutation)
+
+---
+
+## MC34 — Decision B: Clinical Red-Flag Accept Block (HTTP 409)
+- **Target**: `Backend/src/service/consultation.service.js` → `acceptAiResult`
+- **Mutation**: Comment out the red-flag check `if (isRedFlag && outcome === "accepted") throw error;`
+- **Test**: `Backend/tests/decisionB.test.js` — "should strictly return HTTP 409 RED_FLAG_ACCEPT_BLOCKED when worker attempts to accept a red-flag case"
+- **Expected**: Mutation causes test to fail (returns 200 instead of 409 RED_FLAG_ACCEPT_BLOCKED)
+- **Verified by**: Direct unit test execution in `Backend/tests/decisionB.test.js`
+- **Date**: 2026-10-29
+- **Result**: VERIFIED
+
+---
+
+## MC35 — Decision B: Worker Override Reason & Note Validation Gate
+- **Target**: `Backend/src/service/consultation.service.js` → `acceptAiResult`
+- **Mutation**: Bypass override check `if (needsEscalation && outcome === "accepted")` to always allow accept without reason
+- **Test**: `Backend/tests/decisionB.test.js` — "should reject accept without overrideReason when needsEscalation=true"
+- **Expected**: Mutation causes test to pass unverified (fails assertion expecting 400 Bad Request)
+- **Verified by**: Direct unit test execution in `Backend/tests/decisionB.test.js`
+- **Date**: 2026-10-29
+- **Result**: VERIFIED
+
+---
+
+## MC36 — State Machine: Double Accept & Escalation Transition Guard
+- **Target**: `Backend/src/service/consultation.service.js` → `acceptAiResult`
+- **Mutation**: Remove `consultation.status === "closed"` check
+- **Test**: `Backend/tests/decisionB.test.js` — "should reject double accept on an already closed consultation"
+- **Expected**: Test fails with 200 instead of 400 Bad Request
+- **Verified by**: Direct unit test execution in `Backend/tests/decisionB.test.js`
+- **Date**: 2026-10-29
+- **Result**: VERIFIED

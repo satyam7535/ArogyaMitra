@@ -7,6 +7,7 @@ import {
   getPendingConsultationsForDoctor,
   getAllConsultationsForDoctor,
   submitSecondOpinion,
+  getUserNotifications,
   triggerConsultationAnalysis,
   getAllConsultationsForAdmin,
 } from "../service/consultation.service.js";
@@ -102,27 +103,54 @@ const getConsultation = async (req, res) => {
   }
 };
 
-// Worker accepts AI result — closes consultation
+// Worker accepts AI result or refers to hospital — closes consultation
 const acceptAI = async (req, res) => {
   try {
-    const consultation = await acceptAiResult(req.params.id, req.user.organization, req.user.id);
+    const { notes, decisionOutcome, overrideReason, overrideNote } = req.body || {};
+    const consultation = await acceptAiResult(
+      req.params.id,
+      req.user.organization,
+      req.user.id,
+      { notes, decisionOutcome, overrideReason, overrideNote }
+    );
     if (!consultation) {
       return res.status(404).json({ message: "Consultation not found" });
     }
 
+    const actionType = consultation.decisionOutcome === "referred_to_hospital"
+      ? "CONSULTATION_REFERRED_HOSPITAL"
+      : overrideReason
+      ? "CONSULTATION_ACCEPTED_WITH_OVERRIDE"
+      : "CONSULTATION_ACCEPTED_AI";
+
     await logAuditEvent({
       req,
-      action: "CONSULTATION_ACCEPTED_AI",
+      action: actionType,
       resourceType: "Consultation",
       resourceId: req.params.id,
+      metadata: {
+        outcome: consultation.decisionOutcome,
+        overrideReason: consultation.overrideReason || null,
+        overrideNote: consultation.overrideDetails?.note || null,
+      },
     });
 
-    return res.status(200).json({ message: "AI result accepted. Consultation closed.", consultation });
+    const msg = consultation.decisionOutcome === "referred_to_hospital"
+      ? "Consultation closed with referral to hospital."
+      : overrideReason
+      ? "AI recommendation overridden by worker. Consultation closed."
+      : "AI result accepted. Consultation closed.";
+
+    return res.status(200).json({ message: msg, consultation });
   } catch (error) {
     if (error.name === "VersionError") {
       return res.status(409).json({ message: "Conflict: consultation was updated concurrently. Please refresh and try again." });
     }
-    return res.status(error.status || 400).json({ message: error.message });
+    const statusCode = error.code === "RED_FLAG_ACCEPT_BLOCKED" ? 409 : (error.status || 400);
+    return res.status(statusCode).json({
+      message: error.message,
+      code: error.code || "ACCEPT_ERROR",
+    });
   }
 };
 
@@ -161,11 +189,22 @@ const escalate = async (req, res) => {
   }
 };
 
-// Doctor views all pending consultations assigned to them within their organization
+// Doctor views all pending consultations assigned to them within their organization (with overdue badge)
 const getPendingForDoctor = async (req, res) => {
   try {
-    const consultations = await getPendingConsultationsForDoctor(req.user.id, req.user.organization);
+    const overdueHours = req.query.overdueHours ? parseInt(req.query.overdueHours, 10) : 24;
+    const consultations = await getPendingConsultationsForDoctor(req.user.id, req.user.organization, overdueHours);
     return res.status(200).json({ consultations });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// In-app notifications for authenticated user
+const getNotifications = async (req, res) => {
+  try {
+    const notifications = await getUserNotifications(req.user.id, req.user.role, req.user.organization);
+    return res.status(200).json({ notifications });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -394,4 +433,5 @@ export {
   storeFinalVerdictResult,
   storeAnalysisReportResult,
   getAdminConsultations,
+  getNotifications,
 };
