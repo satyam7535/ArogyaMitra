@@ -1,0 +1,32 @@
+﻿# Command: git grep -n 'Infectious Gastroenteritis'
+# Date: 2026-10-30 16:49:24 +05:30
+# Git Commit: 201dc9c
+# Tool Version: git version 2.45
+
+ui/pages/3_Admin_Dashboard.py-43-turnaround_val = "18.4 mins"
+ui/pages/3_Admin_Dashboard.py-44-active_workers_val = "38 ASHA Workers"
+ui/pages/3_Admin_Dashboard.py-45-disease_data = {
+ui/pages/3_Admin_Dashboard.py-46-    "Fungal Infection": 342,
+ui/pages/3_Admin_Dashboard.py-47-    "Malaria": 218,
+ui/pages/3_Admin_Dashboard.py:48:    "Infectious Gastroenteritis": 184,
+ui/pages/3_Admin_Dashboard.py-49-    "Dengue": 142,
+ui/pages/3_Admin_Dashboard.py-50-    "Jaundice": 118,
+ui/pages/3_Admin_Dashboard.py-51-    "Bronchial Asthma": 96,
+ui/pages/3_Admin_Dashboard.py-52-    "Typhoid": 88,
+ui/pages/3_Admin_Dashboard.py-53-    "Hypertension Risk": 60,
+--
+ui/utils/api_client.py-330-        }
+ui/utils/api_client.py-331-    except Exception:
+ui/utils/api_client.py-332-        # Ultimate deterministic safety fallback
+ui/utils/api_client.py-333-        return {
+ui/utils/api_client.py-334-            "mlResult": {
+ui/utils/api_client.py:335:                "disease": "Infectious Gastroenteritis",
+ui/utils/api_client.py-336-                "confidence": 0.885,
+ui/utils/api_client.py-337-                "severityScore": 3.2,
+ui/utils/api_client.py-338-                "topPredictions": [
+ui/utils/api_client.py:339:                    {"disease": "Infectious Gastroenteritis", "probability": 0.885},
+ui/utils/api_client.py-340-                    {"disease": "Food Poisoning", "probability": 0.082},
+ui/utils/api_client.py-341-                    {"disease": "Peptic Ulcer", "probability": 0.033},
+ui/utils/api_client.py-342-                ],
+ui/utils/api_client.py-343-                "matchedSymptoms": symptoms,
+ui/utils/api_client.py-344-                "precautions": ["drink clean boiled water", "oral rehydration salts", "rest"],

@@ -122,3 +122,13 @@ export const analyzeConsultationSchema = z.object({
   symptoms: z.array(z.string()).optional(),
   language: z.enum(["en", "hi", "mr"]).optional(),
 }).strict();
+
+export const triageConsultationSchema = z.object({
+  symptoms: z.array(z.string().min(1)).min(1, "At least one symptom is required"),
+  patientName: z.string().optional(),
+  patientAge: z.union([z.number(), z.string()]).optional(),
+  patientGender: z.string().optional(),
+  workerName: z.string().optional(),
+  location: z.string().optional(),
+  language: z.enum(["en", "hi", "mr"]).optional(),
+}).strict();

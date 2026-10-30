@@ -1,0 +1,41 @@
+# Command: python scripts/test_p0_golden_set.py
+# Date: 2026-10-30T11:46:37.177240+00:00
+# Git Commit: 201dc9c442b4b9332c925f0409ccd66e3b661be7 (dirty)
+# Ingress Target: https://localhost
+# Status: RUNNING
+
+=== Step 1: Worker Authentication ===
+PASS: Worker authenticated successfully. Token length: 248
+
+=== Step 2: Anti-Mock Check (2 Different Symptom Sets Must Differ) ===
+Set A (Malaria symptoms) -> Predicted: 'Malaria', Confidence: 0.994
+Set B (Fungal symptoms)  -> Predicted: 'Fungal infection', Confidence: 0.9844
+PASS: Both symptom sets returned correct, distinct live predictions. Anti-mock test PASSED.
+
+=== Step 3: 10 Golden Cases & Boundary Validation ===
+[CASE-01] PASS: Malaria Case in 0.7s | Pred: 'Malaria' (Conf: 0.994) | PDF bytes: 9916 | In 41-class vocab: True
+[CASE-02] PASS: Fungal Infection Case in 0.779s | Pred: 'Fungal infection' (Conf: 0.9844) | PDF bytes: 9448 | In 41-class vocab: True
+[CASE-03] PASS: Jaundice / Liver Case in 0.693s | Pred: 'Jaundice' (Conf: 0.9973) | PDF bytes: 9832 | In 41-class vocab: True
+[CASE-04] PASS: Cardiac Emergency (Red Flag) in 0.615s | Pred: 'Heart attack' (Conf: 0.9973) | PDF bytes: 9496 | In 41-class vocab: True
+[CASE-05] PASS: Dengue Fever Case in 0.708s | Pred: 'Dengue' (Conf: 0.8908) | PDF bytes: 10028 | In 41-class vocab: True
+[CASE-06] PASS: Diabetes Case in 1.243s | Pred: 'Diabetes' (Conf: 0.9999) | PDF bytes: 9716 | In 41-class vocab: True
+[CASE-07] PASS: Bronchial Asthma Case in 0.776s | Pred: 'Bronchial Asthma' (Conf: 1) | PDF bytes: 9996 | In 41-class vocab: True
+[CASE-08] PASS: Hypertension Case in 0.705s | Pred: 'Hypertension' (Conf: 1) | PDF bytes: 9924 | In 41-class vocab: True
+[CASE-09] PASS: Pneumonia Case in 0.894s | Pred: 'Pneumonia' (Conf: 0.9988) | PDF bytes: 10048 | In 41-class vocab: True
+[CASE-10] PASS: Tuberculosis Case in 1.074s | Pred: 'Tuberculosis' (Conf: 1) | PDF bytes: 12016 | In 41-class vocab: True
+
+PASS: All 10 Golden Set test cases predicted accurately within the 41-class boundary with valid PDFs.
+
+=== Step 4: Upstream Outage Test (Fail-Closed HTTP 503) ===
+Temporarily stopping container 'arogya-ml'...
+Response with ML stopped: HTTP 503
+PASS: Upstream outage returned HTTP 503 MODEL_UNAVAILABLE as expected.
+Restarting container 'arogya-ml'...
+PASS: arogya-ml container restored and healthy.
+
+=== Step 5: Stale-State Isolation Check ===
+First Call: 'Fungal infection', Second Call: 'Malaria'
+PASS: No state bleed or caching between subsequent requests.
+
+# Status: VERIFIED
+# All P0 Docker verification tests passed cleanly.

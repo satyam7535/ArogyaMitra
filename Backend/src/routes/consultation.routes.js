@@ -19,6 +19,7 @@ import {
   storeAnalysisReportResult,
   getAdminConsultations,
   getConsultationAnalytics,
+  runDirectTriage,
 } from "../controller/consultation.controller.js";
 import verifyToken from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
@@ -30,6 +31,7 @@ import {
   escalateConsultationSchema,
   respondConsultationSchema,
   analyzeConsultationSchema,
+  triageConsultationSchema,
 } from "../validators/schemas.js";
 import upload from "../utils/upload.js";
 import ROLES from "../config/roles.js";
@@ -47,6 +49,15 @@ consultationRouter.post(
   ]),
   validate(submitConsultationSchema),
   submitConsultation
+);
+
+
+// Interactive Worker Triage Route (Synchronous prediction before DB record creation)
+consultationRouter.post(
+  "/triage",
+  verifyToken([ROLES.WORKER]),
+  validate(triageConsultationSchema),
+  runDirectTriage
 );
 
 consultationRouter.get("/my", verifyToken([ROLES.WORKER]), getMyConsultations);

@@ -53,7 +53,7 @@ flowchart TD
 | **3** | Patient Registration | Worker | `POST /api/v1/patient` | Records patient details; encrypts PII (`phoneNumber`, `address`, `medicalHistory`) with AES-256-GCM at rest; records DPDP consent metadata; verifies document magic-bytes. |
 | **4** | Consultation Intake | Worker | `POST /api/v1/consultation` | Records presenting symptoms via 131-symptom searchable vernacular selector (English, Hindi, Marathi); attaches clinical vitals. |
 | **5** | Async Analysis | Worker / System | `POST /api/v1/consultation/:id/analyze/async`<br>`GET /api/v1/consultation/:id/analyze/status/:jobId` | Enqueues background analysis job with idempotency keys and atomic MongoDB lease claims (`findOneAndUpdate`); returns 202 Accepted. |
-| **6** | ML Inference | ML Microservice | `POST /predict` (Internal) | Bernoulli Naive Bayes (`v2.0.0`) computes calibrated probabilities and exact mathematical Additive Bayesian Log-Odds ($\Delta w_{c,j}$) feature attributions. |
+| **6** | ML Inference | ML Microservice | `POST /predict` (Internal) | Bernoulli Naive Bayes (`v2.0.0`) computes estimated class probabilities and exact mathematical Additive Bayesian Log-Odds ($\Delta w_{c,j}$) feature attributions. |
 | **7** | Decision A Intercept | Safety Rule Engine | Runtime validation against `config/red_flags.yaml` | Automatically intercepts severe symptoms; forces `redFlag: true`, `needsEscalation: true`, and assigns `risk: "High"`. |
 | **8** | LLM Synthesis | LangGraph Engine | `POST /analyze/json` (Internal) | Generates structured bilingual clinical guidance via Google Gemini using de-identified prompts; guarded by 20-attack prompt injection defense and deterministic fallback. |
 | **9** | PDF Generation | LangGraph Engine | `POST /analyze/pdf` (Internal) | Renders comprehensive bilingual clinical summary PDF with bundled Noto Sans Devanagari typography, emergency banners, and log-odds charts. |
@@ -166,7 +166,7 @@ bash scripts/verify_all.sh
 
 ### Model Specification
 - **Algorithm**: Bernoulli Naive Bayes (`BernoulliNB(alpha=1.0, binarize=0.0)`) v2.0.0.
-- **Rationale**: On binary symptom co-occurrence datasets, BernoulliNB provides superior generalisation and calibrated log-odds evidence accumulation without tree-based partitioning artifacts.
+- **Rationale**: On binary symptom co-occurrence datasets, BernoulliNB provides superior generalisation and log-odds evidence accumulation without tree-based partitioning artifacts.
 - **Decoupled Benchmarking**: Heavy exploratory libraries (`xgboost`, `lightgbm`, `shap`, `lime`, `optuna`) are segregated into `ML_Model/requirements-benchmark.txt` for offline analysis, ensuring the runtime deployment remains fast, robust, and free of extraneous binary dependencies.
 
 ### Exact Bayesian Log-Odds Attribution
@@ -174,7 +174,7 @@ Unlike heuristic or perturbation-based explainers, ArogyaMitra computes exact ma
 $$\Delta w_{c, j} = \log \left(\frac{\theta_{c, j}}{1 - \theta_{c, j}}\right) - \log \left(\frac{\theta_{\text{other}, j}}{1 - \theta_{\text{other}, j}}\right)$$
 The attribution satisfies the efficiency axiom to machine precision ($< 10^{-10}$), providing frontline health workers with interpretable, clinically trustworthy evidence bars.
 
-### Calibrated Escalation Policy
+### Clinical Escalation Policy
 - **Confidence Threshold**: Primary prediction probability $< 70\%$.
 - **Margin Threshold**: Difference between Top-1 and Top-2 probabilities $< 25\%$.
 - Any case meeting either condition is automatically marked for doctor escalation.

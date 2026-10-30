@@ -1,0 +1,29 @@
+# Playwright E2E Verification Suite — P0 Critical Triage Tests
+# Target URL: https://localhost
+# Timestamp: 2026-10-30T11:59:56.174Z
+# Status: RUNNING
+
+=== Scenario 1: Page Load & Worker Session ===
+PASS: Loaded https://localhost/Worker_Triage successfully.
+
+=== Scenario 2: Malaria Case Prediction & Live PDF Generation ===
+Triggered analysis for Malaria symptoms...
+PASS: Primary Diagnosis is 'Malaria' (Live model execution confirmed).
+PASS: Canned mock 'Infectious Gastroenteritis' is NOT present.
+PASS: False 'High Certainty' delta badge is ELIMINATED.
+PASS: Official Clinical Report (PDF) download button is ENABLED and functional.
+Saved screenshot: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p0_malaria_case.png
+
+=== Scenario 3: Fungal Skin Case Prediction ===
+Triggered analysis for Fungal infection symptoms...
+PASS: Primary Diagnosis is 'Fungal infection' (Distinct from Malaria case).
+Saved screenshot: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p0_fungal_case.png
+
+=== Scenario 4: Cardiac Emergency (Red Flag Enforcement) ===
+Triggered analysis for Cardiac Emergency symptoms...
+PASS: Red-Flag Alert prominently rendered for critical cardiac case.
+PASS: Direct 'Accept AI Decision' is strictly BLOCKED with HTTP 409 badge (Decision A enforced).
+Saved screenshot: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p0_cardiac_redflag.png
+
+# Status: VERIFIED
+# All Playwright UI tests passed with verified screenshots.

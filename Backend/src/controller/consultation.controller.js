@@ -20,6 +20,10 @@ import {
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
 import Consultation from "../models/consultation/consultationSchema.js";
 import { getJobStatusFromDb } from "../service/jobQueue.service.js";
+import jwt from "jsonwebtoken";
+import serverConfig from "../config/serverConfig.js";
+import ROLES from "../config/roles.js";
+import { validatePredictionBoundary } from "../validators/diseaseClasses.js";
 
 // Worker submits a new consultation
 const submitConsultation = async (req, res) => {
@@ -438,6 +442,101 @@ const getConsultationAnalytics = async (req, res) => {
   }
 };
 
+
+// Worker runs direct interactive triage analysis before consultation persistence
+const runDirectTriage = async (req, res) => {
+  try {
+    const { symptoms, patientName, patientAge, patientGender, workerName, location, language } = req.body;
+
+    if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Symptoms list is required and must contain at least one symptom",
+      });
+    }
+
+    // Mint internal service token
+    const serviceToken = jwt.sign(
+      {
+        iss: "arogyamitra-backend",
+        sub: req.user._id ? req.user._id.toString() : req.user.id,
+        aud: "arogyamitra-internal",
+        role: req.user.role || ROLES.WORKER,
+        organization: req.user.organization?.toString() || "default",
+      },
+      serverConfig.INTERNAL_SERVICE_SECRET,
+      { expiresIn: "5m" }
+    );
+
+    const payload = {
+      symptoms,
+      patientName: patientName || "Patient",
+      patientAge: patientAge ? Number(patientAge) : undefined,
+      patientGender: patientGender || undefined,
+      workerName: workerName || req.user.name || "Community Health Worker",
+      location: location || "",
+      language: language || "en",
+    };
+
+    let response;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+      response = await fetch(`${serverConfig.GRAPH_API_URL}/analyze/json`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-Service-Token": serviceToken,
+          "Authorization": `Bearer ${serviceToken}`,
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    } catch (netErr) {
+      return res.status(503).json({
+        success: false,
+        code: "MODEL_UNAVAILABLE",
+        message: `AI Pipeline unreachable: ${netErr.message}`,
+      });
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(503).json({
+        success: false,
+        code: "MODEL_UNAVAILABLE",
+        message: `AI Pipeline failed with HTTP ${response.status}: ${errText}`,
+      });
+    }
+
+    const data = await response.json();
+    const boundaryCheck = validatePredictionBoundary(data.mlResult);
+    if (!boundaryCheck.valid) {
+      return res.status(503).json({
+        success: false,
+        code: "MODEL_UNAVAILABLE",
+        message: `Prediction boundary violation: ${boundaryCheck.reason}`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      mlResult: data.mlResult,
+      llmResult: data.llmResult,
+      pdfBase64: data.pdfBase64,
+      filename: data.filename,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      code: "INTERNAL_SERVER_ERROR",
+      message: error.message,
+    });
+  }
+};
+
 export {
   submitConsultation,
   getMyConsultations,
@@ -458,4 +557,5 @@ export {
   getAdminConsultations,
   getConsultationAnalytics,
   getNotifications,
+  runDirectTriage,
 };

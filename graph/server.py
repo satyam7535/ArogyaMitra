@@ -140,7 +140,7 @@ def analyze(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)):  #
         result = graph.invoke({"request": predict_request})
     except Exception as e:
         logger.exception("Pipeline execution failed")
-        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {e!s}")
+        raise HTTPException(status_code=503, detail=f"AI Pipeline execution failed: {e!s}")
 
     pdf_bytes = result["pdf_bytes"]
     filename = result["filename"]
@@ -175,7 +175,7 @@ def analyze_json(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)
         result = graph.invoke({"request": predict_request})
     except Exception as e:
         logger.exception("Pipeline execution failed")
-        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {e!s}")
+        raise HTTPException(status_code=503, detail=f"AI Pipeline execution failed: {e!s}")
 
     xai_output = result.get("xai_output", {})
     llm_summary = result.get("llm_summary")
@@ -199,6 +199,9 @@ def analyze_json(req: AnalyzeRequest, auth: dict = Depends(verify_service_token)
             "shapExplanation": xai_output.get("shapExplanation") or xai_output.get("limeExplanation", []),
             "needsEscalation": xai_output.get("needsEscalation", False),
             "uncertaintyReason": xai_output.get("uncertaintyReason"),
+            "redFlag": xai_output.get("redFlag", False),
+            "redFlagDetails": xai_output.get("redFlagDetails", []),
+            "risk": xai_output.get("risk", "Low"),
         },
         "llmResult": llm_summary.model_dump() if hasattr(llm_summary, "model_dump") else (llm_summary.dict() if hasattr(llm_summary, "dict") else {}),
         "pdfBase64": base64.b64encode(pdf_bytes).decode("utf-8"),

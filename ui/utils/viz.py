@@ -1,6 +1,6 @@
 """
 ArogyaMitra — Interactive Plotly Visualization Module
-Renders Bayesian Evidence feature attributions, calibrated probability distributions,
+Renders Bayesian Evidence feature attributions, probability distributions,
 and epidemiological prevalence graphs.
 """
 
@@ -105,8 +105,8 @@ def create_top_predictions_chart(top_predictions: list[dict[str, Any]]) -> go.Fi
     )
 
     fig.update_layout(
-        title={"text": "<b>Calibrated Differential Diagnoses</b>", "font": {"size": 14, "color": "#0F172A"}},
-        xaxis={"title": "Calibrated Probability (%)", "range": [0, 105], "gridcolor": "#E2E8F0"},
+        title={"text": "<b>Differential Disease Predictions</b>", "font": {"size": 14, "color": "#0F172A"}},
+        xaxis={"title": "Prediction Probability (%)", "range": [0, 105], "gridcolor": "#E2E8F0"},
         yaxis={"title": ""},
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",

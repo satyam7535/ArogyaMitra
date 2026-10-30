@@ -105,7 +105,12 @@ with st.expander("🔑 Healthcare Provider Authentication & Sign-In", expanded=n
             )
             email_input = st.text_input("Institutional Email", value=default_email)
         with auth_col3:
-            password_input = st.text_input("Password", type="password", value="Arogya@2026Secure!")
+            default_pwd = (
+                "Worker@Arogya2026!" if role_choice == "Worker"
+                else ("Doctor@Arogya2026!" if role_choice == "Doctor"
+                else "Admin@Arogya2026!")
+            )
+            password_input = st.text_input("Password", type="password", value=default_pwd)
 
         if st.button("🔓 Sign In to ArogyaMitra", type="primary", use_container_width=True):
             with st.spinner("Authenticating with Express security layer..."):
@@ -128,7 +133,7 @@ with col1:
     st.markdown("### 👩‍⚕️ Community Health Worker")
     st.markdown(
         "Triage patients at village sub-centers or home visits. "
-        "Select presenting symptoms from 131 clinical categories, run calibrated AI predictions, "
+        "Select presenting symptoms from 131 clinical categories, run AI predictions, "
         "inspect Bayesian evidence weights, and escalate high-risk cases to physicians."
     )
     if st.button("🚀 Launch Worker Triage", type="primary", use_container_width=True):
@@ -138,7 +143,7 @@ with col2:
     st.markdown("### 🩺 Medical Officer Review")
     st.markdown(
         "Remote physician review workstation. Review escalated cases, "
-        "evaluate calibrated differential diagnoses alongside exact Bayesian log-odds feature attributions, "
+        "evaluate differential diagnoses alongside exact Bayesian log-odds feature attributions, "
         "issue binding clinical second opinions, and prescribe treatments."
     )
     if st.button("📋 Open Doctor Workstation", use_container_width=True):

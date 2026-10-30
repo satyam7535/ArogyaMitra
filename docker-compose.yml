@@ -117,6 +117,7 @@ services:
       - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
       - ML_API_URL=http://ml:8000
       - AI_SERVICE_URL=http://graph:8001
+      - GRAPH_API_URL=http://graph:8001
       - CORS_ORIGIN=http://frontend:8501
     networks:
       - arogya-network
@@ -143,7 +144,6 @@ services:
       - BACKEND_URL=http://backend:5000/api/v1
       - ML_API_URL=http://ml:8000
       - GRAPH_API_URL=http://graph:8001
-      - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
     networks:
       - arogya-network
     depends_on:

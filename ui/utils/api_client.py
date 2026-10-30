@@ -255,9 +255,9 @@ def run_triage_analysis(
     token: str | None = None,
 ) -> dict[str, Any]:
     """
-    Executes triage analysis via local in-process engine fallback or Backend API.
-    Uses Bernoulli Naive Bayes (v2.0.0) with exact Bayesian log-odds feature attributions.
-    Never relies on external service secrets.
+    Executes triage analysis via ArogyaMitra Backend API (POST /api/v1/consultation/triage).
+    The backend coordinates the AI Graph Pipeline and enforces 41-class prediction boundaries.
+    Strictly NEVER returns canned mocks or false diagnoses. Returns modelUnavailable on error.
     """
     payload = {
         "symptoms": symptoms,
@@ -269,99 +269,105 @@ def run_triage_analysis(
         "language": language,
     }
 
-    # Resilient In-Process Engine Fallback
+    # 1. Primary: Route through Backend API with Worker Auth
+    try:
+        headers = {"Content-Type": "application/json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+
+        response = httpx.post(
+            f"{BACKEND_URL}/consultation/triage",
+            json=payload,
+            headers=headers,
+            timeout=30.0,
+        )
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "success": True,
+                "mlResult": data.get("mlResult", {}),
+                "llmResult": data.get("llmResult", {}),
+                "pdfBase64": data.get("pdfBase64", ""),
+                "filename": data.get("filename", "ArogyaMitra_Report.pdf"),
+            }
+        else:
+            err_msg = response.text
+            try:
+                err_msg = response.json().get("message", err_msg)
+            except Exception:
+                pass
+            return {
+                "success": False,
+                "modelUnavailable": True,
+                "statusCode": response.status_code,
+                "error": f"Backend API returned HTTP {response.status_code}: {err_msg}",
+            }
+    except Exception as backend_err:
+        backend_err_msg = str(backend_err)
+
+    # 2. Local In-Process Engine Fallback (ONLY for standalone local development without backend)
     try:
         root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        if root_dir not in sys.path:
-            sys.path.insert(0, root_dir)
-
         ml_dir = os.path.join(root_dir, "ML_Model")
-        if ml_dir not in sys.path:
-            sys.path.insert(0, ml_dir)
+        if os.path.exists(os.path.join(ml_dir, "app.py")):
+            if root_dir not in sys.path:
+                sys.path.insert(0, root_dir)
+            if ml_dir not in sys.path:
+                sys.path.insert(0, ml_dir)
 
-        from app import PredictRequest, run_prediction
+            from app import PredictRequest, run_prediction
+            from graph.llm import call_llm
+            from graph.utils.pdf_generator import generate_pdf
 
-        from graph.llm import call_llm
-        from graph.utils.pdf_generator import generate_pdf
+            req = PredictRequest(
+                symptoms=symptoms,
+                patientName=payload["patientName"],
+                patientAge=payload["patientAge"],
+                patientGender=payload["patientGender"],
+                workerName=payload["workerName"],
+                location=payload["location"],
+            )
+            ml_res = run_prediction(req)
+            llm_conclusion = call_llm(ml_res, language=language)
 
-        req = PredictRequest(
-            symptoms=symptoms,
-            patientName=payload["patientName"],
-            patientAge=payload["patientAge"],
-            patientGender=payload["patientGender"],
-            workerName=payload["workerName"],
-            location=payload["location"],
-        )
-        ml_res = run_prediction(req)
+            combined_report = {
+                **ml_res,
+                "llmConclusion": llm_conclusion.model_dump() if hasattr(llm_conclusion, "model_dump") else llm_conclusion,
+            }
+            pdf_bytes = generate_pdf(combined_report, language=language)
 
-        # Call safe LLM / fallback
-        llm_conclusion = call_llm(ml_res, language=language)
+            conf_val = ml_res.get("confidenceScore", 0)
+            if conf_val > 1.0:
+                conf_val = conf_val / 100.0
 
-        # Generate PDF
-        combined_report = {
-            **ml_res,
-            "llmConclusion": llm_conclusion.model_dump() if hasattr(llm_conclusion, "model_dump") else llm_conclusion,
-        }
-        pdf_bytes = generate_pdf(combined_report, language=language)
+            return {
+                "success": True,
+                "mlResult": {
+                    "disease": ml_res.get("primaryDiagnosis"),
+                    "confidence": round(float(conf_val), 4),
+                    "severityScore": ml_res.get("severityScore", 2.5),
+                    "topPredictions": ml_res.get("topPredictions", []),
+                    "matchedSymptoms": ml_res.get("matchedSymptoms", symptoms),
+                    "precautions": ml_res.get("precautions", []),
+                    "description": ml_res.get("description", ""),
+                    "shapExplanation": ml_res.get("shapExplanation", []),
+                    "needsEscalation": ml_res.get("needsEscalation", False),
+                    "uncertaintyReason": ml_res.get("uncertaintyReason"),
+                    "redFlag": ml_res.get("redFlag", False),
+                    "redFlagDetails": ml_res.get("redFlagDetails", []),
+                    "risk": ml_res.get("risk", "Low"),
+                },
+                "llmResult": llm_conclusion.model_dump() if hasattr(llm_conclusion, "model_dump") else {},
+                "pdfBase64": base64.b64encode(pdf_bytes).decode("utf-8"),
+                "filename": f"ArogyaMitra_{payload['patientName'].replace(' ', '_')}.pdf",
+            }
+    except Exception as local_err:
+        pass
 
-        conf_val = ml_res.get("confidenceScore", 0)
-        if conf_val > 1.0:
-            conf_val = conf_val / 100.0
-
-        return {
-            "mlResult": {
-                "disease": ml_res.get("primaryDiagnosis"),
-                "confidence": round(float(conf_val), 4),
-                "severityScore": ml_res.get("severityScore", 2.5),
-                "topPredictions": ml_res.get("topPredictions", []),
-                "matchedSymptoms": ml_res.get("matchedSymptoms", symptoms),
-                "precautions": ml_res.get("precautions", []),
-                "description": ml_res.get("description", ""),
-                "shapExplanation": ml_res.get("shapExplanation", []),
-                "needsEscalation": ml_res.get("needsEscalation", False),
-                "uncertaintyReason": ml_res.get("uncertaintyReason"),
-                "redFlag": ml_res.get("redFlag", False),
-                "redFlagDetails": ml_res.get("redFlagDetails", []),
-                "risk": ml_res.get("risk", "Low"),
-            },
-            "llmResult": llm_conclusion.model_dump() if hasattr(llm_conclusion, "model_dump") else {},
-            "pdfBase64": base64.b64encode(pdf_bytes).decode("utf-8"),
-            "filename": f"ArogyaMitra_{payload['patientName'].replace(' ', '_')}.pdf",
-        }
-    except Exception:
-        # Ultimate deterministic safety fallback
-        return {
-            "mlResult": {
-                "disease": "Infectious Gastroenteritis",
-                "confidence": 0.885,
-                "severityScore": 3.2,
-                "topPredictions": [
-                    {"disease": "Infectious Gastroenteritis", "probability": 0.885},
-                    {"disease": "Food Poisoning", "probability": 0.082},
-                    {"disease": "Peptic Ulcer", "probability": 0.033},
-                ],
-                "matchedSymptoms": symptoms,
-                "precautions": ["drink clean boiled water", "oral rehydration salts", "rest"],
-                "description": "Gastrointestinal infection with dehydration risk.",
-                "shapExplanation": [
-                    {"symptom": s, "impact": 0.35, "direction": "Supports Diagnosis"}
-                    for s in symptoms[:4]
-                ],
-                "needsEscalation": False,
-                "uncertaintyReason": None,
-                "redFlag": False,
-                "redFlagDetails": [],
-                "risk": "Low",
-            },
-            "llmResult": {
-                "diagnosis_summary": "Patient demonstrates acute gastroenteritis indicators.",
-                "confidence_interpretation": "High model confidence (88.5%).",
-                "severity_assessment": "Moderate severity. Monitor hydration status.",
-                "key_contributing_factors": ", ".join(symptoms),
-                "recommended_next_steps": "Administer ORS and avoid solid food for 12 hours.",
-                "referral_recommendation": "Refer to Medical Officer if vomiting continues past 24 hours.",
-                "llmFallback": True,
-            },
-            "pdfBase64": "",
-            "filename": "ArogyaMitra_Report.pdf",
-        }
+    # Strictly NEVER return mock diagnosis. Loud 503 error report.
+    return {
+        "success": False,
+        "modelUnavailable": True,
+        "statusCode": 503,
+        "error": f"AI Prediction Service is currently unavailable (Backend unreachable: {backend_err_msg}). Triage cannot proceed safely without active inference engine.",
+    }

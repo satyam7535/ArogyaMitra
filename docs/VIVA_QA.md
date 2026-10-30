@@ -110,7 +110,7 @@ ArogyaMitra adheres to the five core pillars of the DPDP Act 2023:
 ### Q15: Why is ArogyaMitra categorized as a "Decision Support Tool" rather than an "Autonomous Diagnostic System"?
 **Answer:**
 Legally and ethically (under CDSCO guidelines and WHO AI in Health frameworks), autonomous AI diagnosis poses unacceptable patient risks. ArogyaMitra enforces **Human-in-the-Loop (HITL)** triage:
-- The ASHA worker gathers symptoms and obtains calibrated triage recommendations.
+- The ASHA worker gathers symptoms and obtains triage recommendations.
 - The system generates an actionable differential with TreeSHAP feature attributions and red-flag alerts.
 - A licensed **Medical Officer (Doctor)** must review the case, inspect the SHAP attributions, and sign off on any clinical prescription or referral.
 - Persistent regulatory disclaimers are embedded across all UI headers, footers, and PDF reports.
@@ -155,7 +155,7 @@ Our defense in `graph/llm.py`:
 ### Q20: What happens if the Gemini LLM API goes down, times out, or changes its response format?
 **Answer:**
 ArogyaMitra implements a **Deterministic Safety Fallback** (`llmFallback: true`). If the external LLM call fails, times out (> 10s), or violates schema validation, the LangGraph node catches the exception and constructs a deterministic clinical conclusion:
-- Primary diagnosis is directly mapped from the calibrated LightGBM output.
+- Primary diagnosis is directly mapped from the BernoulliNB model output.
 - Top-3 differential diagnoses with exact probability percentages are extracted.
 - Standard triage guidelines based on the ML uncertainty score are inserted.
 - A banner alerts the clinician that LLM synthesis is offline, ensuring patient care is never blocked.

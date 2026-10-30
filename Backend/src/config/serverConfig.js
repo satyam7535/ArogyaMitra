@@ -17,7 +17,7 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   FRONTEND_URL: z.string().default("http://localhost:5173"),
   ML_API_URL: z.string().default("http://localhost:8000"),
-  GRAPH_API_URL: z.string().default("http://localhost:8001"),
+  GRAPH_API_URL: z.string().default(process.env.AI_SERVICE_URL || process.env.GRAPH_API_URL || "http://localhost:8001"),
   INTERNAL_SERVICE_SECRET: z.string().min(32, "INTERNAL_SERVICE_SECRET must be at least 32 characters"),
   ENCRYPTION_KEY: z.string().min(32, "ENCRYPTION_KEY must be at least 32 characters for AES-256-GCM"),
   OTPEMAIL: z.string().optional(),

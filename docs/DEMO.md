@@ -45,7 +45,7 @@ This script provides an examiner-ready walkthrough demonstrating the complete hu
    - *Observe*: The 131-symptom searchable multiselect auto-populates with `itching`, `vomiting`, `fatigue`, `yellowish_skin`, `dark_urine`, `abdominal_pain`.
 4. Click **"Run Diagnostic Analysis"**.
 5. **Explain the Diagnostic Output**:
-   - **Primary Prediction**: **Jaundice** with **Calibrated Probability** (e.g., 94.2%). Explain to examiners: *"This is post-hoc calibrated via empirical validation likelihoods, reflecting true posterior class probabilities."*
+   - **Primary Prediction**: **Jaundice** with **Model Confidence Estimate** (e.g., 94.2%). Explain to examiners: *"This is a Bayesian posterior probability estimate from the BernoulliNB model; it is an estimate, not a clinically calibrated probability."**
    - **Bayesian Evidence Attributions**: Hover over the horizontal bar chart. Explain: *"Bayesian Evidence proves mathematically why the model predicted Jaundice—yellowish skin and dark urine contributed +0.48 and +0.32 log-odds to the prediction."*
    - **Differential Diagnoses**: Point out the secondary probabilities (`Hepatitis A`, `Chronic Cholestasis`).
    - **Clinical Safety Banner**: If an acute condition is present or confidence is low, highlight the **Needs Escalation** banner advising immediate hospital transfer.
@@ -95,4 +95,4 @@ This script provides an examiner-ready walkthrough demonstrating the complete hu
      - `AES-256-GCM` field-level PII encryption active.
      - Real-time immutable audit trail recording user logins, consultation updates, and access timestamps.
 
-**Conclusion**: *"ArogyaMitra delivers an end-to-end, privacy-compliant, mathematically calibrated, and explainable primary healthcare triage system designed specifically for the operational realities of rural India."*
+**Conclusion**: *"ArogyaMitra delivers an end-to-end, privacy-compliant, mathematically rigorous, and explainable primary healthcare triage system designed specifically for the operational realities of rural India."*

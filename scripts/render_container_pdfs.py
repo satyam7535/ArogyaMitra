@@ -68,3 +68,4 @@ for lang in ["hi", "mr"]:
     print(f"[CONTAINER] Rendered {lang.upper()} PDF ({len(pdf_bytes)} bytes) -> {pdf_path} & {png_path}")
 
 print("[CONTAINER] PDF and PNG generation inside arogya-graph complete.")
+

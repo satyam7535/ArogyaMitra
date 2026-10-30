@@ -9,3 +9,4 @@ if (!process.env.ENCRYPTION_KEY) process.env.ENCRYPTION_KEY = "0123456789abcdef0
 if (!process.env.FRONTEND_URL) process.env.FRONTEND_URL = "http://localhost:5173";
 if (!process.env.ML_API_URL) process.env.ML_API_URL = "http://localhost:8000";
 if (!process.env.GRAPH_API_URL) process.env.GRAPH_API_URL = "http://localhost:8001";
+

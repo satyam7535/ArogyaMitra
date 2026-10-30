@@ -111,6 +111,7 @@ export const ROUTE_AUTH_MATRIX = [
 
   // Consultation Router (17 routes)
   { method: "POST", path: "/api/v1/consultation/", access: "protected", allowedRoles: [ROLES.WORKER] },
+  { method: "POST", path: "/api/v1/consultation/triage", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "GET", path: "/api/v1/consultation/my", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "PATCH", path: "/api/v1/consultation/:id/accept", access: "protected", allowedRoles: [ROLES.WORKER] },
   { method: "PATCH", path: "/api/v1/consultation/:id/escalate", access: "protected", allowedRoles: [ROLES.WORKER] },

@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary & Vision
 
-**ArogyaMitra** (आरोग्यमित्र) is an open-source, privacy-first, AI-assisted primary healthcare decision support platform tailored for rural health centers and underserved communities. Designed to bridge the severe shortage of specialized medical professionals in rural India, the platform empowers Community Health Workers (e.g., ASHA workers) to collect structured symptom observations, obtain calibrated, interpretable disease risk assessments via machine learning models, and escalate high-risk cases to Medical Officers via a human-in-the-loop review pipeline.
+**ArogyaMitra** (आरोग्यमित्र) is an open-source, privacy-first, AI-assisted primary healthcare decision support platform tailored for rural health centers and underserved communities. Designed to bridge the severe shortage of specialized medical professionals in rural India, the platform empowers Community Health Workers (e.g., ASHA workers) to collect structured symptom observations, obtain interpretable disease risk estimates via machine learning models, and escalate high-risk cases to Medical Officers via a human-in-the-loop review pipeline.
 
 ---
 
@@ -62,7 +62,7 @@ graph TD
 | **Edge Proxy** | Nginx 1.25+ | `80`, `443` | Public | TLS termination, HSTS preloading, security headers, rate-limiting, internal port shielding. |
 | **Frontend UI** | Streamlit 1.42+ | `8501` | Public via Proxy | Multilingual (EN/HI/MR) clinical workstation for Health Workers, Doctors, and Administrators. |
 | **Backend API** | Node.js 20 / Express 5 | `5000` | Public via Proxy | Authentication, authorization, multi-tenant isolation, PII crypto, audit logging, queue orchestration. |
-| **ML Inference** | FastAPI / LightGBM | `8000` | Internal Only | Calibrated probability inference, TreeSHAP attributions, clinical uncertainty escalation detection. |
+| **ML Inference** | FastAPI / LightGBM | `8000` | Internal Only | Probability estimation, TreeSHAP attributions, clinical uncertainty escalation detection. |
 | **Graph Orchestrator** | FastAPI / LangGraph | `8001` | Internal Only | Multi-stage clinical reasoning, prompt-injection guarded LLM synthesis, bilingual PDF generation. |
 | **Database** | MongoDB 7.0+ | `27017` | Internal Only | Field-level encrypted patient records, role-scoped consultations, audit trails, refresh tokens. |
 
@@ -94,7 +94,7 @@ sequenceDiagram
     Queue->>Graph: Trigger Execution (Bearer: INTERNAL_SERVICE_SECRET)
     Graph->>ML: POST /predict { symptoms: [...] }
     ML->>ML: Evaluate LightGBM + Sigmoid Calibration + TreeSHAP
-    ML-->>Graph: { top_conditions, calibrated_probs, shap_values, needs_escalation }
+    ML-->>Graph: { top_conditions, estimated_probs, shap_values, needs_escalation }
     
     Graph->>LLM: Formulate Clinical Context (XML Tagged, Sanitized)
     LLM-->>Graph: Pydantic v2 Validated Diagnosis, Red Flags, Differential Advice
@@ -107,7 +107,7 @@ sequenceDiagram
         UI->>API: GET /api/v1/consultation/:id/analyze/status/:jobId
         API-->>UI: { status: "completed", result: { ... } }
     end
-    UI-->>Worker: Renders Calibrated Differential, SHAP Chart, Red Flag Warnings
+    UI-->>Worker: Renders Differential Predictions, SHAP Chart, Red Flag Warnings
 ```
 
 ---
@@ -137,7 +137,7 @@ To prevent horizontal privilege escalation and data cross-contamination between 
 ### 5.3 Clinical Safety Guardrails
 - **Prompt Injection Neutralization**: All user symptom strings and medical history entries pass through regex sanitization stripping delimiter attacks, markdown exploits, and system directive overrides.
 - **XML Data Isolation**: Medical facts are wrapped inside `<clinical_data>` delimiters in prompt templates.
-- **Deterministic Clinical Fallback**: If the external Gemini LLM encounters rate limits, network timeouts, or malformed JSON output, the pipeline falls back immediately to a deterministic rule-based safety synthesizer (`llmFallback: true`) displaying the raw calibrated ML predictions without stalling clinical workflows.
+- **Deterministic Clinical Fallback**: If the external Gemini LLM encounters rate limits, network timeouts, or malformed JSON output, the pipeline falls back immediately to a deterministic rule-based safety synthesizer (`llmFallback: true`) displaying the raw model predictions without stalling clinical workflows.
 
 ---
 
