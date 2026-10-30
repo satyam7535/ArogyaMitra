@@ -166,6 +166,36 @@ describe("WP2 — Decision B Override, State Machine & redFlag Enforcement", () 
       expect(res.body.message).toContain("Request validation failed");
     });
 
+    it("should reject accept if overrideNote consists solely of whitespace characters", async () => {
+      const consultationId = new mongoose.Types.ObjectId();
+      const mockDoc = {
+        _id: consultationId,
+        organization: orgId,
+        status: "analyzed",
+        mlAnalysis: {
+          disease: "Migraine",
+          redFlag: false,
+          needsEscalation: true,
+        },
+        workerDecision: null,
+        save: vi.fn().mockResolvedValue(true),
+      };
+
+      vi.spyOn(Consultation, "findOne").mockResolvedValue(mockDoc);
+
+      const res = await request(app)
+        .patch(`/api/v1/consultation/${consultationId}/accept`)
+        .set("Authorization", `Bearer ${workerToken}`)
+        .send({
+          overrideReason: "patient_improved",
+          overrideNote: "          ", // 10 spaces
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("validation failed");
+      expect(mockDoc.save).not.toHaveBeenCalled();
+    });
+
     it("should permit accept with valid overrideReason and overrideNote (>= 10 chars) and record overrideDetails", async () => {
       const consultationId = new mongoose.Types.ObjectId();
       const mockDoc = {

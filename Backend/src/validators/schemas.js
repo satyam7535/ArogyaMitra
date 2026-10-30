@@ -100,7 +100,7 @@ export const acceptConsultationSchema = z.object({
     "patient_declined_referral",
     "other",
   ]).optional(),
-  overrideNote: z.string().min(10, "Override note must be at least 10 characters").optional(),
+  overrideNote: z.string().trim().min(10, "Override note must be at least 10 non-whitespace characters").optional(),
 }).strict();
 
 export const escalateConsultationSchema = z.object({

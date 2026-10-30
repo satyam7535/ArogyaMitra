@@ -544,7 +544,11 @@ def model_info():
         "trainingTimestamp": metadata.get("training_timestamp"),
         "gitCommit": metadata.get("git_commit"),
         "dataset": metadata.get("dataset"),
-        "metrics": metadata.get("metrics_on_unique_ground_truth"),
+        "metrics": {
+            "out_of_fold_cross_validation": metadata.get("out_of_fold_cross_validation_benchmark"),
+            "in_sample_clean_data": metadata.get("in_sample_metrics_on_clean_data"),
+            "model_card": "ML_Model/model/v2/metadata.json",
+        },
         "totalSymptoms": len(symptom_columns),
         "totalClasses": len(label_encoder.classes_) if label_encoder else 0,
         "classes": list(label_encoder.classes_) if label_encoder else []

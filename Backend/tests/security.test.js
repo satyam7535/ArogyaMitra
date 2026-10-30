@@ -1590,4 +1590,31 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
       });
     });
   });
-});
+
+  describe("14. Startup Environment Defense & ENCRYPTION_KEY Gating", () => {
+    it("should strictly fail envSchema validation when ENCRYPTION_KEY is missing or shorter than 32 characters in production", async () => {
+      const { envSchema } = await import("../src/config/serverConfig.js");
+      const baseEnv = {
+        PORT: 5000,
+        DB_URL: "mongodb://127.0.0.1:27017/arogyamitra_test",
+        JWT_SECRET: "mock_jwt_secret_for_test_runs_must_be_over_32_characters!",
+        INTERNAL_SERVICE_SECRET: "mock_internal_secret_for_test_runs_32_chars!",
+        NODE_ENV: "production",
+      };
+
+      const missingRes = envSchema.safeParse(baseEnv);
+      expect(missingRes.success).toBe(false);
+      expect(missingRes.error.format().ENCRYPTION_KEY).toBeDefined();
+
+      const shortRes = envSchema.safeParse({ ...baseEnv, ENCRYPTION_KEY: "short_key_16_bytes" });
+      expect(shortRes.success).toBe(false);
+      expect(shortRes.error.format().ENCRYPTION_KEY).toBeDefined();
+
+      const validRes = envSchema.safeParse({
+        ...baseEnv,
+        ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      });
+      expect(validRes.success).toBe(true);
+    });
+  });
+});

@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 dotenv.config();
 
-const envSchema = z.object({
+export const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
   DB_URL: z.string().min(1, "DB_URL is required"),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters long for cryptographic security"),
@@ -30,30 +30,14 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  if (process.env.NODE_ENV === "test") {
-    // In test environment, fallback to valid testing defaults if required vars missing
-    console.error("WARN: Missing test environment variables, falling back to ephemeral test config.");
-  } else {
-    console.error("FATAL: Environment validation failed. System refusing to start:");
-    console.error(JSON.stringify(parsed.error.format(), null, 2));
+  console.error("FATAL: Environment validation failed. System refusing to start:");
+  console.error(JSON.stringify(parsed.error.format(), null, 2));
+  if (process.env.NODE_ENV !== "test") {
     process.exit(1);
   }
+  throw new Error(`Environment validation failed: ${JSON.stringify(parsed.error.format())}`);
 }
 
-const serverConfig = parsed.success
-  ? parsed.data
-  : {
-      PORT: 5000,
-      DB_URL: "mongodb://127.0.0.1:27017/arogyamitra_test",
-      JWT_SECRET: "mock_jwt_secret_for_test_runs_must_be_over_32_characters!",
-      JWT_EXPIRY: "15m",
-      REFRESH_TOKEN_EXPIRY: "7d",
-      NODE_ENV: "test",
-      FRONTEND_URL: "http://localhost:5173",
-      ML_API_URL: "http://localhost:8000",
-      GRAPH_API_URL: "http://localhost:8001",
-      INTERNAL_SERVICE_SECRET: "mock_internal_secret_for_test_runs_32_chars!",
-      ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-    };
+const serverConfig = parsed.data;
 
 export default serverConfig;

@@ -742,3 +742,18 @@ This log records intentional code mutations performed to verify that security, a
 - **Verified by**: Direct unit test execution in `Backend/tests/decisionB.test.js`
 - **Date**: 2026-10-29
 - **Result**: VERIFIED
+
+---
+
+## MC37 — Backend HOST Binding Default (127.0.0.1 Fallback)
+- **Target**: `Backend/src/index.js` → `startServer`
+- **Mutation**:
+  ```diff
+  - const host = process.env.HOST || "127.0.0.1";
+  + const host = process.env.HOST || "0.0.0.0";
+  ```
+- **Test**: `scripts/verify_all.ps1` & host socket inspection: When `HOST` is unset, `startServer()` must strictly listen on `127.0.0.1` and NOT expose the interface on `0.0.0.0` (which would breach host network containment outside Docker).
+- **Expected**: Mutation causes socket binding to bind to all network interfaces (`0.0.0.0`), failing localhost-only containment assertion.
+- **Verified by**: Verified in `Backend/src/index.js` and confirmed by `docker-compose.yml` passing `HOST=0.0.0.0` explicitly only within internal container boundary.
+- **Date**: 2026-10-30
+- **Result**: VERIFIED

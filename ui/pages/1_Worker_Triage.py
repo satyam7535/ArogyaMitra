@@ -206,10 +206,53 @@ if "triage_results" in st.session_state:
     st.markdown("---")
 
     # Action Buttons: Accept / Escalate / Download PDF
+    is_red_flag = bool(ml.get("redFlag"))
+    needs_escalation = bool(ml.get("needsEscalation"))
+
+    if is_red_flag:
+        st.error("🚨 **RED FLAG DETECTED (HTTP 409):** Direct accept is strictly blocked. Clinical red flags require immediate escalation to a Medical Officer or referral to an emergency hospital facility.")
+    elif needs_escalation:
+        st.warning("⚠️ **ESCALATION RECOMMENDED:** This presentation suggests secondary referral. If accepting locally, Decision B clinical override criteria (canonical reason + minimum 10-character clinical note) are required.")
+        with st.expander("📝 Decision B Clinical Override Form", expanded=True):
+            CANONICAL_OVERRIDE_REASONS = [
+                "patient_improved",
+                "referred_in_person",
+                "doctor_unreachable",
+                "patient_declined_referral",
+                "other"
+            ]
+            sel_reason = st.selectbox(
+                "Clinical Override Reason (Required)",
+                options=CANONICAL_OVERRIDE_REASONS,
+                format_func=lambda r: {
+                    "patient_improved": "Patient condition improved substantially",
+                    "referred_in_person": "Patient physically referred to nearby CHC/hospital",
+                    "doctor_unreachable": "Medical officer unreachable after multiple attempts",
+                    "patient_declined_referral": "Patient declined institutional referral",
+                    "other": "Other documented clinical justification",
+                }.get(r, r),
+                key="worker_override_reason"
+            )
+            override_note = st.text_area(
+                "Clinical Override Justification Note (Min 10 non-whitespace characters)",
+                placeholder="Document clinical rationale for local management without MO second opinion...",
+                key="worker_override_note"
+            )
+
     act_col1, act_col2, act_col3 = st.columns(3)
     with act_col1:
-        if st.button(f"✅ {t('accept_decision', lang)}", use_container_width=True):
-            st.success("Triage consultation finalized and saved to patient record.")
+        if is_red_flag:
+            st.button(f"🚫 {t('accept_decision', lang)} (Blocked)", disabled=True, use_container_width=True)
+        elif needs_escalation:
+            if st.button(f"✅ {t('accept_decision', lang)} (With Override)", use_container_width=True):
+                note_clean = (st.session_state.get("worker_override_note") or "").strip()
+                if len(note_clean) < 10:
+                    st.error("Validation Error: Clinical override note must contain at least 10 non-whitespace characters.")
+                else:
+                    st.success(f"Consultation accepted under Decision B override: '{st.session_state.get('worker_override_reason')}' recorded.")
+        else:
+            if st.button(f"✅ {t('accept_decision', lang)}", use_container_width=True):
+                st.success("Triage consultation finalized and saved to patient record.")
 
     with act_col2:
         if st.button(f"🚨 {t('escalate_decision', lang)}", type="primary", use_container_width=True):

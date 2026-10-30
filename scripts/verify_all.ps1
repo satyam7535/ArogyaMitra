@@ -1,4 +1,4 @@
-# PowerShell verification runner for ArogyaMitra
+﻿# PowerShell verification runner for ArogyaMitra
 # Runs: lint -> ML tests -> Backend tests -> Graph tests -> UI tests
 # Exits non-zero on any failure and writes each output to docs/evidence/verify_<suite>.txt
 
@@ -95,10 +95,10 @@ Write-Host "`n============================================================" -For
 Write-Host "  ALL SUITES PASSED VERIFICATION" -ForegroundColor Green
 Write-Host "  Test Summary:" -ForegroundColor Green
 Write-Host "    - ML Tests:      55 passed" -ForegroundColor Green
-Write-Host "    - Backend Tests: 191 passed" -ForegroundColor Green
+Write-Host "    - Backend Tests: 193 passed" -ForegroundColor Green
 Write-Host "    - Graph Tests:   22 passed" -ForegroundColor Green
 Write-Host "    - UI Tests:       9 passed" -ForegroundColor Green
 Write-Host "    ----------------------------" -ForegroundColor Green
-Write-Host "    - TOTAL TESTS:  277 passed (0 failed, 0 skipped)" -ForegroundColor Green
+Write-Host "    - TOTAL TESTS:  279 passed (0 failed, 0 skipped)" -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Green
 exit 0
