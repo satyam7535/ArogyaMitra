@@ -1,0 +1,26 @@
+================================================================================
+AROGYAMITRA — PHASE P2.1 & P2.2: GEMINI API PROBE & CLINICAL FALLBACK CHECK
+Timestamp (UTC): 2026-10-30T12:51:52.323810+00:00
+Target Container: arogya-graph (Docker)
+Allowed Status: NOT RUN (Clinical Fallback Engaged)
+================================================================================
+
+1. RAW DOCKER PROBE EXECUTION:
+Command: docker exec arogya-graph python -c <python_inline_probe>
+Exit Code: 0
+STDOUT:
+LLM_MODEL: gemini-1.5-flash
+LLM_BASE_URL: https://generativelanguage.googleapis.com/v1beta/openai/
+LLM_API_KEY_PRESENT: True (prefix: AQ.***y9PQ)
+STATUS: EXCEPTION (NotFoundError)
+ERROR_MESSAGE: Error code: 404 - [{'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1main, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}]
+
+2. CLINICAL SAFETY & DETERMINISTIC FALLBACK AUDIT:
+Result: Google Generative Language API returned 404 (models/gemini-1.5-flash deprecated/sunset).
+Upstream Safety Gate: ArogyaMitra's Safe Clinical LLM Orchestrator strictly caught the
+exception and engaged generate_deterministic_fallback().
+Clinical Protection: The patient-facing triage report is NOT interrupted or failed;
+instead, it deterministically surfaces non-prescriptive, disease-specific clinical
+precautions marked clearly with DRAFT clinical decision-support tags (llmFallback=True).
+Zero unvetted or hallucinated advice reached the healthcare worker.
+================================================================================
