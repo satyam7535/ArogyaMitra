@@ -1612,7 +1612,7 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
 
       const validRes = envSchema.safeParse({
         ...baseEnv,
-        ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        ENCRYPTION_KEY: "valid_test_key_for_env_schema_test_".padEnd(64, "0"),
       });
       expect(validRes.success).toBe(true);
     });

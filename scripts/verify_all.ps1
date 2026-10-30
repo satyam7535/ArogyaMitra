@@ -1,5 +1,6 @@
-﻿# PowerShell verification runner for ArogyaMitra
+# PowerShell verification runner for ArogyaMitra
 # Runs: lint -> ML tests -> Backend tests -> Graph tests -> UI tests
+# Dynamically parses passed/failed counts from test tool outputs.
 # Exits non-zero on any failure and writes each output to docs/evidence/verify_<suite>.txt
 
 $ErrorActionPreference = "Continue"
@@ -91,14 +92,51 @@ Run-Step -Name "UI Tests (Streamlit AppTest headless suite)" -OutputFile "verify
     uv run pytest ui/tests/ -v
 }
 
+# ── Dynamic Result Parsing ───────────────────────────────────────────────────
+$mlFile = Join-Path $evidenceDir "verify_ml.txt"
+$backendFile = Join-Path $evidenceDir "verify_backend.txt"
+$graphFile = Join-Path $evidenceDir "verify_graph.txt"
+$uiFile = Join-Path $evidenceDir "verify_ui.txt"
+
+$mlPassed = 0
+$backendPassed = 0
+$graphPassed = 0
+$uiPassed = 0
+
+if (Test-Path $mlFile) {
+    $content = (Get-Content $mlFile -Raw)
+    if ($content -match '=\s*(\d+)\s+passed') { $mlPassed = [int]$matches[1] }
+}
+
+if (Test-Path $backendFile) {
+    $rawContent = (Get-Content $backendFile -Raw)
+    # Strip ANSI escape codes
+    $cleanContent = $rawContent -replace "\x1b\[[0-9;]*[a-zA-Z]", ""
+    if ($cleanContent -match 'Tests\s+(\d+)\s+passed') {
+        $backendPassed = [int]$matches[1]
+    } elseif ($cleanContent -match '(\d+)\s+passed') {
+        $backendPassed = [int]$matches[1]
+    }
+}
+
+if (Test-Path $graphFile) {
+    $content = (Get-Content $graphFile -Raw)
+    if ($content -match '=\s*(\d+)\s+passed') { $graphPassed = [int]$matches[1] }
+}
+
+if (Test-Path $uiFile) {
+    $content = (Get-Content $uiFile -Raw)
+    if ($content -match '=\s*(\d+)\s+passed') { $uiPassed = [int]$matches[1] }
+}
+
+$totalPassed = $mlPassed + $backendPassed + $graphPassed + $uiPassed
+
 Write-Host "`n============================================================" -ForegroundColor Green
 Write-Host "  ALL SUITES PASSED VERIFICATION" -ForegroundColor Green
-Write-Host "  Test Summary:" -ForegroundColor Green
-Write-Host "    - ML Tests:      55 passed" -ForegroundColor Green
-Write-Host "    - Backend Tests: 193 passed" -ForegroundColor Green
-Write-Host "    - Graph Tests:   22 passed" -ForegroundColor Green
-Write-Host "    - UI Tests:       9 passed" -ForegroundColor Green
-Write-Host "    ----------------------------" -ForegroundColor Green
-Write-Host "    - TOTAL TESTS:  279 passed (0 failed, 0 skipped)" -ForegroundColor Green
+Write-Host "  Test Summary (Dynamically Parsed):" -ForegroundColor Green
+Write-Host "    - ML Tests:      $mlPassed passed" -ForegroundColor Green
+Write-Host "    - Backend Tests: $backendPassed passed" -ForegroundColor Green
+Write-Host "    - Graph Tests:   $graphPassed passed" -ForegroundColor Green
+Write-Host "    - UI Tests:      $uiPassed passed" -ForegroundColor Green
+Write-Host "    - Total Tests:   $totalPassed passed (0 failed)" -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Green
-exit 0

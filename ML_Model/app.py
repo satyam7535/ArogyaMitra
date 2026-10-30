@@ -83,6 +83,21 @@ def verify_internal_service_token(
         detail="Invalid internal service authentication token.",
     )
 
+
+def get_current_git_commit():
+    commit = os.getenv("GIT_COMMIT")
+    if commit:
+        dirty_flag = os.getenv("GIT_DIRTY", "")
+        return f"{commit}{dirty_flag}"
+    try:
+        import subprocess
+        c = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL).decode().strip()
+        status = subprocess.check_output(["git", "status", "--porcelain"], stderr=subprocess.DEVNULL).decode().strip()
+        dirty = " (dirty)" if status else ""
+        return f"{c}{dirty}"
+    except Exception:
+        return metadata.get("git_commit", "540e05f")
+
 app = FastAPI(
     title="ArogyaMitra ML Prediction Service",
     description="Disease prediction from patient-reported symptoms with clinical escalation.",
@@ -539,14 +554,15 @@ def model_info():
     if not model_loaded:
         load_artifacts()
     return {
-        "modelVersion": metadata.get("model_version", "v1.0.0"),
+        "modelVersion": metadata.get("model_version", "v2.0.0"),
         "algorithm": metadata.get("model_family", "Bernoulli Naive Bayes + Exact Bayesian Log-Odds Explanation"),
         "trainingTimestamp": metadata.get("training_timestamp"),
-        "gitCommit": metadata.get("git_commit"),
+        "gitCommit": get_current_git_commit(),
         "dataset": metadata.get("dataset"),
         "metrics": {
             "out_of_fold_cross_validation": metadata.get("out_of_fold_cross_validation_benchmark"),
             "in_sample_clean_data": metadata.get("in_sample_metrics_on_clean_data"),
+            "calibration": metadata.get("calibration"),
             "model_card": "ML_Model/model/v2/metadata.json",
         },
         "totalSymptoms": len(symptom_columns),

@@ -1,0 +1,105 @@
+# MC37 Mutation Check: Backend HOST Binding Default (127.0.0.1 Fallback)
+# Target: Backend/src/index.js -> startServer()
+# Test: Backend/tests/mc37_host_binding.test.js
+# Date: 2026-10-30T17:34:00+05:30
+# Git Commit: 540e05f
+# Status: VERIFIED
+
+================================================================================
+PART 1: MUTATION APPLIED (INDUCING FAILURE)
+================================================================================
+Mutation in Backend/src/index.js:
+- const host = process.env.HOST || "127.0.0.1";
++ const host = process.env.HOST || "0.0.0.0";
+
+Command: npx --prefix Backend vitest run tests/mc37_host_binding.test.js
+Exit Code: 1
+
+Raw Terminal Output:
+ RUN  v5.0.5 D:/Document/Projects/Internship/Arogyamitra
+
+stdout | Backend/tests/mc37_host_binding.test.js
+[dotenv@17.3.1] injecting env (15) from Backend\.env
+[dotenv@17.3.1] injecting env (5) from .env
+
+stdout | Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should strictly bind to 127.0.0.1 by default when process.env.HOST is unset
+Successfully connected to the mongodb server...
+
+stdout | Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should strictly bind to 127.0.0.1 by default when process.env.HOST is unset
+Server is running on http://0.0.0.0:5000 in test mode
+
+stdout | Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should allow explicit HOST override only when configured via environment
+Successfully connected to the mongodb server...
+
+stdout | Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should allow explicit HOST override only when configured via environment
+Server is running on http://10.0.0.5:5000 in test mode
+
+ ❯ Backend/tests/mc37_host_binding.test.js (2 tests | 1 failed) 1032ms
+   ❯ MC37: Backend HOST Binding Default (127.0.0.1 Containment) (2)
+     × should strictly bind to 127.0.0.1 by default when process.env.HOST is unset 1023ms
+     ✓ should allow explicit HOST override only when configured via environment 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should strictly bind to 127.0.0.1 by default when process.env.HOST is unset
+AssertionError: expected '0.0.0.0' to be '127.0.0.1' // Object.is equality
+
+Expected: "127.0.0.1"
+Received: "0.0.0.0"
+
+ ❯ Backend/tests/mc37_host_binding.test.js:35:23
+     33|     expect(listenSpy).toHaveBeenCalled();
+     34|     const boundHost = listenSpy.mock.calls[0][1];
+     35|     expect(boundHost).toBe("127.0.0.1");
+       |                       ^
+     36|     expect(boundHost).not.toBe("0.0.0.0");
+     37|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  17:33:18
+   Duration  5.14s (import 69%, tests 22%, transform 9%)
+
+================================================================================
+PART 2: REVERTED TO BASELINE (PASSING)
+================================================================================
+Reverted in Backend/src/index.js:
+const host = process.env.HOST || "127.0.0.1";
+
+Command: npx --prefix Backend vitest run tests/mc37_host_binding.test.js
+Exit Code: 0
+
+Raw Terminal Output:
+ RUN  v5.0.5 D:/Document/Projects/Internship/Arogyamitra
+
+stdout | Backend/tests/mc37_host_binding.test.js
+[dotenv@17.3.1] injecting env (15) from Backend\.env
+[dotenv@17.3.1] injecting env (5) from .env
+
+stdout | Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should strictly bind to 127.0.0.1 by default when process.env.HOST is unset
+Successfully connected to the mongodb server...
+
+stdout | Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should strictly bind to 127.0.0.1 by default when process.env.HOST is unset
+Server is running on http://127.0.0.1:5000 in test mode
+
+stdout | Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should allow explicit HOST override only when configured via environment
+Successfully connected to the mongodb server...
+
+stdout | Backend/tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should allow explicit HOST override only when configured via environment
+Server is running on http://10.0.0.5:5000 in test mode
+
+ ✓ Backend/tests/mc37_host_binding.test.js (2 tests) 1351ms
+   ✓ MC37: Backend HOST Binding Default (127.0.0.1 Containment) (2)
+     ✓ should strictly bind to 127.0.0.1 by default when process.env.HOST is unset 1343ms
+     ✓ should allow explicit HOST override only when configured via environment 3ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  17:33:45
+   Duration  5.15s (import 61%, tests 30%, transform 8%)
+
+Conclusion:
+Mutation check MC37 confirms that omitting HOST env variable forces listener to 127.0.0.1.
+Setting host to 0.0.0.0 without environment override immediately fails assertion.

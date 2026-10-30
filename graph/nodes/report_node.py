@@ -1,18 +1,9 @@
 from datetime import datetime
 
 try:
-    from ..utils.pdf_generator import generate_pdf
-except (ImportError, ValueError):
-    try:
-        from utils.pdf_generator import generate_pdf
-    except (ImportError, ModuleNotFoundError):
-        import os
-        graph_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        import importlib.util
-        spec = importlib.util.spec_from_file_location("pdf_gen", os.path.join(graph_root, "utils", "pdf_generator.py"))
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        generate_pdf = mod.generate_pdf
+    from graph.utils.pdf_generator import generate_pdf
+except ImportError:
+    from utils.pdf_generator import generate_pdf
 
 
 def report_node(state):

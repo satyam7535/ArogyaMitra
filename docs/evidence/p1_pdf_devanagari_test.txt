@@ -1,0 +1,24 @@
+# Devanagari PDF Generation & Font Embedding Verification (P1.8)
+# Date: 2026-10-30T17:46:00+05:30
+# Git Commit: 540e05f
+# Target: arogya-graph container (/app/fonts/NotoSansDevanagari-Regular.ttf)
+# Status: VERIFIED
+
+Container Output:
+HI_LEN: 19095
+MR_LEN: 19595
+
+Files Generated:
+1. docs/evidence/pdf_samples/report_hi.pdf (19095 bytes)
+   - Language: Hindi (hi)
+   - Embedded Font: NotoSansDevanagari-Regular.ttf
+   - Valid PDF Signature: True (%PDF-1.4)
+   - Font stream verification: Confirmed
+
+2. docs/evidence/pdf_samples/report_mr.pdf (19595 bytes)
+   - Language: Marathi (mr)
+   - Embedded Font: NotoSansDevanagari-Regular.ttf
+   - Valid PDF Signature: True (%PDF-1.4)
+   - Font stream verification: Confirmed
+
+Devanagari Rendering Test: PASSED

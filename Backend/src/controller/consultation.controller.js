@@ -480,7 +480,7 @@ const runDirectTriage = async (req, res) => {
 
     let response;
     try {
-      const controller = new AbortController();
+      const controller = new globalThis.AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
 
       response = await fetch(`${serverConfig.GRAPH_API_URL}/analyze/json`, {

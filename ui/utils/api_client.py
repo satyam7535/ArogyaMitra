@@ -316,6 +316,7 @@ def run_triage_analysis(
                 sys.path.insert(0, ml_dir)
 
             from app import PredictRequest, run_prediction
+
             from graph.llm import call_llm
             from graph.utils.pdf_generator import generate_pdf
 
@@ -361,7 +362,7 @@ def run_triage_analysis(
                 "pdfBase64": base64.b64encode(pdf_bytes).decode("utf-8"),
                 "filename": f"ArogyaMitra_{payload['patientName'].replace(' ', '_')}.pdf",
             }
-    except Exception as local_err:
+    except Exception:
         pass
 
     # Strictly NEVER return mock diagnosis. Loud 503 error report.

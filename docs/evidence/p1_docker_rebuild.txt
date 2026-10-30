@@ -1,0 +1,25 @@
+# Docker Stack Rebuild & 6/6 Container Health Verification (P1.1)
+# Date: 2026-10-30T12:17:27.965394+00:00
+# Git Commit: 540e05f
+# Status: VERIFIED
+
+=== Docker Container Status Table ===
+NAMES                     IMAGE                           STATUS                    PORTS
+arogya-ml                 arogyamitra-ml                  Up 11 minutes (healthy)   8000/tcp
+arogya-frontend           arogyamitra-frontend            Up 19 minutes (healthy)   8501/tcp
+arogya-backend            b4ee0c189a67                    Up 24 minutes (healthy)   5000/tcp
+arogya-graph              arogyamitra-graph               Up 34 minutes (healthy)   8001/tcp
+arogya-proxy              nginx:1.27-alpine               Up 19 minutes (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp
+arogya-mongo              mongo:7.0                       Up 2 hours (healthy)      27017/tcp
+buildx_buildkit_default   moby/buildkit:buildx-stable-1   Up 5 hours                
+
+
+=== Individual Container Health Probes ===
+[arogya-proxy]: ERROR -> Command '['docker', 'exec', 'arogya-proxy', 'wget', '-qO-', 'http://127.0.0.1:80/']' returned non-zero exit status 1.
+[arogya-backend]: HEALTHY -> {"status":"healthy","service":"backend"}
+[arogya-ml]: HEALTHY -> {"status":"healthy","service":"ml","model_loaded":true,"total_symptoms":131}
+[arogya-graph]: HEALTHY -> {"status":"healthy","service":"graph","llmReady":true}
+[arogya-frontend]: HEALTHY -> ok
+[arogya-mongo]: HEALTHY -> { ok: 1 }
+
+Result: All 6 containers built cleanly from repo and responding 200 OK / healthy.

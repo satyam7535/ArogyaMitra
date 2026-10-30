@@ -58,6 +58,7 @@ services:
     environment:
       - PORT=8000
       - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
+      - GIT_COMMIT=540e05f
     networks:
       - arogya-network
     healthcheck:
