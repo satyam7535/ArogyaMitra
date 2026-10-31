@@ -78,10 +78,11 @@ const submitConsultation = async (req, res) => {
   }
 };
 
-// Worker views all consultations from their organization
+// Worker views consultations from their organization (paginated & projected)
 const getMyConsultations = async (req, res) => {
   try {
-    const consultations = await getConsultationsByWorker(req.user.id, req.user.organization);
+    const { page, limit } = req.query || {};
+    const consultations = await getConsultationsByWorker(req.user.id, req.user.organization, { page, limit });
     return res.status(200).json({ consultations });
   } catch (error) {
     return res.status(500).json({ message: error.message });

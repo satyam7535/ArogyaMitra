@@ -65,12 +65,21 @@ const createConsultation = async (
   return consultation;
 };
 
-// Worker gets all consultations from their organization
-const getConsultationsByWorker = async (workerId, organization) => {
+// Worker gets consultations from their organization (with pagination and projection)
+const getConsultationsByWorker = async (workerId, organization, options = {}) => {
+  const page = Math.max(1, parseInt(options.page, 10) || 1);
+  const limit = Math.min(Math.max(1, parseInt(options.limit, 10) || 20), 100);
+  const skip = (page - 1) * limit;
+
   return await Consultation.find({ organization })
+    .select(
+      "patient assignedDoctor symptoms status decisionOutcome notes mlAnalysis.disease mlAnalysis.confidence mlAnalysis.needsEscalation mlAnalysis.redFlag createdAt updatedAt"
+    )
     .populate("patient", "name age gender")
     .populate("assignedDoctor", "name specialization")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
 };
 
 // Admin gets all consultations from their organization

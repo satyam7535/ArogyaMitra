@@ -6,45 +6,34 @@
 
 ---
 
-## 1. Summary Severity Matrix Across Images (Post-Upgrade)
+## 1. Summary Severity Matrix Across Images (Post-Upgrade & Pip Removal)
 
 | Image | Base OS | Application Dependencies | Critical | High (with fixes) | Medium | Low | Total Fixed Findings |
 |---|---|---|---|---|---|---|---|
-| `arogyamitra-backend:latest` | Alpine 3.24.3 | Node.js 20 (Production modules) | **0** | **0** | **0** | **0** | **0** |
-| `arogyamitra-frontend:latest` | Debian 13.7 (trixie) | Python 3.11 (Streamlit 1.66.1, Pillow 13.0.0, urllib3 2.8.0) | **0** | **2** (pip vendored) | 2 | 4 | 8 |
-| `arogyamitra-ml:latest` | Debian 13.7 (trixie) | Python 3.11 (FastAPI 0.162.0, Starlette 1.10.0, urllib3 2.8.0) | **0** | **2** (pip vendored) | 2 | 4 | 8 |
-| `arogyamitra-graph:latest` | Debian 13.7 (trixie) | Python 3.11 (FastAPI 0.162.0, Starlette 1.10.0, urllib3 2.8.0) | **0** | **2** (pip vendored) | 2 | 4 | 8 |
+| `arogyamitra-backend:latest` | Alpine 3.24.3 | Node.js 20 (Multi-stage production build) | **0** | **0** | **0** | **0** | **0** |
+| `arogyamitra-frontend:latest` | Debian 13.7 (trixie) | Python 3.11 (Streamlit 1.66.1, Pillow 13.0.0, urllib3 2.8.0, pip removed) | **0** | **0** | **0** | **0** | **0** |
+| `arogyamitra-ml:latest` | Debian 13.7 (trixie) | Python 3.11 (FastAPI 0.162.0, Starlette 1.10.0, scikit-learn 1.6.1, pip removed) | **0** | **0** | **0** | **0** | **0** |
+| `arogyamitra-graph:latest` | Debian 13.7 (trixie) | Python 3.11 (FastAPI 0.162.0, Starlette 1.10.0, LangGraph 0.3.15, pip removed) | **0** | **0** | **0** | **0** | **0** |
 
 ---
 
-## 2. Package Upgrades Executed & Results
+## 2. Package Upgrades & Hardening Executed
 
-All three Python images had their base requirements upgraded:
-- `setuptools>=84.1.0` (installed: `84.2.1`)
-- `wheel>=0.46.2` (installed: `0.48.0`)
-- `urllib3>=2.8.0` (installed: `2.8.0`)
-- `starlette>=1.3.0` (installed: `1.10.0`)
-- `fastapi>=0.115.11` (installed: `0.162.0`)
-- `Pillow>=13.0.0` (installed: `13.0.0`)
-- `python-dotenv>=1.2.4` (installed: `1.2.4`)
-- `python-multipart>=0.0.32` (installed: `0.0.32`)
+1. **Application Packages Upgraded**:
+   - `setuptools>=84.1.0` (installed: `84.2.1`)
+   - `wheel>=0.46.2` (installed: `0.48.0`)
+   - `urllib3>=2.8.0` (installed: `2.8.0`)
+   - `starlette>=1.3.0` (installed: `1.10.0`)
+   - `fastapi>=0.115.11` (installed: `0.162.0`)
+   - `Pillow>=13.0.0` (installed: `13.0.0`)
+   - `python-dotenv>=1.2.4` (installed: `1.2.4`)
+   - `python-multipart>=0.0.32` (installed: `0.0.32`)
+   - `langgraph>=0.3.15` and `langchain>=0.3.30` (installed)
 
-### Results of Upgrades:
-- **`starlette` CVE-2026-54282**: **ELIMINATED** (resolved by starlette 1.10.0).
-- **`wheel` CVE-2026-24049**: **ELIMINATED** (resolved by wheel 0.48.0).
-- **`setuptools` CVE-2026-24045, CVE-2026-24044, CVE-2026-24043**: **ELIMINATED** from application site-packages (`setuptools 84.2.1`).
-
-### Remaining 2 HIGH Findings with Fixes:
-Trivy flags a virtual target `Python` containing:
-1. `urllib3` (CVE-2026-97687, CVE-2026-97689) — HIGH:
-   - **File Location**: `/usr/local/lib/python3.11/site-packages/pip/_vendor/urllib3/`
-   - **Cause**: Pip itself (even pip 26.2.2) vendors its own copy of `urllib3 2.7.0` for bootstrapping.
-   - **Fix Status**: The application site-packages has `urllib3 2.8.0`, but pip's internal vendored copy is controlled by the pip package release cycle.
-2. `setuptools` (CVE-2026-59890, CVE-2026-24043) — MEDIUM / LOW:
-   - **File Location**: `/usr/local/lib/python3.11/ensurepip/_bundled/setuptools-79.0.1-py3-none-any.whl`
-   - **Cause**: Standard library `ensurepip` bundles the installer wheel that was frozen when Python 3.11 base image was built.
-
-Therefore, for all three Python images, exactly **2 HIGH** vulnerabilities with upstream fixes exist, both residing strictly in Python's internal bootstrap tooling (`pip/_vendor/urllib3`), and **0** in application runtime code.
+2. **Elimination of Pip Bootstrap Directory (Zero High Findings)**:
+   - Previously, Trivy flagged 2 HIGH findings (`CVE-2026-97687`, `CVE-2026-97689`) solely due to pip's internal vendored copy of `urllib3 2.7.0` inside `/usr/local/lib/python3.11/site-packages/pip/_vendor/urllib3/` and `ensurepip`'s bundled wheel `/usr/local/lib/python3.11/ensurepip/_bundled/setuptools-79.0.1-py3-none-any.whl`.
+   - By appending `python -m pip uninstall -y pip && rm -rf /usr/local/lib/python3.11/ensurepip` in each Python Dockerfile, the bootstrap directories were removed from the final production images while preserving all installed runtime dependencies.
+   - Trivy scan with `--ignore-unfixed` now confirms: **0 HIGH vulnerabilities with fixes across all 4 production container images**.
 
 ---
 

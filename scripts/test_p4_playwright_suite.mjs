@@ -342,10 +342,11 @@ async function runSuite() {
 }
 
 runSuite().then((success) => {
+  const commit = execSync("git rev-parse HEAD").toString().trim();
   const header = `================================================================================
 AROGYAMITRA EVIDENCE — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E REPORT
 Date: ${new Date().toISOString()}
-Git Commit: fa04225 (working tree: dirty)
+Git Commit: ${commit} (working tree: dirty)
 Command: node scripts/test_p4_playwright_suite.mjs
 ================================================================================
 

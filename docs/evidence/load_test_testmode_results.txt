@@ -10,58 +10,42 @@ Scale: >=200 requests per endpoint per concurrency level (800 requests per batch
 ---------------------------------------------------------------------------------------------------------
 1. OVERALL BENCHMARK PERFORMANCE TABLE (200 REQ / ENDPOINT, 800 REQ / LEVEL)
 ---------------------------------------------------------------------------------------------------------
-Concurrency | Total Req | Duration (s) | Throughput (req/s) | p50 (ms) | p90 (ms) | p95 (ms) | p99 (ms) | 401s | 429s | 5xx
-------------|-----------|--------------|--------------------|----------|----------|----------|----------|------|------|----
-C = 1       | 800       | 96.20        | 8.3                | 87.6     | 234.3    | 291.3    | 504.2    | 0    | 0    | 0
-C = 10      | 800       | 80.12        | 10.0               | 942.1    | 1908.3   | 2270.9   | 3374.7   | 0    | 0    | 0
-C = 50      | 800       | 87.95        | 9.1                | 6163.6   | 8932.6   | 9751.6   | 10949.3  | 0    | 0    | 0
+Concurrency | Total Req | Duration (s) | Throughput (req/s) | p50 (ms) | p90 (ms) | p95 (ms) | p99 (ms) | 400s | 401s | 429s | 5xx | Status Distribution
+------------|-----------|--------------|--------------------|----------|----------|----------|----------|------|------|------|-----|--------------------
+C = 1        | 800       | 78.79        | 10.2               | 79.3     | 148.9    | 190.6    | 317.4    | 0    | 0    | 0    | 0   | {200: 800}
+C = 10       | 800       | 57.74        | 13.9               | 500.7    | 1530.1   | 1952.3   | 2548.2   | 0    | 0    | 0    | 0   | {200: 800}
+C = 50       | 800       | 54.31        | 14.7               | 2428.4   | 5057.2   | 5862.8   | 8087.4   | 0    | 0    | 0    | 0   | {200: 800}
 
 ---------------------------------------------------------------------------------------------------------
-2. PER-ENDPOINT LATENCY BREAKDOWN ACROSS CONCURRENCY LEVELS (p50 / p95 / p99)
+2. PER-ENDPOINT LATENCY BREAKDOWN ACROSS CONCURRENCY LEVELS (p50 / p90 / p95 / p99)
 ---------------------------------------------------------------------------------------------------------
-Concurrency C = 1 (Sequential Baseline, 200 req per endpoint):
-  - /health                   : p50=50.5 ms  | p90=83.5 ms   | p95=97.8 ms   | p99=144.4 ms  (200/200 OK)
-  - /doctor_respond           : p50=55.5 ms  | p90=96.1 ms   | p95=109.7 ms  | p99=152.8 ms  (200 requests)
-  - /api/v1/consultation/triage: p50=104.1 ms | p90=204.1 ms  | p95=270.2 ms  | p99=375.7 ms  (200/200 OK)
-  - /api/v1/consultation/my   : p50=193.0 ms | p90=349.8 ms  | p95=460.5 ms  | p99=660.6 ms  (200/200 OK)
+Concurrency C = 1 (200 req per endpoint):
+  - doctor_respond              : p50=73.0 ms | p90=116.8 ms | p95=128.6 ms | p99=244.2 ms (count=200, status={200: 200})
+  - health                      : p50=61.5 ms | p90=88.5 ms | p95=93.9 ms | p99=131.7 ms (count=200, status={200: 200})
+  - submit_triage               : p50=135.4 ms | p90=256.3 ms | p95=299.2 ms | p99=392.4 ms (count=200, status={200: 200})
+  - worker_list                 : p50=76.2 ms | p90=117.9 ms | p95=130.3 ms | p99=152.0 ms (count=200, status={200: 200})
 
-Concurrency C = 10 (Moderate Load, 200 req per endpoint):
-  - /health                   : p50=169.7 ms | p90=331.0 ms  | p95=432.4 ms  | p99=519.0 ms  (200/200 OK)
-  - /doctor_respond           : p50=854.8 ms | p90=1552.6 ms | p95=1890.4 ms | p99=3136.2 ms (200 requests)
-  - /api/v1/consultation/triage: p50=1167.1 ms| p90=2141.7 ms | p95=2437.0 ms | p99=3318.4 ms (200/200 OK)
-  - /api/v1/consultation/my   : p50=1377.0 ms| p90=2335.0 ms | p95=3046.8 ms | p99=4247.4 ms (200/200 OK)
+Concurrency C = 10 (200 req per endpoint):
+  - doctor_respond              : p50=474.3 ms | p90=765.0 ms | p95=856.6 ms | p99=1286.7 ms (count=200, status={200: 200})
+  - health                      : p50=354.3 ms | p90=637.7 ms | p95=717.2 ms | p99=1135.1 ms (count=200, status={200: 200})
+  - submit_triage               : p50=1349.2 ms | p90=2274.1 ms | p95=2443.5 ms | p99=2863.4 ms (count=200, status={200: 200})
+  - worker_list                 : p50=417.7 ms | p90=701.2 ms | p95=779.4 ms | p99=1255.3 ms (count=200, status={200: 200})
 
-Concurrency C = 50 (Stress Load, 200 req per endpoint):
-  - /health                   : p50=168.5 ms | p90=572.2 ms  | p95=710.9 ms  | p99=1190.1 ms (200/200 OK)
-  - /doctor_respond           : p50=6583.3 ms| p90=8708.8 ms | p95=9220.2 ms | p99=10328.4 ms(200 requests)
-  - /api/v1/consultation/triage: p50=7005.4 ms| p90=9263.1 ms | p95=10576.3 ms| p99=11007.4 ms(200/200 OK)
-  - /api/v1/consultation/my   : p50=7290.0 ms| p90=9751.6 ms | p95=10581.0 ms| p99=11086.7 ms(200/200 OK)
-
----------------------------------------------------------------------------------------------------------
-3. ROOT CAUSE ANALYSIS OF WORKER LIST ENDPOINT LATENCY (/api/v1/consultation/my)
----------------------------------------------------------------------------------------------------------
-In the single-user baseline and across concurrency levels, `GET /api/v1/consultation/my` exhibits
-the highest latency of any retrieval endpoint (~193 ms p50, up to 660.6 ms p99 at C=1, and >10 s at C=50).
-
-Dominating Factors Identified:
-1. Unpaginated Collection Scan: The service function `getConsultationsByWorker` executes `Consultation.find({ organization })`
-   without pagination limit or projection filtering, querying hundreds of historical consultations.
-2. Double Foreign Populate: It chains `.populate("patient", "name age gender")` and `.populate("assignedDoctor", "name specialization")`,
-   requiring Mongoose to issue batch queries against the patients and doctors collections for foreign document joins.
-3. Synchronous AES-256-GCM Cryptographic Decryption: The Patient schema decrypts PII fields (`name`, `phoneNumber`, `address`)
-   via custom Mongoose getters using Node.js `crypto` AES-256-GCM. Executing hundreds of symmetric decryptions inside
-   Mongoose document hydration blocks the single-threaded Node.js event loop synchronously, causing queue lag for concurrent HTTP requests.
-4. Payload Serialization: Converting hundreds of hydrated Mongoose document model instances to JSON for the response wire payload.
+Concurrency C = 50 (200 req per endpoint):
+  - doctor_respond              : p50=2183.6 ms | p90=4462.1 ms | p95=5269.6 ms | p99=6676.6 ms (count=200, status={200: 200})
+  - health                      : p50=2412.6 ms | p90=4734.2 ms | p95=5576.5 ms | p99=8168.2 ms (count=200, status={200: 200})
+  - submit_triage               : p50=3050.5 ms | p90=6242.4 ms | p95=6729.9 ms | p99=9930.8 ms (count=200, status={200: 200})
+  - worker_list                 : p50=2295.1 ms | p90=4834.6 ms | p95=5468.1 ms | p99=7047.0 ms (count=200, status={200: 200})
 
 ---------------------------------------------------------------------------------------------------------
-4. TRIAGE LATENCY PROFILING BREAKDOWN (EMPIRICAL MEASUREMENTS)
+3. TRIAGE LATENCY PROFILING BREAKDOWN (EMPIRICAL MEASUREMENTS)
 ---------------------------------------------------------------------------------------------------------
-  1. ML Bayesian Inference (FastAPI :8000 via internal proxy network): 1.79 ms (1.5%)
-  2. Devanagari PDF ReportLab Synthesis (CPU):                         26.27 ms (21.7%)
-  3. Network Ingress, Express Middleware, DB Overhead:                 92.88 ms (76.8%)
-  ---------------------------------------------------------------------------------
-  Total End-to-End Triage Latency (LLM Off / Fallback):               120.94 ms (100.0%)
+  1. ML Bayesian Inference (FastAPI :8000 in-container): 1.8 ms (1.4%)
+  2. Devanagari PDF ReportLab Synthesis (CPU):           63.0 ms (50.4%)
+  3. Network Ingress, Express Middleware, DB Overhead:    60.2 ms (48.2%)
+  -------------------------------------------------------------
+  Total End-to-End Triage Latency (LLM Off / Fallback):  125.0 ms (100.0%)
 
 Note on Gemini LLM Latency:
   When LLM is active, cloud API round-trip latency to Gemini 2.5 Flash is external. Due to quota reset
-  pending, LLM latency is recorded as "not measured" in this benchmark.
+  pending, LLM latency is recorded as 'not measured' in this benchmark.

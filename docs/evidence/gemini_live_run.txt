@@ -1,11 +1,12 @@
 {
-  "model": "gemini-3-flash-preview",
-  "latencyMs": 2790.93,
-  "llmFallback": true,
-  "diagnosis_summary": "Patient presents clinical indicators consistent with Malaria with a model confidence of 88.5%.",
-  "confidence_interpretation": "Statistical decision-support estimation. Clinical correlation by a registered medical practitioner is required.",
-  "severity_assessment": "Calculated severity score is 3.2. Continuous monitoring of vital signs is recommended.",
-  "key_contributing_factors": "Primary presenting symptoms: chills, vomiting, high fever, sweating, headache.",
-  "recommended_next_steps": "[DRAFT - Decision Support Only, not clinically reviewed, no drug dosages] Maintain adequate oral hydration with clean boiled water; use mosquito bed nets; monitor oral temperature every 4 hours. No unvetted medication. Precautions: Drink boiled water; Use mosquito bed nets; Rest.",
-  "referral_recommendation": "Refer to Primary Health Centre (PHC) for malaria parasite rapid diagnostic test (RDT) and peripheral blood smear."
+  "timestamp": "2026-10-31T15:11:24Z",
+  "model_used": "gemini-3.5-flash",
+  "llmFallback": false,
+  "latency_seconds": 36.855,
+  "diagnosis_summary": "The clinical model indicates a primary prediction of Malaria, a parasitic infection transmitted through the bites of infected female Anopheles mosquitoes.",
+  "confidence_interpretation": "The algorithmic output provides an 89.5% model estimate, functioning as a statistical decision-support estimate based on the provided symptom criteria.",
+  "severity_assessment": "The case reflects a severity score of 3.4, marked by acute systemic symptoms including high fever and vomiting that require timely medical review.",
+  "key_contributing_factors": "Key reported symptoms contributing to this model prediction include chills, vomiting, high fever, headache, and sweating.",
+  "recommended_next_steps": "Consult a physician immediately for diagnostic evaluation. Ensure intake of clean drinking water, protect against mosquito bites, and maintain a clean environment.",
+  "referral_recommendation": "Prompt referral to a primary health center or qualified doctor is recommended for clinical assessment and management."
 }
