@@ -6,28 +6,26 @@ All experiments were conducted on the deduplicated dataset ($n=304$ unique clini
 
 > **Data Provenance & Calibration Status**: *The dataset is synthetically generated with 304 unique rows across 41 disease classes (after dropping 4,616 duplicates), and the deployed model is uncalibrated.*
 
-### 4.1.1 Cross-Model Comparative Benchmark & Evidence Traceability
-Candidate model families were benchmarked across 15 outer splits under varying levels of missing symptom noise (0%, 30%, and 50% missing symptoms):
+### 4.1.1 Empirical Accuracy Benchmark: Bernoulli Naive Bayes vs. Tuned LightGBM
+Candidate model families were evaluated across 15 splits under 5x3 repeated stratified cross-validation on the 304 unique rows of synthetic data under varying levels of missing symptom noise (0%, 30%, and 50% symptom dropout):
 
-- **Historical Draft Figures (Untraceable)**: An earlier Phase 7 project draft listed candidate metrics for LightGBM (Clean 99.67%, 30% Dropout 95.39%, 50% Dropout 83.22%, Mean F1 0.9512, ECE 0.0384, Brier 0.0121). These draft numbers **cannot be traced to lines in any empirical evidence file** in `docs/evidence/`.
-- **Empirical Tuned Tree Benchmark (Traceable)**: The actual empirical nested CV benchmark recorded in [`docs/evidence/tuned_tree_benchmark.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md) (5 folds × 3 repeats = 15 splits, with inner 3-fold CV for hyperparameter tuning) produced the following traceable metrics:
+- **Deployed Production Model (Bernoulli Naive Bayes v2.0.0)**: As recorded in [`docs/evidence/model_benchmark.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md), Bernoulli Naive Bayes decisively outperformed tree ensembles under symptom omission on this sparse synthetic dataset:
+  - **0% Missing Symptoms (Clean)**: Top-1 Accuracy **1.000 ± 0.000** (Top-3 1.000 ± 0.000, Macro F1 1.000, Log-Loss 0.006 ± 0.004, ECE 0.005) ([`model_benchmark.md:14`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md#L14))
+  - **30% Missing Symptoms (Robust)**: Top-1 Accuracy **0.989 ± 0.014** (Top-3 1.000 ± 0.000, Macro F1 0.985, Log-Loss 0.053 ± 0.024, ECE 0.032) ([`model_benchmark.md:31`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md#L31))
+  - **50% Missing Symptoms (Extreme)**: Top-1 Accuracy **0.919 ± 0.023** (Top-3 0.991 ± 0.012, Macro F1 0.896, Log-Loss 0.279 ± 0.050, ECE 0.072) ([`model_benchmark.md:48`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md#L48))
 
-| Model | Evaluation Protocol | Symptom Dropout | Top-1 Accuracy | Top-3 Accuracy | Log-Loss | ECE | Evidence File |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **LightGBM (Tuned Inner-CV)** | Repeated Stratified 5x3 CV | **0% (Clean)** | 0.9890 ± 0.0119 | 0.9945 ± 0.0080 | 0.0656 ± 0.0720 | 0.0098 ± 0.0079 | [`tuned_tree_benchmark.md:12`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md) |
-| **LightGBM (Tuned Inner-CV)** | Repeated Stratified 5x3 CV | **30% (Robust)** | 0.8640 ± 0.0399 | 0.9440 ± 0.0341 | 0.7140 ± 0.2789 | 0.0975 ± 0.0370 | [`tuned_tree_benchmark.md:13`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md) |
-| **LightGBM (Tuned Inner-CV)** | Repeated Stratified 5x3 CV | **50% (Extreme)** | 0.6830 ± 0.0783 | 0.8256 ± 0.0652 | 1.7157 ± 0.5034 | 0.2019 ± 0.0508 | [`tuned_tree_benchmark.md:14`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md) |
-| **XGBoost (Tuned Inner-CV)** | Repeated Stratified 5x3 CV | **0% (Clean)** | 0.9836 ± 0.0139 | 0.9934 ± 0.0104 | 0.1433 ± 0.0367 | 0.0826 ± 0.0129 | [`tuned_tree_benchmark.md:15`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md) |
-| **XGBoost (Tuned Inner-CV)** | Repeated Stratified 5x3 CV | **30% (Robust)** | 0.8683 ± 0.0413 | 0.9715 ± 0.0201 | 0.6463 ± 0.1217 | 0.1983 ± 0.0346 | [`tuned_tree_benchmark.md:16`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md) |
-| **XGBoost (Tuned Inner-CV)** | Repeated Stratified 5x3 CV | **50% (Extreme)** | 0.7203 ± 0.0773 | 0.8969 ± 0.0549 | 1.2161 ± 0.2235 | 0.2118 ± 0.0474 | [`tuned_tree_benchmark.md:17`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md) |
+- **Tuned LightGBM Comparison**: Recorded in [`docs/evidence/tuned_tree_benchmark.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md) (5 folds × 3 repeats = 15 splits, with inner 3-fold CV for hyperparameter selection on the 304 unique rows of synthetic data):
+  - **0% Missing Symptoms (Clean)**: Top-1 Accuracy **0.989 ± 0.012** (Top-3 0.995 ± 0.008, Log-Loss 0.0656 ± 0.0720, ECE 0.0098 ± 0.0079) ([`tuned_tree_benchmark.md:12`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md#L12))
+  - **30% Missing Symptoms (Robust)**: Top-1 Accuracy **0.864 ± 0.040** (Top-3 0.944 ± 0.034, Log-Loss 0.7140 ± 0.2789, ECE 0.0975 ± 0.0370) ([`tuned_tree_benchmark.md:13`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md#L13))
+  - **50% Missing Symptoms (Extreme)**: Top-1 Accuracy **0.683 ± 0.078** (Top-3 0.8256 ± 0.0652, Log-Loss 1.7157 ± 0.5034, ECE 0.2019 ± 0.0508) ([`tuned_tree_benchmark.md:14`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md#L14))
 
-- **Deployed Production Model (Bernoulli Naive Bayes v2.0.0)**: As recorded in [`docs/evidence/model_benchmark.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md) and [`docs/MODEL_CARD.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/MODEL_CARD.md), Bernoulli Naive Bayes decisively outperformed tree ensembles under symptom omission on this sparse, synthetic dataset:
-  - **0% Missing Symptoms**: Top-1 Accuracy `1.000 ± 0.000` (`100.0%`), Top-3 `1.000 ± 0.000`, Macro F1 `1.000`, Log-Loss `0.006 ± 0.004`, ECE `0.005` ([`model_benchmark.md:14`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md))
-  - **30% Missing Symptoms**: Top-1 Accuracy `0.989 ± 0.014` (`98.9%`), Top-3 `1.000 ± 0.000`, Macro F1 `0.985`, Log-Loss `0.053 ± 0.024`, ECE `0.032` ([`model_benchmark.md:31`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md))
-  - **50% Missing Symptoms**: Top-1 Accuracy `0.919 ± 0.023` (`91.9%`), Top-3 `0.991 ± 0.012`, Macro F1 `0.896`, Log-Loss `0.279 ± 0.050`, ECE `0.072` ([`model_benchmark.md:48`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md))
-
-### 4.1.2 Probability Calibration Findings
-Empirical calibration evaluations documented in [`docs/MODEL_CARD.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/MODEL_CARD.md) revealed that post-hoc Sigmoid/Platt Scaling (`CalibratedClassifierCV(method='sigmoid')`) substantially worsened out-of-fold log loss from 0.0061 to 0.1643 for Bernoulli Naive Bayes. Consequently, post-hoc calibration was rejected and the production service runs uncalibrated Bayesian posterior estimates.
+### 4.1.2 Probability Calibration & Brier Score Protocol
+- **Brier Score (0.2483)**: Produced by in-sample evaluation on the 304 unique ground-truth rows at 0% symptom masking using the legacy model with `CalibratedClassifierCV` ([`docs/evidence/classification_report.md:6`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/classification_report.md#L6)).
+- **Expected Calibration Error (ECE)**:
+  - For **Bernoulli Naive Bayes** (5x3 repeated stratified CV on 304 unique rows): ECE is **0.005** at 0% dropout ([`model_benchmark.md:14`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md#L14)), **0.032** at 30% dropout ([`model_benchmark.md:31`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md#L31)), and **0.072** at 50% dropout ([`model_benchmark.md:48`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md#L48)).
+  - For **Tuned LightGBM** (5x3 repeated stratified nested CV on 304 unique rows): ECE is **0.0098** at 0% dropout ([`tuned_tree_benchmark.md:12`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md#L12)), **0.0975** at 30% dropout ([`tuned_tree_benchmark.md:13`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md#L13)), and **0.2019** at 50% dropout ([`tuned_tree_benchmark.md:14`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/tuned_tree_benchmark.md#L14)).
+  - **In-Sample Calibrated LightGBM ECE (0.4900)**: At 0% symptom masking on the 304 unique rows, Sigmoid scaling compressed confidences around ~0.52 despite 100% in-sample accuracy, creating an in-sample ECE of 0.4900 ([`classification_report.md:5`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/classification_report.md#L5)).
+- **Calibration Decision**: Empirical out-of-fold evaluations revealed that post-hoc Sigmoid/Platt Scaling on BernoulliNB worsened out-of-fold log loss from 0.0061 to 0.1643 ([`docs/MODEL_CARD.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/MODEL_CARD.md)), and therefore the production service deploys uncalibrated raw posterior estimates.
 
 ---
 
@@ -45,7 +43,6 @@ The benchmark exercised all four critical production endpoints (`doctor_respond`
 | **C = 1** | 800 | 78.79 s | 10.2 req/s | 79.3 ms | 148.9 ms | 190.6 ms | 317.4 ms | 0 | 0 | 0 | 0 | {200: 800} |
 | **C = 10** | 800 | 57.74 s | 13.9 req/s | 500.7 ms | 1,530.1 ms | 1,952.3 ms | 2,548.2 ms | 0 | 0 | 0 | 0 | {200: 800} |
 | **C = 50** | 800 | 54.31 s | 14.7 req/s | 2,428.4 ms | 5,057.2 ms | 5,862.8 ms | 8,087.4 ms | 0 | 0 | 0 | 0 | {200: 800} |
-| **Total / Aggregate** | **2,400** | **190.84 s** | **12.6 req/s** | — | — | — | — | **0** | **0** | **0** | **0** | **{200: 2,400} (100%)** |
 
 ### 4.2.2 Per-Endpoint Latency Breakdown across Concurrency Levels
 *Source: [`docs/evidence/load_test_testmode_results.txt:20-38`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/load_test_testmode_results.txt)*

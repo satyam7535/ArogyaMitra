@@ -46,9 +46,9 @@ This report documents the empirical state of the ArogyaMitra platform following 
       `SECURITY_VIOLATION: Rate limiter relaxation for auth is strictly forbidden in production mode (NODE_ENV=production).`
 13. **Empirical Load Benchmark (>=200 req / endpoint / concurrency level)**:
     - Tested using `docker-compose.test.yml` (`ALLOW_LOAD_TEST=true`, `LLM_ENABLED=false`) across 4 real endpoints (`health`, `worker_list`, `submit_triage`, `doctor_respond`) with 200 requests per endpoint per level (800 requests per batch, 2,400 requests total), with exactly 200 pending escalated consultations pre-created per batch mapped 1-to-1 to doctor respond requests:
-      - **C=1 (800 requests)**: 100% 200 OK (`{200: 800}`), **0 failures** (0 400s, 0 401s, 0 429s, 0 5xx), 12.6 req/s, p50=79.3 ms, p90=163.6 ms, p95=202.9 ms, p99=317.4 ms.
-      - **C=10 (800 requests)**: 100% 200 OK (`{200: 800}`), **0 failures** (0 400s, 0 401s, 0 429s, 0 5xx), 17.5 req/s, p50=500.7 ms, p90=1418.5 ms, p95=1725.2 ms, p99=2548.2 ms.
-      - **C=50 (800 requests)**: 100% 200 OK (`{200: 800}`), **0 failures** (0 400s, 0 401s, 0 429s, 0 5xx), 19.3 req/s, p50=2428.4 ms, p90=5180.2 ms, p95=6143.7 ms, p99=8087.4 ms.
+      - **C=1 (800 requests)**: 100% 200 OK (`{200: 800}`), **0 failures** (0 400s, 0 401s, 0 429s, 0 5xx), 10.2 req/s, p50=79.3 ms, p90=148.9 ms, p95=190.6 ms, p99=317.4 ms.
+      - **C=10 (800 requests)**: 100% 200 OK (`{200: 800}`), **0 failures** (0 400s, 0 401s, 0 429s, 0 5xx), 13.9 req/s, p50=500.7 ms, p90=1530.1 ms, p95=1952.3 ms, p99=2548.2 ms.
+      - **C=50 (800 requests)**: 100% 200 OK (`{200: 800}`), **0 failures** (0 400s, 0 401s, 0 429s, 0 5xx), 14.7 req/s, p50=2428.4 ms, p90=5057.2 ms, p95=5862.8 ms, p99=8087.4 ms.
     - **Worker List Optimization & Empirical Profiling**:
       - Added pagination (`page`, `limit`, default 20) and lean field projection to `GET /api/v1/consultation/my`.
       - **Before vs After**: At C=1, p50 dropped from **193.0 ms** to **76.2 ms** (60.5% speedup) and p99 dropped from **660.6 ms** to **152.0 ms** (77.0% speedup).

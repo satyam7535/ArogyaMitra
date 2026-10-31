@@ -493,17 +493,16 @@ This guide prepares engineers for rigorous academic viva examination and technic
 ---
 
 ### Q35: What were the quantitative throughput and latency findings of the Phase P5 load test?
-- **30s Elevator Pitch**: The ingress load test evaluated 2,400 requests across four representative endpoints (`/health`, `/worker/login`, `/triage`, `/analyze/async`) across concurrency tiers 1, 10, and 50. Health checks maintained sub-5ms latencies, worker logins averaged 85ms (due to Argon2id hashing), and async analysis dispatch took 12ms. Overall throughput saturated cleanly at ~48 req/s under peak concurrency with 0.00% error rate.
+- **30s Elevator Pitch**: The ingress load test evaluated 2,400 requests across four representative production endpoints (`doctor_respond`, `health`, `submit_triage`, `worker_list`) across concurrency tiers 1, 10, and 50 (200 requests per endpoint per level). Overall throughput scaled from 10.2 req/s (C=1) to 14.7 req/s (C=50) with 0.00% error rate (2,400/2,400 HTTP 200 OK).
 - **Detailed Technical Answer**:
-  - *GET /health*: p50: 2.1ms, p95: 4.8ms, p99: 7.2ms (Zero database overhead).
-  - *POST /auth/worker/login*: p50: 78.4ms, p95: 112.6ms (Argon2id CPU memory-hard bound).
-  - *POST /consultation/triage*: p50: 14.2ms, p95: 28.5ms (FastAPI BernoulliNB inference).
-  - *POST /consultation/analyze/async*: p50: 11.8ms, p95: 22.1ms (Immediate queue dispatch).
-  Across 2,400 total requests, 0 socket drops and 0 connection timeouts occurred.
+  - *C=1 (800 req, 10.2 req/s)*: p50: 79.3ms, p90: 148.9ms, p95: 190.6ms, p99: 317.4ms.
+  - *C=10 (800 req, 13.9 req/s)*: p50: 500.7ms, p90: 1530.1ms, p95: 1952.3ms, p99: 2548.2ms.
+  - *C=50 (800 req, 14.7 req/s)*: p50: 2428.4ms, p90: 5057.2ms, p95: 5862.8ms, p99: 8087.4ms.
+  Across 2,400 total requests, 0 socket drops, 0 400s, 0 401s, 0 429s, and 0 5xx errors occurred.
 - **Code Citations**:
-  - `scripts/run_p5_load_test.py`: Benchmark runner script.
-  - `docs/evidence/performance_tuning.txt`: Performance tuning documentation.
-- **Evidence Verification**: [`docs/evidence/load_test_results.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/load_test_results.txt).
+  - `docker-compose.test.yml`: Test-mode compose configuration (`ALLOW_LOAD_TEST=true`, `LLM_ENABLED=false`).
+  - `docs/evidence/load_test_profiling_notes.md`: Load test profiling and list endpoint optimization.
+- **Evidence Verification**: [`docs/evidence/load_test_testmode_results.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/load_test_testmode_results.txt).
 - **Faculty Trap & Honest Defense**:
   - *Trap*: "Why is your login endpoint slower than your triage endpoint?"
   - *Defense*: This is an intentional security design choice. The login endpoint executes Argon2id with 64 MB of RAM and 3 iterations to prevent GPU brute-force attacks. The triage endpoint executes vectorized numpy matrix operations in scikit-learn, which requires minimal CPU compute.
