@@ -123,12 +123,13 @@ const getConsultation = async (req, res) => {
 // Worker accepts AI result or refers to hospital — closes consultation
 const acceptAI = async (req, res) => {
   try {
-    const { notes, decisionOutcome, overrideReason, overrideNote } = req.body || {};
+    const { notes, decisionOutcome, overrideReason, overrideNote, version } = req.body || {};
+    const expectedVersion = version !== undefined ? version : (req.headers["if-match"] ? parseInt(req.headers["if-match"], 10) : undefined);
     const consultation = await acceptAiResult(
       req.params.id,
       req.user.organization,
       req.user.id,
-      { notes, decisionOutcome, overrideReason, overrideNote }
+      { notes, decisionOutcome, overrideReason, overrideNote, version: expectedVersion }
     );
     if (!consultation) {
       return res.status(404).json({ message: "Consultation not found" });
@@ -160,10 +161,19 @@ const acceptAI = async (req, res) => {
 
     return res.status(200).json({ message: msg, consultation });
   } catch (error) {
-    if (error.name === "VersionError") {
-      return res.status(409).json({ message: "Conflict: consultation was updated concurrently. Please refresh and try again." });
+    if (error.code === "RED_FLAG_ACCEPT_BLOCKED") {
+      return res.status(409).json({
+        message: error.message,
+        code: "RED_FLAG_ACCEPT_BLOCKED",
+      });
     }
-    const statusCode = error.code === "RED_FLAG_ACCEPT_BLOCKED" ? 409 : (error.status || 400);
+    if (error.name === "VersionError" || error.status === 409) {
+      return res.status(409).json({
+        message: error.message || "Conflict: consultation was updated concurrently. Please refresh and try again.",
+        code: error.code || "CONCURRENCY_CONFLICT",
+      });
+    }
+    const statusCode = error.status || 400;
     return res.status(statusCode).json({
       message: error.message,
       code: error.code || "ACCEPT_ERROR",
@@ -176,13 +186,15 @@ const escalate = async (req, res) => {
   try {
     const doctorId = req.body.doctorId || req.body.targetDoctorId;
     const reason = req.body.reason || "";
+    const version = req.body.version !== undefined ? req.body.version : (req.headers["if-match"] ? parseInt(req.headers["if-match"], 10) : undefined);
     if (!doctorId) return res.status(400).json({ message: "doctorId is required" });
 
     const consultation = await escalateToDoctor(
       req.params.id,
       req.user.organization,
       doctorId,
-      reason
+      reason,
+      { version }
     );
 
     if (!consultation) {
@@ -199,7 +211,7 @@ const escalate = async (req, res) => {
 
     return res.status(200).json({ message: "Consultation escalated to doctor", consultation });
   } catch (error) {
-    if (error.name === "VersionError") {
+    if (error.name === "VersionError" || error.status === 409) {
       return res.status(409).json({ message: "Conflict: consultation was updated concurrently. Please refresh and try again." });
     }
     return res.status(400).json({ message: error.message });

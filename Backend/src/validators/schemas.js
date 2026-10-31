@@ -101,12 +101,14 @@ export const acceptConsultationSchema = z.object({
     "other",
   ]).optional(),
   overrideNote: z.string().trim().min(10, "Override note must be at least 10 non-whitespace characters").optional(),
+  version: z.number().int().optional(),
 }).strict();
 
 export const escalateConsultationSchema = z.object({
   reason: z.string().min(1, "Escalation reason is required"),
   doctorId: objectIdSchema.optional(),
   targetDoctorId: objectIdSchema.optional(),
+  version: z.number().int().optional(),
 }).strict();
 
 export const respondConsultationSchema = z.object({

@@ -91,7 +91,7 @@ const getConsultationById = async (consultationId, organization) => {
 };
 
 // Worker escalates to doctor (strictly scoped to organization)
-const escalateToDoctor = async (consultationId, organization, doctorId, reason = "") => {
+const escalateToDoctor = async (consultationId, organization, doctorId, reason = "", { version } = {}) => {
   if (!reason || !reason.trim()) {
     throw { status: 400, message: "Escalation reason is required" };
   }
@@ -118,10 +118,29 @@ const escalateToDoctor = async (consultationId, organization, doctorId, reason =
     return null;
   }
 
+  if (version !== undefined && consultation.__v !== version) {
+    const error = new Error("Conflict: consultation was updated concurrently. Please refresh and try again.");
+    error.name = "VersionError";
+    error.status = 409;
+    throw error;
+  }
+
   if (consultation.status === "closed") {
+    if (version !== undefined) {
+      const error = new Error("Conflict: Cannot escalate a closed consultation");
+      error.name = "VersionError";
+      error.status = 409;
+      throw error;
+    }
     throw { status: 400, message: "Cannot escalate a closed consultation" };
   }
   if (consultation.workerDecision === "escalated" || consultation.status === "escalated") {
+    if (version !== undefined) {
+      const error = new Error("Conflict: Consultation is already escalated to a doctor");
+      error.name = "VersionError";
+      error.status = 409;
+      throw error;
+    }
     throw { status: 400, message: "Consultation is already escalated to a doctor" };
   }
 
@@ -153,17 +172,36 @@ const acceptAiResult = async (
   consultationId,
   organization,
   workerId,
-  { notes, decisionOutcome, overrideReason, overrideNote } = {}
+  { notes, decisionOutcome, overrideReason, overrideNote, version } = {}
 ) => {
   const consultation = await Consultation.findOne({ _id: consultationId, organization });
   if (!consultation) {
     return null;
   }
 
+  if (version !== undefined && consultation.__v !== version) {
+    const error = new Error("Conflict: consultation was updated concurrently. Please refresh and try again.");
+    error.name = "VersionError";
+    error.status = 409;
+    throw error;
+  }
+
   if (consultation.status === "closed" || consultation.workerDecision === "accepted" || consultation.workerDecision === "referred_to_hospital") {
+    if (version !== undefined) {
+      const error = new Error("Conflict: Consultation is already closed. Double accept is forbidden.");
+      error.name = "VersionError";
+      error.status = 409;
+      throw error;
+    }
     throw { status: 400, message: "Consultation is already closed. Double accept is forbidden." };
   }
   if (consultation.workerDecision === "escalated") {
+    if (version !== undefined) {
+      const error = new Error("Conflict: Cannot accept a consultation that has already been escalated.");
+      error.name = "VersionError";
+      error.status = 409;
+      throw error;
+    }
     throw { status: 400, message: "Cannot accept a consultation that has already been escalated." };
   }
 

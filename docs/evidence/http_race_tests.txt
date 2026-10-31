@@ -1,0 +1,28 @@
+# EVIDENCE RECORD: P5.3 HTTP-Level Atomic Race Tests
+# COMMAND: python scripts/test_p5_race_suite.py
+# DATE: 2026-10-31T08:37:18.011743+00:00
+# COMMIT: 0ebfa6a0bfc9e26dd62e86cf5a4db962cb3d86bd
+# STATUS: DIRTY
+# TARGET: https://localhost/api/v1 (Docker Nginx + Express + MongoDB)
+# SEEDED DOCTOR ID: 6ae46b7034b82d868783cab2
+# -------------------------------------------------------------
+
+### TEST 1: 50 Concurrent Accept Requests on Single Consultation
+Created Target Consultation: 6ae5a8c08fcbcf03b1c72dc7 (Initial __v: 0, status: pending)
+Firing 50 parallel accept requests simultaneously...
+Test 1 HTTP Status Distribution: {200: 1, 409: 49}
+200 OK (Winner): 1
+409 Conflict (Losers): 49
+Winning Response (Thread #0): {"message":"AI result accepted. Consultation closed.","consultation":{"mlAnalysis":{"topPredictions":[],"matchedSymptoms":[],"precautions":[],"shapExplanation":
+Sample Conflict Response (Thread #1): {"message":"Conflict: consultation was updated concurrently. Please refresh and try again.","code":"CONCURRENCY_CONFLICT"}
+TEST 1 RESULT: PASS (Expected 1x 200, 49x 409)
+
+### TEST 2: 50 Concurrent Mixed Requests (25 Accept vs 25 Escalate)
+Created Target Consultation: 6ae5a8c28fcbcf03b1c72dcc (Initial __v: 0, status: pending)
+Firing 25 accept and 25 escalate requests simultaneously (50 total)...
+Test 2 HTTP Status Distribution: {409: 49, 200: 1}
+200 OK (Winner): 1
+409 Conflict (Losers): 49
+Winning Action: ESCALATE (Thread #1): {"message":"Consultation escalated to doctor","consultation":{"mlAnalysis":{"topPredictions":[],"matchedSymptoms":[],"precautions":[],"shapExplanation":[],"redF
+Sample Conflict Response (ACCEPT Thread #0): {"message":"Conflict: consultation was updated concurrently. Please refresh and try again.","code":"CONCURRENCY_CONFLICT"}
+TEST 2 RESULT: PASS (Expected 1x 200, 49x 409)

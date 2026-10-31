@@ -1,0 +1,102 @@
+# EVIDENCE RECORD: P5.2 Production Rate Limiter Verification
+# COMMAND: python scripts/test_p5_rate_limit.py
+# DATE: 2026-10-31T08:23:11.835577+00:00
+# COMMIT: 0ebfa6a0bfc9e26dd62e86cf5a4db962cb3d86bd
+# STATUS: DIRTY
+# -------------------------------------------------------------
+### 1. Ingress HTTPS Rate Limiter Test (POST https://localhost/api/v1/worker/login)
+Testing 20 sequential authentication requests against rate-limited worker login...
+Request 01: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 14 | Reset: 900
+Request 02: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 13 | Reset: 900
+Request 03: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 12 | Reset: 900
+Request 04: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 11 | Reset: 900
+Request 05: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 10 | Reset: 900
+Request 06: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 9 | Reset: 900
+Request 07: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 8 | Reset: 900
+Request 08: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 7 | Reset: 900
+Request 09: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 6 | Reset: 900
+Request 10: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 5 | Reset: 900
+Request 11: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 4 | Reset: 900
+Request 12: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 3 | Reset: 900
+Request 13: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 2 | Reset: 900
+Request 14: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 1 | Reset: 900
+Request 15: HTTP 401 | Retry-After: None | Limit: 15 | Remaining: 0 | Reset: 899
+Request 16: HTTP 429 | Retry-After: 899 | Limit: 15 | Remaining: 0 | Reset: 899
+
+--- HTTP 429 RESPONSE HEADERS ---
+Server: nginx
+Date: Sat, 31 Oct 2026 08:23:13 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 124
+Connection: keep-alive
+X-Request-Id: 6ebcd1c2-3db9-4ebf-8b1f-d12d997ba84c
+Content-Security-Policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests, default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer, strict-origin-when-cross-origin
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload, max-age=63072000; includeSubDomains; preload
+X-Content-Type-Options: nosniff, nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN, DENY
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0, 1; mode=block
+Vary: Origin
+Access-Control-Allow-Credentials: true
+RateLimit-Policy: 15;w=900
+RateLimit-Limit: 15
+RateLimit-Remaining: 0
+RateLimit-Reset: 899
+Retry-After: 899
+ETag: W/"7c-KsfhruqqvQ2HBcyRyNGIY0ac2ZE"
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+--- HTTP 429 RESPONSE BODY ---
+{"message":"Too many authentication attempts from this IP, please try again after 15 minutes.","code":"RATE_LIMIT_EXCEEDED"}
+---------------------------------
+
+Request 17: HTTP 429 | Retry-After: 899 | Limit: 15 | Remaining: 0 | Reset: 899
+Request 18: HTTP 429 | Retry-After: 899 | Limit: 15 | Remaining: 0 | Reset: 899
+Request 19: HTTP 429 | Retry-After: 899 | Limit: 15 | Remaining: 0 | Reset: 899
+Request 20: HTTP 429 | Retry-After: 899 | Limit: 15 | Remaining: 0 | Reset: 899
+
+Verification Result: Rate Limit 429 Observed = True
+
+### 2. Direct curl Probe Capturing Raw HTTP/1.1 429 Protocol Output
+HTTP/1.1 429 Too Many Requests
+Server: nginx
+Date: Sat, 31 Oct 2026 08:23:13 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 124
+Connection: keep-alive
+X-Request-Id: 0e6ef1a4-f970-43ae-bb8b-ee8fb776ebaf
+Content-Security-Policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin
+Access-Control-Allow-Credentials: true
+RateLimit-Policy: 15;w=900
+RateLimit-Limit: 15
+RateLimit-Remaining: 0
+RateLimit-Reset: 899
+Retry-After: 899
+ETag: W/"7c-KsfhruqqvQ2HBcyRyNGIY0ac2ZE"
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+{"message":"Too many authentication attempts from this IP, please try again after 15 minutes.","code":"RATE_LIMIT_EXCEEDED"}
