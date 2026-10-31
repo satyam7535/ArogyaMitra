@@ -239,7 +239,7 @@ Outputs full reproduction log to `docs/evidence/reproduce_all.txt`.
 - **Active Model**: Bernoulli Naive Bayes (`v2.0.0`) on 41 disease classes and 131 symptoms (`ML_Model/model/v2/model.joblib`).
 - **Feature Attributions**: Additive Bayesian Log-Odds Evidence Weights ($\sum \Delta w_j = \Delta \log P \pm 10^{-10}$).
 - **Escalation Policy**: Evaluates held-out operating threshold of 0.75 confidence and 131 red-flag symptoms.
-- **Scientific Transparency**: Probabilities represent raw model likelihoods and are labeled "Model Confidence" without false calibration claims (`docs/MODEL_CARD.md`).
+- **Scientific Transparency**: Probabilities represent uncalibrated posterior estimates from Bernoulli Naive Bayes and are labeled "Model Confidence" without false calibration claims (`docs/MODEL_CARD.md`).
 
 ### Security Scanners & Hygiene
 - **Secret Detection**: `gitleaks detect` scanned full commit history (0 leaks found).

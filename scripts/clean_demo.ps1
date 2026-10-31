@@ -46,3 +46,4 @@ Write-Host "    - Worker:  worker1@arogyamitra.org / Password123!" -ForegroundCo
 Write-Host "    - Doctor:  doc1@arogyamitra.org    / Password123!" -ForegroundColor White
 Write-Host "    - Admin:   admin1@arogyamitra.org  / Password123!" -ForegroundColor White
 Write-Host "============================================================" -ForegroundColor Green
+

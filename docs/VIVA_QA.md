@@ -109,7 +109,7 @@ This guide prepares engineers for rigorous academic viva examination and technic
 ---
 
 ### Q8: What does the "Confidence" score in ArogyaMitra actually represent, and why was the word "Calibrated" removed?
-- **30s Elevator Pitch**: The confidence score produced by BernoulliNB is a raw normalized likelihood resulting from Bayes' theorem under uniform class priors. Because the Naive Bayes conditional independence assumption multiplies correlated likelihoods, posterior probabilities are pushed towards extremes (0 or 1). The score represents ordinal ranking confidence, not an empirical probability, and is honestly labeled as "Confidence" without false calibration claims.
+- **30s Elevator Pitch**: The confidence score produced by BernoulliNB is an uncalibrated posterior estimate from Bernoulli Naive Bayes resulting from Bayes' theorem under uniform class priors. Because the Naive Bayes conditional independence assumption multiplies correlated likelihoods, posterior probabilities are pushed towards extremes (0 or 1). The score represents ordinal ranking confidence, not an empirical probability, and is honestly labeled as "Confidence" without false calibration claims.
 - **Detailed Technical Answer**: In earlier iterations, the UI erroneously displayed "Calibrated Confidence: 88.5%". An audit revealed that no Platt scaling or Isotonic regression layer existed in the v2.0.0 inference pipeline. Labeling raw Bayes posteriors as calibrated violates medical device transparency standards. In Phase P0, all occurrences of "Calibrated Confidence" were excised from the codebase, replacing them with "Model Confidence" and documenting the exact uncalibrated nature of the scores in `docs/MODEL_CARD.md`.
 - **Code Citations**:
   - `ui/pages/worker_triage.py:140-155`: Updated confidence display badge.
@@ -604,10 +604,10 @@ This guide prepares engineers for rigorous academic viva examination and technic
 - **30s Elevator Pitch**:
   1. *Synthetic Data*: The ML model is trained on a synthetic 41-disease dataset with 304 unique symptom vectors, lacking real-world clinical co-morbidities.
   2. *Single-Node In-Memory Queue*: The asynchronous job queue is stored in Node.js process memory; a sudden server power failure during job processing requires restart recovery.
-  3. *Uncalibrated Probabilities*: BernoulliNB probabilities represent raw uncalibrated likelihoods rather than true empirical Bayesian posterior probabilities.
+  3. *Uncalibrated Probabilities*: BernoulliNB probabilities represent uncalibrated posterior estimates from Bernoulli Naive Bayes rather than true empirical Bayesian posterior probabilities.
 - **Detailed Technical Answer**: We maintain total engineering honesty regarding these limitations:
   - *Data Boundary*: In actual clinical medicine, patients present with atypical symptoms, polypharmacy, and non-binary symptom severities (e.g., mild vs debilitating headache). The binary symptom vector representation cannot capture clinical nuance.
-  - *Queue Architecture*: For multi-node enterprise scalability, the job queue must be migrated to Redis with BullMQ and worker heartbeat monitors.
+  - *Queue Architecture*: For multi-node distributed scalability, the job queue must be migrated to Redis with BullMQ and worker heartbeat monitors.
   - *Calibration*: Due to small sample sizes per class in the deduplicated set, post-hoc calibration was omitted to avoid overfitting, making probability scores ordinal rather than calibrated.
 - **Code Citations**:
   - `docs/KNOWN_LIMITATIONS.md`: Complete register of architectural and clinical limitations.

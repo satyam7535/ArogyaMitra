@@ -1,4 +1,8 @@
-# ArogyaMitra — Truth Audit Matrix (`docs/AUDIT.md`)
+# [HISTORICAL] ArogyaMitra — Truth Audit Matrix (`docs/AUDIT.md`)
+
+> [!NOTE]
+> **HISTORICAL ARCHIVE**: This document is an immutable historical audit record from earlier remediation phases.
+> For the current, active, and comprehensive verification status across all system requirements, refer to the canonical [`docs/COMPLETION_LEDGER.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/COMPLETION_LEDGER.md) and [`docs/VERIFICATION_REPORT.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/VERIFICATION_REPORT.md).
 
 This audit document evaluates every task and gate across Phases 0 through 7 against strict evidentiary standards:
 - **PASS**: Verified by real command execution and evidence output file in this repository.
