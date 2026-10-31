@@ -3,4 +3,5 @@
 fa04225773c30a4258acba01b5f615e54c7cac2e:Backend/src/config/serverConfig.js:generic-api-key:56
 201dc9c442b4b9332c925f0409ccd66e3b661be7:Backend/tests/security.test.js:generic-api-key:1615
 201dc9c442b4b9332c925f0409ccd66e3b661be7:Backend/tests/setup.js:generic-api-key:8
-
+# P3.8 Test idempotency key UUID recorded in raw evidence output
+0ddca8db370c2343460bb68a6c6807321966fe36:docs/evidence/p3_idempotency_http.txt:generic-api-key:23

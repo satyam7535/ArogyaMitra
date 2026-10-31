@@ -1,21 +1,22 @@
-﻿# Command: d:\tools\gitleaks.exe detect --source . -v --redact --gitleaks-ignore-path .gitleaksignore
-# Date: 2026-10-29 18:28:31 +05:30
-# Git Commit: aae2258
-# Tool Version: 8.30.1
-
+﻿# EVIDENCE RECORD: P6.7 Gitleaks Secret Leak Detection Scan
+# COMMAND: d:\tools\gitleaks.exe detect --source . -v --redact --gitleaks-ignore-path .gitleaksignore
+# DATE: 2026-10-31T08:50:06Z
+# COMMIT: addf510d4959e64414ccb8a27917654b32a45b14
+# STATUS: DIRTY
+# -------------------------------------------------------------
 gitleaks.exe : 
-At line:1 char:334
-+ ... oding utf8; & d:\tools\gitleaks.exe detect --source . -v --redact --g ...
-+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At line:15 char:1
++ & d:\tools\gitleaks.exe detect --source . -v --redact --gitleaks-igno ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
-    ○
-    │╲
-    │ ○
-    ○ ░
-    ░    gitleaks
+    Γùï
+    ΓöéΓò▓
+    Γöé Γùï
+    Γùï Γûæ
+    Γûæ    gitleaks
 
-[90m6:28PM[0m [32mINF[0m [1m24 commits scanned.[0m
-[90m6:28PM[0m [32mINF[0m [1mscanned ~3285499 bytes (3.29 MB) in 2.79s[0m
-[90m6:28PM[0m [32mINF[0m [1mno leaks found[0m
+[90m2:20PM[0m [32mINF[0m [1m32 commits scanned.[0m
+[90m2:20PM[0m [32mINF[0m [1mscanned ~3659769 bytes (3.66 MB) in 2.12s[0m
+[90m2:20PM[0m [32mINF[0m [1mno leaks found[0m
