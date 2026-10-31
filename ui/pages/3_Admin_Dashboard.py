@@ -14,11 +14,11 @@ import streamlit as st
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.api_client import (
+    export_admin_consultations_csv,
     get_admin_audit_logs,
     get_admin_consultations,
-    get_queue_metrics,
-    export_admin_consultations_csv,
     get_admin_sessions,
+    get_queue_metrics,
     revoke_admin_session,
 )
 from utils.i18n import t

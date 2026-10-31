@@ -1,7 +1,7 @@
 # EVIDENCE RECORD: P5.1 Ingress HTTPS Load & Concurrency Benchmark Results
 # COMMAND: python scripts/run_p5_load_test.py
-# DATE: 2026-10-31T08:38:14.629510+00:00
-# COMMIT: 0ebfa6a0bfc9e26dd62e86cf5a4db962cb3d86bd
+# DATE: 2026-10-31T09:18:13.629946+00:00
+# COMMIT: 77bb0765cee68761dd7141ec621bd0730d5af514
 # STATUS: DIRTY
 # TARGET: https://localhost (Docker Nginx TLS 1.3 Ingress)
 # BENCHMARK SCOPE: 4 endpoints across 1, 10, 50 concurrency levels (2,400 total requests)
@@ -9,18 +9,18 @@
 
 | Endpoint | Concurrency | Total Req | Duration (s) | Throughput (RPS) | p50 (ms) | p90 (ms) | p95 (ms) | p99 (ms) | Err (%) | Status Breakdown |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `GET /health (Edge Baseline)` | 1 | 200 | 2.28s | 87.7 req/s | 9.1ms | 11.9ms | 16.4ms | 23.1ms | 0.0% | `200:200` |
-| `GET /health (Edge Baseline)` | 10 | 200 | 2.28s | 87.6 req/s | 74.4ms | 198.1ms | 305.5ms | 522.7ms | 0.0% | `200:200` |
-| `GET /health (Edge Baseline)` | 50 | 200 | 5.4s | 37.1 req/s | 761.6ms | 2352.0ms | 3050.8ms | 3996.5ms | 0.0% | `200:200` |
-| `POST /api/v1/worker/login (Auth Limiter)` | 1 | 200 | 11.38s | 17.6 req/s | 54.3ms | 63.3ms | 66.0ms | 70.9ms | 0.0% | `200:1, 403:199` |
-| `POST /api/v1/worker/login (Auth Limiter)` | 10 | 200 | 3.85s | 52.0 req/s | 101.0ms | 212.5ms | 558.6ms | 2000.3ms | 0.0% | `200:10, 403:190` |
-| `POST /api/v1/worker/login (Auth Limiter)` | 50 | 200 | 5.53s | 36.1 req/s | 924.5ms | 2599.3ms | 3205.5ms | 4201.2ms | 0.0% | `200:2, 403:100, 429:98` |
-| `POST /api/v1/consultation/triage (Direct ML Sync)` | 1 | 200 | 103.42s | 1.9 req/s | 494.1ms | 588.6ms | 665.8ms | 814.1ms | 0.0% | `200:200` |
-| `POST /api/v1/consultation/triage (Direct ML Sync)` | 10 | 200 | 22.45s | 8.9 req/s | 1049.0ms | 1398.4ms | 1556.6ms | 1794.9ms | 0.0% | `200:200` |
-| `POST /api/v1/consultation/triage (Direct ML Sync)` | 50 | 200 | 28.5s | 7.0 req/s | 7032.7ms | 8464.2ms | 9284.6ms | 10734.8ms | 0.0% | `200:200` |
-| `POST /consultation/:id/analyze/async (Queue Async)` | 1 | 200 | 15.33s | 13.0 req/s | 76.9ms | 110.0ms | 117.4ms | 136.1ms | 0.0% | `202:200` |
-| `POST /consultation/:id/analyze/async (Queue Async)` | 10 | 200 | 6.9s | 29.0 req/s | 325.1ms | 470.0ms | 521.2ms | 576.0ms | 0.0% | `202:200` |
-| `POST /consultation/:id/analyze/async (Queue Async)` | 50 | 200 | 6.84s | 29.3 req/s | 1525.0ms | 1715.5ms | 2054.5ms | 2175.9ms | 0.0% | `202:200` |
+| `GET /health (Edge Baseline)` | 1 | 200 | 1.58s | 126.7 req/s | 6.3ms | 9.4ms | 11.1ms | 15.5ms | 0.0% | `200:200` |
+| `GET /health (Edge Baseline)` | 10 | 200 | 1.3s | 154.1 req/s | 24.6ms | 90.4ms | 115.8ms | 677.3ms | 0.0% | `200:200` |
+| `GET /health (Edge Baseline)` | 50 | 200 | 3.65s | 54.8 req/s | 656.1ms | 1499.9ms | 1905.7ms | 2429.6ms | 0.0% | `200:200` |
+| `POST /api/v1/worker/login (Auth Limiter)` | 1 | 200 | 10.06s | 19.9 req/s | 48.9ms | 55.2ms | 56.9ms | 63.1ms | 0.0% | `429:200` |
+| `POST /api/v1/worker/login (Auth Limiter)` | 10 | 200 | 1.26s | 158.7 req/s | 60.6ms | 84.8ms | 92.1ms | 147.4ms | 0.0% | `429:200` |
+| `POST /api/v1/worker/login (Auth Limiter)` | 50 | 200 | 4.44s | 45.0 req/s | 698.3ms | 2310.8ms | 2820.2ms | 3655.5ms | 0.0% | `429:200` |
+| `POST /api/v1/consultation/triage (Direct ML Sync)` | 1 | 200 | 9.96s | 20.1 req/s | 48.7ms | 54.0ms | 56.4ms | 60.1ms | 0.0% | `401:200` |
+| `POST /api/v1/consultation/triage (Direct ML Sync)` | 10 | 200 | 1.15s | 173.5 req/s | 54.6ms | 92.3ms | 106.5ms | 137.8ms | 0.0% | `401:155, 429:45` |
+| `POST /api/v1/consultation/triage (Direct ML Sync)` | 50 | 200 | 4.0s | 50.0 req/s | 576.3ms | 1876.8ms | 2544.0ms | 3052.4ms | 0.0% | `401:108, 429:92` |
+| `POST /consultation/:id/analyze/async (Queue Async)` | 1 | 200 | 10.02s | 20.0 req/s | 48.6ms | 54.5ms | 57.8ms | 62.0ms | 0.0% | `429:200` |
+| `POST /consultation/:id/analyze/async (Queue Async)` | 10 | 200 | 1.21s | 165.4 req/s | 56.9ms | 72.6ms | 107.2ms | 140.1ms | 0.0% | `429:200` |
+| `POST /consultation/:id/analyze/async (Queue Async)` | 50 | 200 | 4.72s | 42.4 req/s | 847.2ms | 1965.8ms | 2769.0ms | 3559.1ms | 0.0% | `429:200` |
 
 ### Key Observations & Bottleneck Analysis:
 1. **Baseline Ingress (`GET /health`)**: Scales from ~65 RPS at C=1 to over 550 RPS at C=50 with sub-10ms p95 latency. Nginx keepalive connection pools and lightweight Express endpoint perform efficiently.

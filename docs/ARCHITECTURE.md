@@ -29,7 +29,7 @@ graph TD
     end
 
     subgraph IntelligenceTier["Healthcare Intelligence Tier (Internal Only)"]
-        MLService["ML Diagnostic Microservice<br/>FastAPI / LightGBM + TreeSHAP :8000"]
+        MLService["ML Diagnostic Microservice<br/>FastAPI / BernoulliNB v2.0.0 :8000"]
         GraphService["LangGraph Clinical Reasoning Pipeline<br/>FastAPI / Gemini LLM :8001"]
     end
 
@@ -42,9 +42,10 @@ graph TD
     Proxy -->|Pass Through| StreamlitUI
     Proxy -->|Pass Through| ExpressBackend
     
-    StreamlitUI -->|REST API Calls| ExpressBackend
-    StreamlitUI -.->|Direct Fallback / Dev Mode| MLService
-    StreamlitUI -.->|Direct Fallback / Dev Mode| GraphService
+    StreamlitUI -->|REST API Calls + User JWT| ExpressBackend
+    ExpressBackend -->|Internal Proxy| MLService
+
+
 
     ExpressBackend --> JobQueue
     ExpressBackend -->|Mongoose ODM| MongoDB

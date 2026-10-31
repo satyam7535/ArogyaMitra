@@ -60,14 +60,14 @@ Status transitions require raw command output recorded under `docs/evidence/`.
 | **P6.5** | Threat model (docs/THREAT_MODEL.md) linked to concrete evidence files | VERIFIED | `docs/THREAT_MODEL.md` | working-tree | Every STRIDE threat row explicitly linked to empirical evidence records in docs/evidence/ |
 | **P6.6** | actionlint verification of GitHub Actions workflows & local runner execution | VERIFIED | `docs/evidence/actionlint_report.txt` | working-tree | actionlint container scanned all workflows with zero errors found |
 | **P6.7** | Regenerated security scans: gitleaks, npm audit, pip-audit, Trivy, Semgrep, Bandit | VERIFIED | `docs/evidence/` | working-tree | Clean scans: Gitleaks 0 leaks, pip-audit 0 vulns, Bandit 0 medium/high, Trivy 0 in backend/ui |
-| **P7.1** | Accurate README with Docker & native run instructions, demo accounts, seed scripts | MISSING | `README.md` | pending | Factual documentation without ungrounded claims |
-| **P7.2** | Comprehensive KNOWN_LIMITATIONS.md reflecting all empirical bounds | MISSING | `docs/KNOWN_LIMITATIONS.md` | pending | Synthetic dataset, Naive Bayes independence, self-signed cert |
-| **P7.3** | Synchronized CLAIMS_TRACE.md tracing all doc claims to evidence | MISSING | `docs/CLAIMS_TRACE.md` | pending | Line-by-line traceability matrix |
-| **P7.4** | Comprehensive VIVA_QA.md (40+ technical questions & evidence links) | MISSING | `docs/VIVA_QA.md` | pending | Faculty viva preparation document |
-| **P7.5** | Script-generated EVIDENCE_INDEX.md indexing all docs/evidence/ artifacts | MISSING | `docs/EVIDENCE_INDEX.md` | pending | Automated catalog of commands and outputs |
-| **P7.6** | Automated end-to-end reproduce script (scripts/reproduce_all.ps1) | MISSING | `docs/evidence/reproduce_all.txt` | pending | Full reproduction from clean clone |
-| **P7.7** | Medical literature & ML benchmark citations verified | MISSING | `docs/LITERATURE_REVIEW.md` | pending | Sourced references for Naive Bayes on tabular medical data |
-| **P7.8** | System architecture and 13-step flow diagrams generated and committed | MISSING | `docs/architecture.png`, `docs/flow_diagram.png` | pending | Visual flowcharts matching real stack |
+| **P7.1** | Accurate README with Docker & native run instructions, demo accounts, seed scripts | VERIFIED | `README.md`, `docs/evidence/reproduce_all.txt` | working-tree | Factual instructions, seeded credentials, architecture & 13-step flow diagrams |
+| **P7.2** | Comprehensive KNOWN_LIMITATIONS.md reflecting all empirical bounds | VERIFIED | `docs/KNOWN_LIMITATIONS.md` | working-tree | Documented synthetic Kaggle dataset, Naive Bayes independence, self-signed cert |
+| **P7.3** | Synchronized CLAIMS_TRACE.md tracing all doc claims to evidence | VERIFIED | `docs/CLAIMS_TRACE.md` | working-tree | Every claim linked to concrete evidence file, line, and test name |
+| **P7.4** | Comprehensive VIVA_QA.md (40+ technical questions & evidence links) | VERIFIED | `docs/VIVA_QA.md` | working-tree | 42 questions across 7 categories with 30s pitch, code citations, and trap defenses |
+| **P7.5** | Script-generated EVIDENCE_INDEX.md indexing all docs/evidence/ artifacts | VERIFIED | `docs/EVIDENCE_INDEX.md` | working-tree | Automated index generated via `scripts/generate_evidence_index.py` |
+| **P7.6** | Automated end-to-end reproduce script (scripts/reproduce_all.ps1) | VERIFIED | `scripts/reproduce_all.ps1`, `docs/evidence/reproduce_all.txt` | working-tree | Single-command reproduction script executing full stack verification |
+| **P7.7** | Medical literature & ML benchmark citations verified | VERIFIED | `docs/LITERATURE_REVIEW.md` | working-tree | 15+ peer-reviewed citations on medical AI, Naive Bayes, CDSCO, and DPDP |
+| **P7.8** | System architecture and 13-step flow diagrams generated and committed | VERIFIED | `README.md`, `docs/architecture.md` | working-tree | Mermaid diagrams of container network, microservices, and 13-step lifecycle |
 | **P8.1** | Independent verifier subagent execution & audit | MISSING | `docs/evidence/independent_audit_report.txt` | pending | Disinterested verification across acceptance criteria |
 | **P8.2** | Final rebuild & test verification across all suites | MISSING | `docs/evidence/final_verify_all.txt` | pending | Clean 6/6 container health and test count verification |
 | **P8.3** | Final VERIFICATION_REPORT.md and summary report | MISSING | `docs/VERIFICATION_REPORT.md` | pending | Complete deliverables summary and reproduction commands |

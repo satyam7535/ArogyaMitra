@@ -1,7 +1,7 @@
 # EVIDENCE RECORD: P6.1 Transport Security & Man-In-The-Middle (MITM) Defense Demonstration
 # COMMAND: python scripts/test_p6_mitm_demo.py
-# DATE: 2026-10-31T08:44:11.589879+00:00
-# COMMIT: addf510d4959e64414ccb8a27917654b32a45b14
+# DATE: 2026-10-31T09:19:08.391967+00:00
+# COMMIT: 77bb0765cee68761dd7141ec621bd0730d5af514
 # STATUS: DIRTY
 # TARGET: http://localhost:80 -> https://localhost:443 (Edge Nginx Gateway)
 # -----------------------------------------------------------------------------------------
@@ -16,18 +16,18 @@ Result: PASS - Cleartext HTTP is strictly rejected with HTTP 301 Permanent Redir
 ### PART B: TLS Certificate Validation Rejection (MITM / Untrusted CA Defense)
 Attempting TLS connection to https://localhost/api/v1/health with strict system CA verification...
 Client TLS Abort Caught: requests.exceptions.SSLError
-Error Message: HTTPSConnectionPool(host='localhost', port=443): Max retries exceeded with url: /api/v1/health (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1028)')))
+Error Message: HTTPSConnectionPool(host='localhost', port=443): Max retries exceeded with url: /api/v1/health (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1016)')))
 Result: PASS - Client strictly aborted TLS handshake because gateway cert is not in default public trust store (prevents rogue CA interception).
 
 ### PART C: Encrypted Transmission with Validated Certificate Authority
 Connecting to https://arogyamitra.local/api/v1/health using trusted root CA (deploy/certs/arogyamitra.crt)...
-HTTP/1.1 200 OK
+HTTP/1.1 429 Too Many Requests
 Server: nginx
-Date: Sat, 31 Oct 2026 08:44:12 GMT
+Date: Sat, 31 Oct 2026 09:19:08 GMT
 Content-Type: application/json; charset=utf-8
-Content-Length: 40
+Content-Length: 100
 Connection: keep-alive
-X-Request-Id: 58ada390-bac1-4539-9e5c-406c40dbb2c4
+X-Request-Id: 9959fe9f-b59d-4088-8621-b15b864ad650
 Content-Security-Policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Resource-Policy: same-origin
@@ -44,9 +44,10 @@ Vary: Origin
 Access-Control-Allow-Credentials: true
 RateLimit-Policy: 1000;w=60
 RateLimit-Limit: 1000
-RateLimit-Remaining: 998
-RateLimit-Reset: 40
-ETag: W/"28-4kl2Qhy9a6qu68arCn8dgMcIYCE"
+RateLimit-Remaining: 0
+RateLimit-Reset: 6
+Retry-After: 6
+ETag: W/"64-ITClHX2tAra0EU2+s2Spml/yH4s"
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
@@ -55,6 +56,6 @@ Referrer-Policy: strict-origin-when-cross-origin
 Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';
 Permissions-Policy: camera=(), microphone=(), geolocation=()
 
-{"status":"healthy","service":"backend"}
+{"message":"Too many requests from this IP, please try again shortly.","code":"RATE_LIMIT_EXCEEDED"}
 
-Result: PASS - Secure encrypted session established when authenticating against trusted root CA.
+Result: FAIL - TLS handshake or verification failed.
