@@ -104,3 +104,6 @@ logs/
 *.log
 example.md
 .pids
+# References (PDFs never committed)
+docs/references/
+!docs/REPORT_FINAL/*.pdf
