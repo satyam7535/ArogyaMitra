@@ -2,7 +2,7 @@
 
 ## 4.1 Machine Learning Benchmark & Validation
 
-All experiments were conducted on the deduplicated dataset ($n=304$ unique clinical profiles across 42 disease classes) using **Repeated Stratified K-Fold Cross-Validation (5 folds × 3 repeats = 15 total splits)**. Data augmentation (symptom-dropout) was applied strictly within training partitions to prevent data leakage.
+All experiments were conducted on the deduplicated dataset ($n=304$ unique clinical profiles across 41 disease classes) using **Repeated Stratified K-Fold Cross-Validation (5 folds × 3 repeats = 15 total splits)**. Data augmentation (symptom-dropout) was applied strictly within training partitions to prevent data leakage.
 
 ### 4.1.1 Cross-Model Comparative Benchmark
 Six candidate model families were benchmarked under varying levels of missing symptom noise (0%, 30%, and 50% missing symptoms):

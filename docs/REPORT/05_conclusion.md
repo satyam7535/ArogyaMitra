@@ -2,7 +2,7 @@
 
 ## 5.1 Project Contributions & Summary
 
-This work transformed an initial prototype into **ArogyaMitra**, an enterprise-grade, privacy-compliant, explainable clinical decision support platform designed for primary healthcare environments.
+This work developed **ArogyaMitra**, a privacy-first, AI-assisted primary healthcare decision support prototype designed for primary healthcare environments.
 
 ### Key Technical Contributions:
 1. **Resolution of Dataset Leakage**: Discovered and addressed a 93.8% row duplication flaw in benchmark symptom data, establishing an un-leaked evaluation pipeline using 5x3 Repeated Stratified K-Fold CV and symptom-dropout augmentation.

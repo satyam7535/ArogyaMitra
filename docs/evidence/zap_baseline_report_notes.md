@@ -40,3 +40,4 @@
 
 ## Scope & Limitations
 This scan represents an **unauthenticated passive baseline scan** only. It does not evaluate authenticated session states, business logic flaws, role-based authorization bypasses, or active fuzzing vectors.
+
