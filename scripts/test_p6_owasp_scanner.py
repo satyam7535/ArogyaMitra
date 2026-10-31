@@ -1,5 +1,5 @@
 """
-ArogyaMitra P6.3 OWASP API Security Top 10 Baseline Automated Scanner
+ArogyaMitra Basic Custom OWASP API Security Check (Python Script, NOT OWASP ZAP)
 Probes the running Docker production stack (Edge Nginx:443 + Express + ML + Graph)
 against the OWASP API Security Top 10 (2023) standard.
 """
@@ -26,7 +26,7 @@ def get_git_info():
 def main():
     commit, dirty, date = get_git_info()
     out = []
-    out.append("# EVIDENCE RECORD: P6.3 OWASP API Security Top 10 Automated Baseline Scan")
+    out.append("# EVIDENCE RECORD: Basic Custom OWASP API Security Check (Python Script, NOT OWASP ZAP)")
     out.append("# COMMAND: python scripts/test_p6_owasp_scanner.py")
     out.append(f"# DATE: {date}")
     out.append(f"# COMMIT: {commit}")
@@ -161,8 +161,9 @@ def main():
     
     report_text = "\n".join(out)
     print(report_text)
-    with open("docs/evidence/zap_report.txt", "w", encoding="utf-8") as f:
+    with open("docs/evidence/custom_owasp_check_report.txt", "w", encoding="utf-8") as f:
         f.write(report_text)
 
 if __name__ == "__main__":
     main()
+

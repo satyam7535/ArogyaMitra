@@ -21,7 +21,7 @@ logger = logging.getLogger("arogyamitra.llm")
 # LLM Provider Configuration (Google Gemini via OpenAI-compatible endpoint)
 LLM_API_KEY = os.getenv("LLM_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.getenv("OPENAI_API_KEY") or "mock-key"
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
-LLM_MODEL = os.getenv("LLM_MODEL") or os.getenv("MODEL_NAME", "gemini-1.5-flash")
+LLM_MODEL = os.getenv("LLM_MODEL") or os.getenv("LLM_MODEL_NAME") or os.getenv("MODEL_NAME", "gemini-3-flash-preview")
 
 
 class LLMConclusion(BaseModel):

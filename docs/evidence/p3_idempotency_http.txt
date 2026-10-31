@@ -20,7 +20,7 @@ Ingress Target: https://localhost
 [STEP 3] Creating Consultation...
 [+] Consultation created: 6ae59d01ebadbdc8ab056d67
 
-[STEP 4] Firing 50 parallel HTTP POST requests with Idempotency-Key: idem-key-ba9f0a49-4d2d-48f4-bc5c-09d6da88ec2c
+[STEP 4] Firing 50 parallel HTTP POST requests with Idempotency-Key: [REDACTED_TEST_IDEMPOTENCY_KEY]
 [+] All 50 requests finished in 5.75s
 [+] Status codes received: 202 x 50, other: 0
 [+] Unique jobIds returned across all 50 concurrent requests: 1
@@ -32,7 +32,7 @@ Ingress Target: https://localhost
 [+] DATABASE VERIFIED: Strictly exactly 1 AnalysisJob document exists for this idempotency key.
 
 [STEP 6] Testing distinct Idempotency-Key creates distinct job...
-[+] New request with key idem-key-distinct-68aa8935-b795-4bb3-96a9-91c55c4824ea returned jobId: 3ae86c1f-bebd-47e7-9f2e-3a6316a8911b
+[+] New request with key [REDACTED_TEST_IDEMPOTENCY_KEY_2] returned jobId: 3ae86c1f-bebd-47e7-9f2e-3a6316a8911b
 [+] Verified: Distinct idempotency key generated distinct job.
 
 ================================================================================

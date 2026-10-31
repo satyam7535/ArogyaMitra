@@ -1,7 +1,17 @@
-# Gitleaks ignore file for test fixtures and false positives
+# Gitleaks ignore baseline file for historical test fixtures and synthetic test tokens
+# Format: <commit-sha>:<file-path>:<rule-id>:<line-number>
+
+# 1. Test fixture idempotency UUID in raceOcc.test.js
 2f28743514cbaf36b828b9c0d9b556106ef020de:Backend/tests/raceOcc.test.js:generic-api-key:59
+
+# 2. Historical fallback placeholder encryption key in serverConfig.js (remediated in 201dc9c)
 fa04225773c30a4258acba01b5f615e54c7cac2e:Backend/src/config/serverConfig.js:generic-api-key:56
+
+# 3. Test fixture 64-char key in security.test.js env validation test
 201dc9c442b4b9332c925f0409ccd66e3b661be7:Backend/tests/security.test.js:generic-api-key:1615
+
+# 4. Test harness in-memory database fallback key in setup.js
 201dc9c442b4b9332c925f0409ccd66e3b661be7:Backend/tests/setup.js:generic-api-key:8
-# P3.8 Test idempotency key UUID recorded in raw evidence output
+
+# 5. Historical raw evidence record containing synthetic UUID generated during 50-way concurrency test
 0ddca8db370c2343460bb68a6c6807321966fe36:docs/evidence/p3_idempotency_http.txt:generic-api-key:23

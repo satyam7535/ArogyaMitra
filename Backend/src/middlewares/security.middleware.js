@@ -99,7 +99,7 @@ export const createAuthLimiter = (max) => {
 
 export const createGeneralApiLimiter = (max) => {
 
-  const effectiveMax = max !== undefined ? max : resolveRateLimit("general", 1000);
+  const effectiveMax = max !== undefined ? max : resolveRateLimit("general", 150);
 
   return rateLimit({
 

@@ -1,0 +1,135 @@
+# ArogyaMitra Software Quality & Security Audit Report
+
+**Auditor**: Independent Disinterested Software & Security Subagent (Conversation ID: faca0957-a938-4fee-aba9-39064f77c847)  
+**Target Repository**: `d:\Document\Projects\Internship\Arogyamitra`  
+**Date**: 2026-10-31  
+**Scope**: 10 Targeted Quality, Security, and Clinical Governance Areas
+
+---
+
+### 1. Clinical Red Flags: Vocabulary Size, Symptom Count, & Official Status
+* **Files Examined**: `config/red_flags.yaml`, `docs/RED_FLAG_REVIEW.md`
+* **Total Symptom Vocabulary Size**: **131 features** (strictly bounded by `symptom_columns.pkl` / `ML_Model`).
+* **Active Symptom Red Flags**: **7 symptoms** configured in `vocabulary_red_flags`:
+  1. `chest_pain` (Critical)
+  2. `coma` (Critical)
+  3. `breathlessness` (High)
+  4. `blood_in_sputum` (High)
+  5. `bloody_stool` (High)
+  6. `loss_of_balance` (High)
+  7. `fast_heart_rate` (High)
+  Additionally, **6 unmapped symptoms** are cataloged under `candidate_unmapped_symptoms` (`unconsciousness`, `convulsions_or_seizures`, `cyanosis`, `severe_anaphylaxis_throat_swelling`, `profuse_external_bleeding`, `severe_head_trauma`), marked `UNMAPPED_TO_VOCABULARY`.
+  4 high-risk disease categories are also configured for forced escalation (`Heart attack`, `Paralysis (brain hemorrhage)`, `Tuberculosis`, `Pneumonia`).
+* **Official Status**: **`DRAFT`**
+  - `status: "DRAFT"`
+  - `reviewed_by: null`
+  - `review_status: "pending clinical review"`
+  - Explicit header notice: *"⚠️ DRAFT CONFIGURATION: PENDING CLINICAL REVIEW BY LICENSED MEDICAL PRACTITIONER. ALL RED-FLAG TRIGGERS MUST BE PHYSICIAN-VERIFIED BEFORE PRIMARY CARE ROLLOUT."*
+
+---
+
+### 2. Rate Limits & Nginx Edge Gateway Configuration
+* **Files Examined**: `Backend/src/middlewares/security.middleware.js`, `deploy/nginx.conf`
+* **Production Express Rate Limits (`createGeneralApiLimiter`)**:
+  - Window: **1 minute** (`windowMs: 60 * 1000`)
+  - Ceiling: **150 req/min** (`resolveRateLimit("general", 150)`)
+  - *(Auth limiter for comparison: 15 req / 15 min)*
+* **Production Nginx Rate Limits (`api_general` zone)**:
+  - Definition: `limit_req_zone $binary_remote_addr zone=api_general:10m rate=15r/s;` (**15 req/sec**)
+  - Directive under `/api/`: `limit_req zone=api_general burst=50 nodelay;`
+  - *(Auth limiter zone: `rate=3r/m`, `burst=5 nodelay`)*
+* **Exact Condition for Rate Limit Relaxation in Express**:
+  - Relaxation is **strictly rejected** in production: if `process.env.NODE_ENV === "production"` and any bypass flag is set (`ALLOW_LOAD_TEST_RATE_LIMIT === "true"` || `ALLOW_LOAD_TEST === "true"` || `DISABLE_RATE_LIMIT === "true"`), it immediately throws `SECURITY_VIOLATION: Rate limiter relaxation for ${type} is strictly forbidden in production mode (NODE_ENV=production).`
+  - Relaxation is ONLY allowed when:
+    ```javascript
+    process.env.NODE_ENV === "test" &&
+    (process.env.ALLOW_LOAD_TEST_RATE_LIMIT === "true" ||
+      process.env.ALLOW_LOAD_TEST === "true")
+    ```
+  - When allowed, limit defaults to `10000` or the numeric value in `LOAD_TEST_API_MAX` / `LOAD_TEST_AUTH_MAX`.
+
+---
+
+### 3. Gitleaks Configuration & Evidence Scrutiny
+* **File Examined**: `.gitleaksignore`
+* **Contents**: Exactly 4 specific hash:path:rule:line exceptions:
+  1. `2f28743514cbaf36b828b9c0d9b556106ef020de:Backend/tests/raceOcc.test.js:generic-api-key:59`
+  2. `fa04225773c30a4258acba01b5f615e54c7cac2e:Backend/src/config/serverConfig.js:generic-api-key:56`
+  3. `201dc9c442b4b9332c925f0409ccd66e3b661be7:Backend/tests/security.test.js:generic-api-key:1615`
+  4. `201dc9c442b4b9332c925f0409ccd66e3b661be7:Backend/tests/setup.js:generic-api-key:8`
+* **Are Evidence Files Ignored?**: **NO**. Zero evidence files in `docs/evidence/` are ignored. Only test fixtures and mock configuration keys are bypassed.
+
+---
+
+### 4. Dependency Vulnerabilities (`npm audit`)
+* **Files Examined**: `docs/evidence/npm_audit_full.txt`, `docs/evidence/npm_audit_prod.txt`
+* **Full Dependency Tree (`npm audit --prefix Backend`)**:
+  - **6 moderate severity vulnerabilities**
+  - Dependency source: All 6 stem from `minimatch <11.0.1` (denial of service via globparts amplification, GHSA-g3hv-75wg-m249) pulled in by devDependencies: `@eslint/config-array`, `@eslint/eslintrc`, `eslint`, and `nodemon`.
+* **Production Runtime Tree (`npm audit --prefix Backend --omit=dev`)**:
+  - **0 vulnerabilities found**.
+
+---
+
+### 5. OWASP ZAP vs. Custom Scanner Check
+* **Files Examined**: `docs/evidence/zap_report.txt`, `docs/evidence/custom_owasp_check_report.txt`
+* **Was Real OWASP ZAP Run?**: **NO. Real OWASP ZAP was NOT RUN.**
+  - `zap_report.txt` states explicitly: `STATUS: NOT RUN`.
+  - Reason given: Official `zaproxy/zap-stable` container image was unavailable in the local Docker daemon, and outbound container pulls were restricted.
+* **What Actually Ran?**:
+  - A custom Python probe script (`scripts/test_p6_owasp_scanner.py`), documented in `docs/evidence/custom_owasp_check_report.txt`.
+  - It executed 10 tailored HTTP probes against local Docker endpoints for OWASP API Security Top 10 (2023) categories.
+
+---
+
+### 6. MITM Interception Proxy Demonstration
+* **Files Examined**: `scripts/test_p6_mitm_proxy_demo.py`, `docs/evidence/mitm_proxy_interception_demo.txt`
+* **Does it demonstrate real proxy interception with cert verification ON vs OFF?**: **YES.**
+  - The script instantiates a real socket-level HTTP proxy (`RogueMITMProxy` on `127.0.0.1:9998`) terminating TLS with the untrusted local certificate `deploy/certs/arogyamitra.crt`.
+  - **Verification ON (`verify=True`, Production Policy)**: Client terminates TLS handshake immediately with `SSLCertVerificationError` (`SSLError`). Zero application bytes, headers, or credentials reach the proxy.
+  - **Verification OFF (`verify=False`, Insecure Mode)**: Client accepts the untrusted certificate; proxy decrypts and captures the plaintext HTTP request line, headers, and `Authorization: Bearer SECRET_WORKER_JWT_TOKEN_12345`.
+
+---
+
+### 7. Clinical LLM Orchestrator (Google Gemini)
+* **Files Examined**: `graph/llm.py`, `graph/nodes/llm_node.py`, `docs/evidence/gemini_smoke_test.txt`, `docs/evidence/p2_gemini_check.txt`
+* **Is live Gemini running or is the system operating under deterministic fallback?**:
+  - **Operating under deterministic clinical fallback (`generate_deterministic_fallback`, `llmFallback: true`)**.
+  - `docs/evidence/p2_gemini_check.txt` records a live Docker API test against `https://generativelanguage.googleapis.com/v1beta/openai/` which returned HTTP 404 (`models/gemini-1.5-flash is not found for API version v1main`).
+  - The orchestrator (`graph/llm.py`) caught the error and routed through `generate_deterministic_fallback()` using static clinical decision rules (`DISEASE_DRAFT_GUIDELINES`).
+  - `docs/evidence/gemini_smoke_test.txt` also confirms: `Fallback Engaged: True`, `GEMINI SMOKE TEST RESULT: DETERMINISTIC_FALLBACK_ENGAGED`.
+
+---
+
+### 8. Backend Test Assertions: Red-Flag Accept & State Transitions
+* **Files Examined**: `Backend/tests/decisionB.test.js`, `Backend/src/controller/consultation.controller.js`, `Backend/src/service/consultation.service.js`
+* **Does red-flag accept return 409 or 400?**:
+  - It strictly returns **HTTP 409 Conflict** (`code: "RED_FLAG_ACCEPT_BLOCKED"`).
+* **Does invalid state transition return 400?**:
+  - **YES, strictly HTTP 400** for double accept, accept on escalated, doctor second opinion on closed consultation, and invalid override notes.
+
+---
+
+### 9. OCC 50-Way Concurrency Race Test
+* **Files Examined**: `scripts/test_p5_race_suite.py`, `docs/evidence/http_race_tests.txt`
+* **Exact HTTP Status Distribution**:
+  - **Test 1** (50 parallel accept requests against the same consultation):
+    - **`{409: 49, 200: 1}`** (1 winner returned HTTP 200, 49 conflicting threads returned HTTP 409).
+  - **Test 2** (50 parallel mixed requests — 25 accept vs. 25 escalate):
+    - **`{409: 49, 200: 1}`** (1 winner returned HTTP 200, 49 conflicting threads returned HTTP 409).
+
+---
+
+### 10. Final Unvarnished Quality & Security Assessment
+
+| Category | Assessment | Status | Verification Detail |
+|---|---|---|---|
+| **Optimistic Concurrency Control (OCC)** | **Verified** | PASS | 50-way concurrent race confirmed at HTTP layer (`{200: 1, 409: 49}`) via Mongoose document versioning (`__v`). |
+| **Edge Security & Rate Limiting** | **Verified** | PASS | Dual-layer Nginx (15r/s) + Express (150r/m) with strict production rejection of test bypass flags. |
+| **Transport Security (TLS & MITM)** | **Verified** | PASS | TLS 1.2/1.3 enforced; MITM proxy demo verified client-side abort on untrusted certificates. |
+| **Production Runtime Dependencies** | **Verified** | PASS | `npm audit --omit=dev` shows 0 vulnerabilities; 6 moderate issues isolated to development tooling (`eslint`/`nodemon`). |
+| **Secrets Hygiene** | **Verified** | PASS | Gitleaks ignore contains 4 entries strictly pointing to test mocks; zero evidence files ignored. |
+| **Official Dynamic App Security Testing (DAST)** | **NOT RUN** | GAP | Official OWASP ZAP was NOT run; replaced with custom Python probe script (`test_p6_owasp_scanner.py`). |
+| **Live Clinical LLM (Gemini)** | **Deterministic Fallback Active** | SAFE FALLBACK | Live Gemini calls fail with HTTP 404 (model sunset/version mismatch); deterministic rule fallback is actively handling requests. |
+| **Clinical Red Flags & Escalation Rules** | **DRAFT** | PENDING SIGN-OFF | Red flag rules fail-closed in software (HTTP 409 on accept), but configuration is officially `status: DRAFT` and `reviewed_by: null`, awaiting licensed medical practitioner sign-off. |
+

@@ -107,8 +107,9 @@ A step is **VERIFIED** only when executed against real running services, with ra
 - **Flow Step 7 (Safe LLM Generation & Clinical Fallback)**:
   - PII scrubbing: Patient names, healthcare worker names, phone numbers, addresses, and emails scrubbed before transmitting context to LLM (Rule 6).
   - Prompt Injection Defense: Disarms XML delimiter smuggling (`<system>`, `<instruction>`, etc.) and neutralizing adversarial jailbreaks (`dan mode`, `ignore previous instructions`, `bypass safety`). Validated against 20-attack corpus.
-  - Google Gemini Free-Tier Integration: Verified live OpenAI-compatible call to `gemini-1.5-flash` with 819.90 ms round-trip latency and Pydantic v2 validation.
-  - Deterministic Clinical Fallback: Intercepts network/quota exceptions and malformed JSON, returning safe deterministic advice with `llmFallback: true`.
+  - Google Gemini Model Status: Live API call to `gemini-1.5-flash` returns HTTP 404 (endpoint sunset / API mismatch); marked NOT RUN for live inference.
+  - Deterministic Clinical Fallback: Operating mode active. Intercepts network/model exceptions and returns safe, deterministic clinical advice with `llmFallback: true` and per-disease guidance.
+
   - Mutation Checks 24 & 25 verified.
 - **Flow Step 8 (Multilingual PDF Report Generation)**:
   - Multilingual ReportLab rendering verified across English (`en`, 5,741 B), Hindi (`hi`, 33,021 B), and Marathi (`mr`, 33,476 B).

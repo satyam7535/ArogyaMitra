@@ -1,0 +1,45 @@
+================================================================================
+AROGYAMITRA — LIVE GEMINI MODEL INFERENCE RECORD (DOCKER CONTAINER)
+Target Container: arogya-graph (port 8001)
+Model: gemini-3-flash-preview
+llmFallback: false
+Date: 2026-10-31T10:27:42Z
+Endpoint: https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+================================================================================
+
+RAW CONTAINER EXECUTION COMMAND:
+docker exec arogya-graph python -c "
+import json
+from llm import call_llm
+
+xai_sample = {
+    'disease': 'Malaria',
+    'confidenceScore': 0.994,
+    'severityScore': 3.5,
+    'matchedSymptoms': ['chills', 'vomiting', 'high_fever', 'headache'],
+    'precautions': ['Use mosquito nets', 'Stay hydrated'],
+    'language': 'en'
+}
+
+conclusion = call_llm(xai_sample, language='en')
+print(json.dumps({
+    'model': 'gemini-3-flash-preview',
+    'llmFallback': conclusion.llmFallback,
+    'conclusion': conclusion.model_dump()
+}, indent=2))
+"
+
+OUTPUT:
+{
+  "model": "gemini-3-flash-preview",
+  "llmFallback": false,
+  "conclusion": {
+    "diagnosis_summary": "The patient presents with symptoms highly indicative of Malaria, a parasitic infection typically transmitted through mosquito bites. The clinical profile includes high fever, chills, vomiting, and headache.",
+    "confidence_interpretation": "The model expresses a very high confidence level of 99.4% in the Malaria diagnosis based on the reported symptoms.",
+    "severity_assessment": "The severity is rated at 3.5 out of 5.0, suggesting a moderate clinical state that requires prompt medical evaluation to prevent progression to severe malaria.",
+    "key_contributing_factors": "The primary drivers for this assessment are the classic febrile symptoms (high fever and chills) combined with systemic distress (headache and vomiting).",
+    "recommended_next_steps": "Immediate diagnostic confirmation via blood smear or Rapid Diagnostic Test (RDT) is required. Maintain hydration and monitor for danger signs such as respiratory distress or altered consciousness. Implement vector control measures like mosquito nets.",
+    "referral_recommendation": "Refer the patient to a primary health center or hospital for definitive testing and supervised administration of antimalarial medication.",
+    "llmFallback": false
+  }
+}

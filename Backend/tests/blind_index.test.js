@@ -58,3 +58,4 @@ describe("HMAC Blind Index Phone Alignment (P3.10)", () => {
     expect(computePhoneBlindIndex("   ")).toBeNull();
   });
 });
+
