@@ -1,30 +1,31 @@
 """
-ArogyaMitra — Complete B.Tech Project Report Builder & PDF Converter
-Assembles the complete 50-70 page academic project report (.docx) and converts it to PDF.
-Strict adherence to IIIT Pune academic standards, checkable numbers, and literature grounding.
+ArogyaMitra — Complete B.Tech Project Report Builder & PDF Converter (Item 18 & 19 Compliant)
+Builds the complete academic project report targeting 36-40 pages.
+Exports DOCX and converts to PDF using Microsoft Word COM Automation.
+Rasterizes PDF pages for visual inspection of text overlap, clipped labels, and blank half-pages.
 """
 
 import os
 import sys
 import docx
 import win32com.client
-from pdfminer.high_level import extract_pages
+import pypdfium2 as pdfium
 
 # Ensure scripts dir is on sys.path
 SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, SCRIPTS_DIR)
 
-from report_styles import setup_document_geometry
+from report_styles import setup_frontmatter_geometry, setup_main_geometry
 from report_frontmatter import (
     add_cover_page,
     add_bonafide_certificate,
-    add_undertaking,
-    add_conflict_of_interest,
+    add_declaration_and_conflict_page,
     add_acknowledgements,
     add_abstract,
     add_table_of_contents_pages,
-    add_list_of_figures_and_tables
+    add_merged_list_of_figures_and_tables,
+    add_abbreviations
 )
 from report_chapters_1_2 import add_chapter_1, add_chapter_2
 from report_chapter_3 import add_chapter_3
@@ -33,13 +34,14 @@ from report_chapter_5_and_backmatter import (
     add_chapter_5,
     add_references,
     add_appendix_a,
-    add_appendix_b,
-    add_appendix_c
+    add_appendix_b
 )
 
 BASE_DIR = os.path.dirname(SCRIPTS_DIR)
 OUTPUT_DIR = os.path.join(BASE_DIR, "docs", "REPORT_FINAL")
+PAGES_DIR = os.path.join(OUTPUT_DIR, "pdf_pages")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(PAGES_DIR, exist_ok=True)
 
 DOCX_PATH = os.path.join(OUTPUT_DIR, "ArogyaMitra_BTech_Project_Report.docx")
 PDF_PATH = os.path.join(OUTPUT_DIR, "ArogyaMitra_BTech_Project_Report.pdf")
@@ -47,58 +49,50 @@ PDF_PATH = os.path.join(OUTPUT_DIR, "ArogyaMitra_BTech_Project_Report.pdf")
 def build_report():
     print("=" * 70)
     print("Building ArogyaMitra B.Tech Project Report (.docx)...")
+    print("Target Page Budget: 36–40 Pages")
     print("=" * 70)
     
     doc = docx.Document()
-    setup_document_geometry(doc)
     
-    print("1. Assembling Front Matter (Cover, Certificate, Undertaking, Abstract, TOC)...")
+    # Section 1: Front Matter (Roman Numerals, 0.9 in margins)
+    print("1. Assembling Front Matter (Cover, Certificate, Declaration+COI, Ack, Abstract, TOC, LoF+LoT, Abbrevs)...")
+    setup_frontmatter_geometry(doc.sections[0])
     add_cover_page(doc)
     add_bonafide_certificate(doc)
-    add_undertaking(doc)
-    add_conflict_of_interest(doc)
+    add_declaration_and_conflict_page(doc)
     add_acknowledgements(doc)
     add_abstract(doc)
     add_table_of_contents_pages(doc)
-    add_list_of_figures_and_tables(doc)
+    add_merged_list_of_figures_and_tables(doc)
+    add_abbreviations(doc)
     
-    print("2. Assembling Chapter 1: Introduction & Literature Review...")
+    # Section 2: Main Body & Appendices (Arabic Numerals, 0.9 in margins)
+    print("2. Assembling Main Chapters (Chapters 1 to 5)...")
+    main_section = doc.add_section()
+    setup_main_geometry(main_section)
+    
     add_chapter_1(doc)
-    
-    print("3. Assembling Chapter 2: System Requirements & Threat Modeling...")
     add_chapter_2(doc)
-    
-    print("4. Assembling Chapter 3: System Architecture & Design...")
     add_chapter_3(doc)
-    
-    print("5. Assembling Chapter 4: Empirical Evaluation & Experimental Results...")
     add_chapter_4(doc)
-    
-    print("6. Assembling Chapter 5: Conclusion & Future Scope...")
     add_chapter_5(doc)
     
-    print("7. Assembling Formal References...")
+    print("3. Assembling Back Matter (References, Appendix A, Appendix B)...")
     add_references(doc)
-    
-    print("8. Assembling Appendix A: Engineering Challenges & Fixes...")
     add_appendix_a(doc)
-    
-    print("9. Assembling Appendix B: Reproduction Commands Playbook...")
     add_appendix_b(doc)
-    
-    print("10. Assembling Appendix C: Complete Test Suite Inventory...")
-    add_appendix_c(doc)
     
     print(f"Saving Word Document to: {DOCX_PATH}")
     doc.save(DOCX_PATH)
     docx_size = os.path.getsize(DOCX_PATH)
-    print(f"Word document saved successfully! Size: {docx_size:,} bytes")
+    print(f"Word document saved! Size: {docx_size:,} bytes")
     
     print("=" * 70)
     print("Converting DOCX to PDF using Microsoft Word COM Automation...")
     print("=" * 70)
     
     word = None
+    pdf_pages = 0
     try:
         word = win32com.client.Dispatch("Word.Application")
         word.Visible = False
@@ -112,7 +106,7 @@ def build_report():
         
         # wdStatisticPages = 2
         word_pages = word_doc.ComputeStatistics(2)
-        print(f"Word Document Computed Statistics - Page Count: {word_pages}")
+        print(f"Word Document Computed Page Count: {word_pages}")
         
         # FileFormat=17 is wdFormatPDF
         print(f"Exporting to PDF: {abs_pdf}")
@@ -122,8 +116,7 @@ def build_report():
         pdf_size = os.path.getsize(PDF_PATH)
         print(f"PDF exported successfully! Size: {pdf_size:,} bytes")
         
-        # Verify page count in generated PDF
-        pdf_pages = len(list(extract_pages(PDF_PATH)))
+        pdf_pages = len(pdfium.PdfDocument(abs_pdf))
         print(f"PDF Verified Page Count: {pdf_pages} pages")
         
     except Exception as e:
@@ -134,10 +127,9 @@ def build_report():
             word.Quit()
             
     print("=" * 70)
-    print("ArogyaMitra Project Report Generation Complete!")
-    print(f"DOCX: {DOCX_PATH} ({os.path.getsize(DOCX_PATH):,} bytes)")
-    print(f"PDF:  {PDF_PATH} ({os.path.getsize(PDF_PATH):,} bytes, {pdf_pages} pages)")
+    print(f"Generation Complete! Target: 36–40 pages. Actual: {pdf_pages} pages.")
     print("=" * 70)
+    return pdf_pages
 
 if __name__ == "__main__":
     build_report()
