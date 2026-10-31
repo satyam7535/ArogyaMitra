@@ -1,5 +1,6 @@
 # FastAPI graph orchestration server dependencies
-fastapi==0.115.11
+fastapi>=0.115.11
+starlette>=1.3.0
 uvicorn[standard]==0.34.0
 python-multipart>=0.0.30
 pydantic==2.10.6
@@ -10,3 +11,6 @@ langgraph==0.3.5
 langchain==0.3.20
 reportlab==4.3.1
 pyjwt>=2.14.0
+setuptools>=84.1.0
+wheel>=0.46.2
+urllib3>=2.8.0

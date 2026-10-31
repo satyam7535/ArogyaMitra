@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN useradd -m -u 1000 appuser
 COPY requirements.txt .
-RUN python -m pip install --no-cache-dir --upgrade pip && \
+RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel urllib3 && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY . .

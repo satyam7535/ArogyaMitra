@@ -127,9 +127,21 @@ export const createGeneralApiLimiter = (max) => {
 
 
 
-export const authRateLimiter = createAuthLimiter();
+let _authLimiterInstance = null;
+export const authRateLimiter = (req, res, next) => {
+  if (!_authLimiterInstance) {
+    _authLimiterInstance = createAuthLimiter();
+  }
+  return _authLimiterInstance(req, res, next);
+};
 
-export const generalApiLimiter = createGeneralApiLimiter();
+let _generalLimiterInstance = null;
+export const generalApiLimiter = (req, res, next) => {
+  if (!_generalLimiterInstance) {
+    _generalLimiterInstance = createGeneralApiLimiter();
+  }
+  return _generalLimiterInstance(req, res, next);
+};
 
 
 

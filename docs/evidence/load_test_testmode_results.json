@@ -1,18 +1,31 @@
 {
+  "benchmark_metadata": {
+    "reqs_per_endpoint": 200,
+    "endpoints_tested": [
+      "health",
+      "worker_list",
+      "submit_triage",
+      "doctor_respond"
+    ],
+    "total_requests_per_level": 800,
+    "stack_configuration": "docker-compose.test.yml (NODE_ENV=test, ALLOW_LOAD_TEST=true, LLM_ENABLED=false)"
+  },
   "benchmark_results": [
     {
       "concurrency": 1,
-      "total_requests": 20,
-      "duration_s": 7.05,
-      "throughput_rps": 2.8,
+      "reqs_per_endpoint": 200,
+      "total_requests": 800,
+      "duration_s": 96.2,
+      "throughput_rps": 8.3,
       "latencies_ms": {
-        "p50": 178.4,
-        "p90": 962.1,
-        "p95": 976.1,
-        "p99": 976.1
+        "p50": 87.6,
+        "p90": 234.3,
+        "p95": 291.3,
+        "p99": 504.2
       },
       "status_codes": {
-        "200": 20
+        "200": 690,
+        "404": 110
       },
       "failures": {
         "auth_401": 0,
@@ -22,40 +35,63 @@
       },
       "endpoints": {
         "doctor_respond": {
-          "p50_ms": 142.2,
-          "p95_ms": 190.8,
-          "count": 5
+          "p50_ms": 55.5,
+          "p90_ms": 96.1,
+          "p95_ms": 109.7,
+          "p99_ms": 152.8,
+          "count": 200,
+          "status": {
+            "200": 90,
+            "404": 110
+          }
         },
         "health": {
-          "p50_ms": 112.3,
-          "p95_ms": 324.2,
-          "count": 5
+          "p50_ms": 50.5,
+          "p90_ms": 83.5,
+          "p95_ms": 97.8,
+          "p99_ms": 144.4,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         },
         "submit_triage": {
-          "p50_ms": 311.3,
-          "p95_ms": 488.7,
-          "count": 5
+          "p50_ms": 104.1,
+          "p90_ms": 204.1,
+          "p95_ms": 270.2,
+          "p99_ms": 375.7,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         },
         "worker_list": {
-          "p50_ms": 783.8,
-          "p95_ms": 976.1,
-          "count": 5
+          "p50_ms": 193.0,
+          "p90_ms": 349.8,
+          "p95_ms": 460.5,
+          "p99_ms": 660.6,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         }
       }
     },
     {
       "concurrency": 10,
-      "total_requests": 50,
-      "duration_s": 4.48,
-      "throughput_rps": 11.2,
+      "reqs_per_endpoint": 200,
+      "total_requests": 800,
+      "duration_s": 80.12,
+      "throughput_rps": 10.0,
       "latencies_ms": {
-        "p50": 804.9,
-        "p90": 1524.2,
-        "p95": 1648.4,
-        "p99": 1766.0
+        "p50": 942.1,
+        "p90": 1908.3,
+        "p95": 2270.9,
+        "p99": 3374.7
       },
       "status_codes": {
-        "200": 50
+        "200": 690,
+        "404": 110
       },
       "failures": {
         "auth_401": 0,
@@ -65,40 +101,63 @@
       },
       "endpoints": {
         "doctor_respond": {
-          "p50_ms": 737.8,
-          "p95_ms": 1233.6,
-          "count": 12
+          "p50_ms": 854.8,
+          "p90_ms": 1552.6,
+          "p95_ms": 1890.4,
+          "p99_ms": 3136.2,
+          "count": 200,
+          "status": {
+            "200": 90,
+            "404": 110
+          }
         },
         "health": {
-          "p50_ms": 175.1,
-          "p95_ms": 288.3,
-          "count": 13
+          "p50_ms": 169.7,
+          "p90_ms": 331.0,
+          "p95_ms": 432.4,
+          "p99_ms": 519.0,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         },
         "submit_triage": {
-          "p50_ms": 1021.7,
-          "p95_ms": 1766.0,
-          "count": 12
+          "p50_ms": 1167.1,
+          "p90_ms": 2141.7,
+          "p95_ms": 2437.0,
+          "p99_ms": 3318.4,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         },
         "worker_list": {
-          "p50_ms": 1047.2,
-          "p95_ms": 1689.9,
-          "count": 13
+          "p50_ms": 1377.0,
+          "p90_ms": 2335.0,
+          "p95_ms": 3046.8,
+          "p99_ms": 4247.4,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         }
       }
     },
     {
       "concurrency": 50,
-      "total_requests": 100,
-      "duration_s": 9.59,
-      "throughput_rps": 10.4,
+      "reqs_per_endpoint": 200,
+      "total_requests": 800,
+      "duration_s": 87.95,
+      "throughput_rps": 9.1,
       "latencies_ms": {
-        "p50": 2949.0,
-        "p90": 5403.9,
-        "p95": 5575.4,
-        "p99": 5872.9
+        "p50": 6163.6,
+        "p90": 8932.6,
+        "p95": 9751.6,
+        "p99": 10949.3
       },
       "status_codes": {
-        "200": 100
+        "200": 682,
+        "404": 118
       },
       "failures": {
         "auth_401": 0,
@@ -108,32 +167,60 @@
       },
       "endpoints": {
         "doctor_respond": {
-          "p50_ms": 3533.8,
-          "p95_ms": 5450.3,
-          "count": 25
+          "p50_ms": 6583.3,
+          "p90_ms": 8708.8,
+          "p95_ms": 9220.2,
+          "p99_ms": 10328.4,
+          "count": 200,
+          "status": {
+            "200": 82,
+            "404": 118
+          }
         },
         "health": {
-          "p50_ms": 401.6,
-          "p95_ms": 757.7,
-          "count": 25
+          "p50_ms": 168.5,
+          "p90_ms": 572.2,
+          "p95_ms": 710.9,
+          "p99_ms": 1190.1,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         },
         "submit_triage": {
-          "p50_ms": 4056.0,
-          "p95_ms": 5679.0,
-          "count": 25
+          "p50_ms": 7005.4,
+          "p90_ms": 9263.1,
+          "p95_ms": 10576.3,
+          "p99_ms": 11007.4,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         },
         "worker_list": {
-          "p50_ms": 4096.2,
-          "p95_ms": 5403.9,
-          "count": 25
+          "p50_ms": 7290.0,
+          "p90_ms": 9751.6,
+          "p95_ms": 10581.0,
+          "p99_ms": 11086.7,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
         }
       }
     }
   ],
   "latency_profiling": {
-    "avg_ml_ms": 5.2,
-    "avg_pdf_ms": 37.8,
-    "avg_e2e_ms": 219.4,
-    "overhead_ms": 176.3
+    "avg_ml_ms": 1.79,
+    "avg_pdf_ms": 26.27,
+    "avg_e2e_ms": 120.94,
+    "overhead_ms": 92.88,
+    "worker_list_analysis": {
+      "observed_p50_c1_ms": 193.0,
+      "observed_p99_c1_ms": 660.6,
+      "observed_p95_c10_ms": 3046.8,
+      "observed_p95_c50_ms": 10581.0,
+      "root_cause": "Full unpaginated collection scan of consultations, double foreign collection populate (patient, assignedDoctor), and per-record field-level AES-256-GCM cryptographic decryption of patient PII (name, phone) executed synchronously on the Node.js event loop during Mongoose document hydration."
+    }
   }
 }

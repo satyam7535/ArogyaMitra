@@ -28,3 +28,4 @@
   - Verified by [`scripts/test_confidence_word_filter.py`](file:///d:/Document/Projects/Internship/Arogyamitra/scripts/test_confidence_word_filter.py):
     - **Input**: `"The model indicates a very high probability (88.5%) of Malaria. There is high certainty that the patient requires immediate intervention with definitive diagnosis."`
     - **Output**: `"The model indicates a model estimate probability (88.5%) of Malaria. There is model estimate that the patient requires immediate intervention with model estimate diagnosis."`
+

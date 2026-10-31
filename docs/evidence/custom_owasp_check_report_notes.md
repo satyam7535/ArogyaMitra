@@ -26,3 +26,4 @@ Official OWASP ZAP evaluation remains marked **`NOT RUN`** due to Docker daemon 
 8. **API8:2023 Security Misconfiguration**: Edge Nginx headers verified: HSTS, CSP, X-Frame-Options (`DENY`), `x-powered-by` stripped.
 9. **API9:2023 Improper Inventory Management**: Direct requests to internal endpoints `/predict` and `/analyze` -> blocked with HTTP 403.
 10. **API10:2023 Unsafe Third-Party / Upstream Consumption**: Upstream ML container outage -> Express fails closed with HTTP 503 `MODEL_UNAVAILABLE`.
+

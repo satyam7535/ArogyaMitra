@@ -2,10 +2,12 @@
 ArogyaMitra — Load & Concurrency Benchmark Suite (Test Mode Stack)
 Executes realistic load against https://localhost (Nginx Ingress Proxy):
 - Exercises: Login, List Consultations, Submit & Analyze (Triage), Doctor Respond
+- Requirement: At least 200 requests per endpoint per concurrency level (C=1, 10, 50)
+- Total requests per level = 800 (200 health, 200 list, 200 triage, 200 doctor respond)
 - Uses dedicated test compose override (NODE_ENV=test, test-only limits, LLM off)
 - Pre-creates 1 pending escalated consultation per doctor respond request
 - Measures latency percentiles (p50, p90, p95, p99) and strictly counts 401 and 429 as failures
-- Profiles triage latency breakdown across ML inference, PDF generation, and network/middleware
+- Profiles triage latency breakdown and explains the worker_list latency bottleneck
 """
 
 import os
@@ -72,24 +74,32 @@ def pre_create_pending_consultations(count, worker_token, doctor_id):
         }, timeout=10)
         patient_id = res_create_pat.json().get("patient", {}).get("_id")
 
-    created_ids = []
-    print(f"Pre-creating {count} pending escalated consultations for doctor respond benchmark...")
-    for i in range(count):
-        res = session.post(f"{BASE_URL}/api/v1/consultation/", headers=headers_w, json={
+    print(f"Pre-creating {count} pending escalated consultations for doctor respond benchmark (concurrently)...")
+
+    def create_and_escalate(_):
+        s = create_session()
+        res = s.post(f"{BASE_URL}/api/v1/consultation/", headers=headers_w, json={
             "patientId": patient_id,
             "symptoms": ["chills", "vomiting", "high_fever"]
         }, timeout=10)
         if res.status_code in (200, 201):
             c_id = res.json().get("consultation", {}).get("_id")
             if c_id:
-                # Escalate to doctor so it enters pending state for that doctor
-                res_esc = session.patch(f"{BASE_URL}/api/v1/consultation/{c_id}/escalate", headers=headers_w, json={
+                res_esc = s.patch(f"{BASE_URL}/api/v1/consultation/{c_id}/escalate", headers=headers_w, json={
                     "doctorId": doctor_id,
                     "reason": "Escalating for review under load test"
                 }, timeout=10)
                 if res_esc.status_code in (200, 201):
-                    created_ids.append(c_id)
-        time.sleep(0.01)
+                    return c_id
+        return None
+
+    created_ids = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = [executor.submit(create_and_escalate, i) for i in range(count)]
+        for f in concurrent.futures.as_completed(futures):
+            res_id = f.result()
+            if res_id:
+                created_ids.append(res_id)
 
     print(f"Successfully created & escalated {len(created_ids)} pending consultations.")
     return created_ids
@@ -106,7 +116,7 @@ def run_single_request(req_type, worker_token, doctor_token, consultation_id=Non
             status_code = res.status_code
         elif req_type == "worker_list":
             headers = {"Authorization": f"Bearer {worker_token}"}
-            res = session.get(f"{BASE_URL}/api/v1/consultation/my", headers=headers, timeout=15)
+            res = session.get(f"{BASE_URL}/api/v1/consultation/my", headers=headers, timeout=20)
             status_code = res.status_code
         elif req_type == "submit_triage":
             headers = {"Authorization": f"Bearer {worker_token}", "Content-Type": "application/json"}
@@ -135,27 +145,31 @@ def run_single_request(req_type, worker_token, doctor_token, consultation_id=Non
         "error": err
     }
 
-def run_concurrency_batch(concurrency_level, total_requests, worker_token, doctor_token, pending_ids):
+def run_concurrency_batch(concurrency_level, reqs_per_endpoint, worker_token, doctor_token, doctor_id):
+    total_requests = reqs_per_endpoint * 4
     print(f"\n========================================================")
-    print(f"BENCHMARK: Concurrency = {concurrency_level} users, Total Requests = {total_requests}")
+    print(f"BENCHMARK: Concurrency = {concurrency_level} users | {reqs_per_endpoint} req/endpoint | Total = {total_requests}")
     print(f"========================================================")
 
-    # Distribute request types across workload:
-    # 25% health, 25% list, 25% triage, 25% doctor respond
+    # Pre-create fresh pending consultations for doctor_respond
+    pending_ids = pre_create_pending_consultations(reqs_per_endpoint, worker_token, doctor_id)
+
+    # Distribute request types: exactly reqs_per_endpoint for each of the 4 endpoints
     work_items = []
-    pending_idx = 0
-    for i in range(total_requests):
-        mod = i % 4
-        if mod == 0:
-            work_items.append(("health", None))
-        elif mod == 1:
-            work_items.append(("worker_list", None))
-        elif mod == 2:
-            work_items.append(("submit_triage", None))
-        elif mod == 3:
-            c_id = pending_ids[pending_idx % len(pending_ids)] if pending_ids else None
-            work_items.append(("doctor_respond", c_id))
-            pending_idx += 1
+    for _ in range(reqs_per_endpoint):
+        work_items.append(("health", None))
+    for _ in range(reqs_per_endpoint):
+        work_items.append(("worker_list", None))
+    for _ in range(reqs_per_endpoint):
+        work_items.append(("submit_triage", None))
+    for i in range(reqs_per_endpoint):
+        c_id = pending_ids[i] if i < len(pending_ids) else None
+        work_items.append(("doctor_respond", c_id))
+
+    # Interleave requests across endpoints
+    import random
+    random.seed(42 + concurrency_level)
+    random.shuffle(work_items)
 
     results = []
     batch_start = time.perf_counter()
@@ -165,8 +179,12 @@ def run_concurrency_batch(concurrency_level, total_requests, worker_token, docto
             executor.submit(run_single_request, r_type, worker_token, doctor_token, c_id)
             for r_type, c_id in work_items
         ]
+        completed = 0
         for f in concurrent.futures.as_completed(futures):
             results.append(f.result())
+            completed += 1
+            if completed % 200 == 0:
+                print(f"  Progress: {completed}/{total_requests} requests executed...")
 
     total_duration_s = time.perf_counter() - batch_start
     throughput = len(results) / total_duration_s if total_duration_s > 0 else 0
@@ -190,13 +208,10 @@ def run_concurrency_batch(concurrency_level, total_requests, worker_token, docto
     p95 = latencies[int(len(latencies) * 0.95)]
     p99 = latencies[min(len(latencies) - 1, int(len(latencies) * 0.99))]
 
-    print(f"Summary for Concurrency = {concurrency_level}:")
+    print(f"\nSummary for Concurrency = {concurrency_level}:")
     print(f"  Duration:         {total_duration_s:.2f} s")
     print(f"  Throughput:       {throughput:.1f} req/s")
-    print(f"  Latency p50:      {p50:.1f} ms")
-    print(f"  Latency p90:      {p90:.1f} ms")
-    print(f"  Latency p95:      {p95:.1f} ms")
-    print(f"  Latency p99:      {p99:.1f} ms")
+    print(f"  Overall Latency:  p50={p50:.1f}ms, p90={p90:.1f}ms, p95={p95:.1f}ms, p99={p99:.1f}ms")
     print(f"  Status Codes:     {status_counts}")
     print(f"  Failures (401):   {failures_401} (Auth failures)")
     print(f"  Failures (429):   {failures_429} (Rate limit rejections)")
@@ -204,19 +219,33 @@ def run_concurrency_batch(concurrency_level, total_requests, worker_token, docto
     print(f"  Exceptions:       {failures_err}")
 
     # Endpoint breakdown
-    endpoint_types = set(r["type"] for r in results)
-    print(f"  Per-Endpoint Latencies (p50 / p95):")
+    endpoint_types = sorted(list(set(r["type"] for r in results)))
+    print(f"  Per-Endpoint Latencies:")
     endpoint_stats = {}
-    for et in sorted(endpoint_types):
+    for et in endpoint_types:
         elats = [r["elapsed_ms"] for r in results if r["type"] == et]
         elats.sort()
         ep50 = statistics.median(elats)
-        ep95 = elats[int(len(elats) * 0.95)] if len(elats) >= 20 else elats[-1]
-        print(f"    - {et:<15}: p50={ep50:.1f}ms, p95={ep95:.1f}ms (count={len(elats)})")
-        endpoint_stats[et] = {"p50_ms": round(ep50, 1), "p95_ms": round(ep95, 1), "count": len(elats)}
+        ep90 = elats[int(len(elats) * 0.90)]
+        ep95 = elats[int(len(elats) * 0.95)]
+        ep99 = elats[min(len(elats) - 1, int(len(elats) * 0.99))]
+        estatus = {}
+        for r in results:
+            if r["type"] == et:
+                estatus[r["status_code"]] = estatus.get(r["status_code"], 0) + 1
+        print(f"    - {et:<15}: p50={ep50:.1f}ms, p90={ep90:.1f}ms, p95={ep95:.1f}ms, p99={ep99:.1f}ms (count={len(elats)}, status={estatus})")
+        endpoint_stats[et] = {
+            "p50_ms": round(ep50, 1),
+            "p90_ms": round(ep90, 1),
+            "p95_ms": round(ep95, 1),
+            "p99_ms": round(ep99, 1),
+            "count": len(elats),
+            "status": estatus
+        }
 
     return {
         "concurrency": concurrency_level,
+        "reqs_per_endpoint": reqs_per_endpoint,
         "total_requests": total_requests,
         "duration_s": round(total_duration_s, 2),
         "throughput_rps": round(throughput, 1),
@@ -317,17 +346,20 @@ if __name__ == "__main__":
     worker_tok, doc_tok, doc_id = get_tokens()
     print("Worker and Doctor authentication verified successfully.")
 
-    # Pre-create pending consultations for doctor respond tests
-    pending_ids = pre_create_pending_consultations(75, worker_tok, doc_id)
-
+    REQS_PER_ENDPOINT = 200
     bench_results = []
-    for c, n in [(1, 20), (10, 50), (50, 100)]:
-        r = run_concurrency_batch(c, n, worker_tok, doc_tok, pending_ids)
+    for c in [1, 10, 50]:
+        r = run_concurrency_batch(c, REQS_PER_ENDPOINT, worker_tok, doc_tok, doc_id)
         bench_results.append(r)
 
     profiling = profile_triage_latency_breakdown(worker_tok)
 
     report = {
+        "benchmark_metadata": {
+            "reqs_per_endpoint": REQS_PER_ENDPOINT,
+            "endpoints_tested": ["health", "worker_list", "submit_triage", "doctor_respond"],
+            "total_requests_per_level": REQS_PER_ENDPOINT * 4
+        },
         "benchmark_results": bench_results,
         "latency_profiling": profiling
     }

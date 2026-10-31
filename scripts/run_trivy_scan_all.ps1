@@ -18,3 +18,4 @@ foreach ($img in $images) {
     Write-Output "================================================================================" | Out-File -FilePath $outputFile -Append -Encoding utf8
     & d:\tools\trivy.exe image --scanners vuln $img | Out-File -FilePath $outputFile -Append -Encoding utf8
 }
+

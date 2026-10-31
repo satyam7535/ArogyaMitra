@@ -18,3 +18,4 @@
 
 - Per audit instructions, once the host Docker disk image is relocated from Drive C: to Drive D: (which has >90 GB free), `docker pull zaproxy/zap-stable` can be re-run cleanly along with the full baseline scan script.
 - Until Docker storage is relocated to Drive D:, the official ZAP baseline scan remains strictly **NOT RUN**.
+

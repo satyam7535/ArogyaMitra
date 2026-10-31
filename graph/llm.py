@@ -221,6 +221,36 @@ def generate_deterministic_fallback(xai_data: dict[str, Any], language: str = "e
 
 
 
+BANNED_CONFIDENCE_PHRASES = [
+    "very high",
+    "high certainty",
+    "certainty",
+    "definitive",
+    "guaranteed",
+    "certain diagnosis",
+]
+
+
+def check_banned_confidence_phrases(conclusion: LLMConclusion) -> str | None:
+    """
+    Checks all summary fields for forbidden subjective certainty phrases.
+    Returns the matching banned phrase if found, or None.
+    """
+    fields = [
+        conclusion.diagnosis_summary,
+        conclusion.confidence_interpretation,
+        conclusion.severity_assessment,
+        conclusion.key_contributing_factors,
+        conclusion.recommended_next_steps,
+        conclusion.referral_recommendation,
+    ]
+    combined = " ".join(fields).lower()
+    for phrase in BANNED_CONFIDENCE_PHRASES:
+        if re.search(r"\b" + re.escape(phrase) + r"\b", combined):
+            return phrase
+    return None
+
+
 def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | None = None) -> LLMConclusion:
     """
     Executes prompt-injection protected, structured LLM analysis.
@@ -288,7 +318,8 @@ def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | No
         "3. Provide objective, helpful clinical summaries and precautionary next steps.\n"
         f"4. Output MUST be formatted in {target_language}.\n"
         "5. You MUST return ONLY valid JSON matching the exact schema below, with no markdown, no conversational filler.\n"
-        "6. Never describe confidence with subjective words like 'very high', 'high certainty', or 'certain'. Always characterize confidence strictly as a statistical 'model estimate' or 'decision-support estimate'.\n\n"
+        "6. Never describe confidence with subjective words like 'very high', 'high certainty', 'definitive', 'guaranteed', or 'certain diagnosis'. "
+        "Always characterize confidence strictly as a statistical 'model estimate' or 'decision-support estimate'.\n\n"
         "JSON SCHEMA:\n"
         "{\n"
         '  "diagnosis_summary": "string",\n'
@@ -314,84 +345,99 @@ def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | No
             base_url=LLM_BASE_URL,
         )
 
+    messages = [
+        {"role": "system", "content": system_instruction},
+        {"role": "user", "content": user_prompt},
+    ]
+
     try:
-        response = client.chat.completions.create(
-            model=LLM_MODEL,
-            messages=[
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.2,
-            timeout=15.0,
-        )
+        max_attempts = 2
+        for attempt in range(max_attempts):
+            response = client.chat.completions.create(
+                model=LLM_MODEL,
+                messages=messages,
+                temperature=0.2,
+                timeout=15.0,
+            )
 
-        content = response.choices[0].message.content.strip()
+            content = response.choices[0].message.content.strip()
 
-        # Parse JSON
-        match = re.search(r"(\{.*\})", content, re.DOTALL)
-        if not match:
-            logger.warning("LLM response did not contain JSON block. Using deterministic fallback.")
-            return generate_deterministic_fallback(xai_data, language)
-
-        json_str = match.group(1)
-        data = json.loads(json_str)
-
-        # Validate with Pydantic v2
-        conclusion = LLMConclusion(
-            diagnosis_summary=str(data.get("diagnosis_summary", "")),
-            confidence_interpretation=str(data.get("confidence_interpretation", "")),
-            severity_assessment=str(data.get("severity_assessment", "")),
-            key_contributing_factors=str(data.get("key_contributing_factors", "")),
-            recommended_next_steps=str(data.get("recommended_next_steps", "")),
-            referral_recommendation=str(data.get("referral_recommendation", "")),
-            llmFallback=False,
-        )
-
-        # Verify no empty fields
-        if not conclusion.diagnosis_summary or not conclusion.recommended_next_steps:
-            logger.warning("LLM returned incomplete schema fields. Using deterministic fallback.")
-            return generate_deterministic_fallback(xai_data, language)
-
-        # Output Sanity Check 1: Primary disease consistency check
-        # The diagnosis_summary MUST mention or reference the primary predicted disease from ML
-        primary_disease = (xai_data.get("primaryDiagnosis") or xai_data.get("disease") or "").strip().lower()
-        if language == "en" and primary_disease:
-            summary_lower = conclusion.diagnosis_summary.lower()
-            disease_keywords = [w for w in re.split(r"[\s_]+", primary_disease) if len(w) > 3]
-            if not any(kw in summary_lower for kw in disease_keywords):
-                logger.warning(
-                    f"LLM output sanity check failed: diagnosis_summary omitted primary disease '{primary_disease}'. Engaging fallback."
-                )
+            # Parse JSON
+            match = re.search(r"(\{.*\})", content, re.DOTALL)
+            if not match:
+                logger.warning("LLM response did not contain JSON block. Using deterministic fallback.")
                 return generate_deterministic_fallback(xai_data, language)
 
-        # Output Sanity Check 2: Unauthorized prescription drug prohibition
-        # AI decision support must NEVER prescribe specific scheduled pharmaceutical drugs
-        forbidden_drugs = [
-            "amoxicillin", "azithromycin", "ciprofloxacin", "prednisone", "dexamethasone",
-            "metformin", "atorvastatin", "tramadol", "hydrocodone", "ibuprofen 800",
-            "penicillin", "cephalexin", "warfarin", "insulin glargine"
-        ]
-        combined_text = f"{conclusion.diagnosis_summary} {conclusion.recommended_next_steps} {conclusion.referral_recommendation}".lower()
-        for drug in forbidden_drugs:
-            if re.search(r"\b" + re.escape(drug) + r"\b", combined_text):
-                logger.warning(
-                    f"LLM output sanity check failed: unauthorized prescription drug '{drug}' detected. Engaging deterministic fallback."
-                )
+            json_str = match.group(1)
+            data = json.loads(json_str)
+
+            # Validate with Pydantic v2
+            conclusion = LLMConclusion(
+                diagnosis_summary=str(data.get("diagnosis_summary", "")),
+                confidence_interpretation=str(data.get("confidence_interpretation", "")),
+                severity_assessment=str(data.get("severity_assessment", "")),
+                key_contributing_factors=str(data.get("key_contributing_factors", "")),
+                recommended_next_steps=str(data.get("recommended_next_steps", "")),
+                referral_recommendation=str(data.get("referral_recommendation", "")),
+                llmFallback=False,
+            )
+
+            # Verify no empty fields
+            if not conclusion.diagnosis_summary or not conclusion.recommended_next_steps:
+                logger.warning("LLM returned incomplete schema fields. Using deterministic fallback.")
                 return generate_deterministic_fallback(xai_data, language)
 
-        # Output Sanity Check 3: Subjective confidence word sanitization
-        banned_confidence = ["very high", "high certainty", "certainty", "certain", "definitive", "guaranteed"]
-        conf_str = conclusion.confidence_interpretation.lower()
-        for banned in banned_confidence:
-            if re.search(r"\b" + re.escape(banned) + r"\b", conf_str):
-                logger.warning(
-                    f"LLM output sanity check warning: subjective confidence term '{banned}' detected. Sanitizing."
-                )
-                conclusion.confidence_interpretation = re.sub(
-                    r"\b" + re.escape(banned) + r"\b", "model estimate", conclusion.confidence_interpretation, flags=re.IGNORECASE
-                )
+            # Output Sanity Check 1: Primary disease consistency check
+            primary_disease = (xai_data.get("primaryDiagnosis") or xai_data.get("disease") or "").strip().lower()
+            if language == "en" and primary_disease:
+                summary_lower = conclusion.diagnosis_summary.lower()
+                disease_keywords = [w for w in re.split(r"[\s_]+", primary_disease) if len(w) > 3]
+                if not any(kw in summary_lower for kw in disease_keywords):
+                    logger.warning(
+                        f"LLM output sanity check failed: diagnosis_summary omitted primary disease '{primary_disease}'. Engaging fallback."
+                    )
+                    return generate_deterministic_fallback(xai_data, language)
 
-        return conclusion
+            # Output Sanity Check 2: Unauthorized prescription drug prohibition
+            forbidden_drugs = [
+                "amoxicillin", "azithromycin", "ciprofloxacin", "prednisone", "dexamethasone",
+                "metformin", "atorvastatin", "tramadol", "hydrocodone", "ibuprofen 800",
+                "penicillin", "cephalexin", "warfarin", "insulin glargine"
+            ]
+            combined_text = f"{conclusion.diagnosis_summary} {conclusion.recommended_next_steps} {conclusion.referral_recommendation}".lower()
+            for drug in forbidden_drugs:
+                if re.search(r"\b" + re.escape(drug) + r"\b", combined_text):
+                    logger.warning(
+                        f"LLM output sanity check failed: unauthorized prescription drug '{drug}' detected. Engaging deterministic fallback."
+                    )
+                    return generate_deterministic_fallback(xai_data, language)
+
+            # Output Sanity Check 3: Subjective confidence phrase check
+            banned_found = check_banned_confidence_phrases(conclusion)
+            if banned_found:
+                if attempt == 0:
+                    logger.warning(
+                        f"LLM output contained banned confidence phrase '{banned_found}'. Regenerating once with strict prompt reminder."
+                    )
+                    messages.append({"role": "assistant", "content": content})
+                    messages.append({
+                        "role": "user",
+                        "content": (
+                            f"ERROR: Your previous response contained the banned subjective confidence phrase '{banned_found}'. "
+                            "You must NEVER use phrases like 'very high', 'high certainty', 'definitive', 'guaranteed', or 'certain diagnosis'. "
+                            "Characterize confidence strictly as a statistical 'model estimate'. Regenerate the JSON now with compliant wording."
+                        )
+                    })
+                    continue
+                else:
+                    logger.warning(
+                        f"LLM retry still contained banned confidence phrase '{banned_found}'. Falling back to deterministic safety template."
+                    )
+                    return generate_deterministic_fallback(xai_data, language)
+
+            return conclusion
+
+        return generate_deterministic_fallback(xai_data, language)
 
     except Exception as exc:
         logger.warning(f"Safe LLM invocation failed ({exc}). Engaging deterministic clinical fallback.")
