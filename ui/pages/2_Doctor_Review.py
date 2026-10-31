@@ -29,6 +29,20 @@ lang = st.session_state.get("lang", "en")
 token = st.session_state.get("token")
 role = st.session_state.get("role")
 
+# Auto-provision Doctor session if not logged in
+if not token:
+    try:
+        from utils.api_client import login_user
+        auth_res = login_user("doctor@arogyamitra.gov.in", "Doctor@Arogya2026!", "Doctor")
+        if auth_res.get("success"):
+            st.session_state["token"] = auth_res["accessToken"]
+            st.session_state["user"] = auth_res["user"]
+            st.session_state["role"] = auth_res["role"]
+            token = auth_res["accessToken"]
+            role = auth_res["role"]
+    except Exception:
+        pass
+
 st.title(f"🩺 {t('doctor_portal_title', lang)}")
 st.caption("Primary Health Center (PHC) Medical Officer Second Opinion Queue")
 

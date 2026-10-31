@@ -66,6 +66,19 @@ with col3:
 with col4:
     patient_location = st.text_input(t("patient_location", lang), value="Khed Sub-Centre, Pune")
 
+with st.expander("🛡️ DPDP Act (2023) Patient Consent & Rights"):
+    st.markdown("Patients retain the statutory right under India's Digital Personal Data Protection Act (DPDP 2023, Section 6) to withdraw consent at any time.")
+    c_dpdp1, c_dpdp2 = st.columns(2)
+    with c_dpdp1:
+        if st.button("🚫 Withdraw Patient Consent", type="secondary", use_container_width=True, key="btn_withdraw_consent"):
+            st.warning("⚠️ Patient consent withdrawn. AI triage and automated data processing are immediately suspended for this record.")
+            st.session_state["consent_withdrawn"] = True
+    with c_dpdp2:
+        if st.session_state.get("consent_withdrawn"):
+            st.error("Status: 🔴 Consent Withdrawn (Processing Refused)")
+        else:
+            st.success("Status: 🟢 Active DPDP Consent on File (Notice v1.0, En)")
+
 # ── 2. Symptom Selection ─────────────────────────────────────────────────────
 st.markdown(f"### 🩺 {t('symptoms_title', lang)}")
 
@@ -104,6 +117,9 @@ st.divider()
 
 # ── 3. Run Analysis ──────────────────────────────────────────────────────────
 if st.button(f"🔍 {t('run_analysis', lang)}", type="primary", use_container_width=True):
+    if st.session_state.get("consent_withdrawn"):
+        st.error("🚨 DPDP Act (2023) Refusal: Patient consent is inactive or has been withdrawn. Processing refused under Section 6.")
+        st.stop()
     if not selected_symptoms:
         st.error("Please select at least one clinical symptom to evaluate.")
     else:

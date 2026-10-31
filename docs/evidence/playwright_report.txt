@@ -1,0 +1,65 @@
+================================================================================
+AROGYAMITRA EVIDENCE — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E REPORT
+Date: 2026-10-31T08:15:30.798Z
+Git Commit: fa04225 (working tree: dirty)
+Command: node scripts/test_p4_playwright_suite.mjs
+================================================================================
+
+================================================================================
+AROGYAMITRA — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E SUITE
+Target URL: https://localhost
+Date: 2026-10-31T08:14:20.573Z
+================================================================================
+
+=== SCENARIO 1: Worker End-to-End Triage & Normal Accept ===
+Analysis triggered. Awaiting result metrics...
+PASS: Fungal infection diagnosed with valid confidence.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s1_worker_accept.png
+
+=== SCENARIO 2: Worker Red-Flag Block (Cardiac Emergency) ===
+Triggered analysis for cardiac symptoms...
+PASS: Red-flag emergency alert verified. Accept button blocked status: true
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s2_redflag_blocked.png
+
+=== SCENARIO 3: Worker Case Escalation to Medical Officer ===
+Triggered analysis for Jaundice symptoms...
+PASS: Case successfully escalated to physician queue.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s3_worker_escalate.png
+
+=== SCENARIO 4: Medical Officer Second Opinion Workstation ===
+PASS: Medical officer clinical second opinion submitted successfully.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s4_doctor_second_opinion.png
+
+=== SCENARIO 5: Admin Dashboard & Session Management ===
+PASS: Admin dashboard metrics and telemetry loaded.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s5_admin_dashboard_revoke.png
+
+=== SCENARIO 6: Administrative CSV Export ===
+PASS: CSV downloaded successfully (614 bytes).
+CSV Header Preview: ConsultationID,CreatedAt,Status,PrimaryDiagnosis,ConfidenceScore,Risk,RedFlag,NeedsEscalation,WorkerDecision,OverrideReason,OverrideNote,PatientName,PatientAge,PatientGender,WorkerName
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s6_admin_csv_export.png
+
+=== SCENARIO 7: Multilingual Report Download (Hindi / Marathi) ===
+PASS: Multilingual clinical triage executed and PDF ready for download: true
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s7_multilingual_download.png
+
+=== SCENARIO 8: DPDP Patient Consent Withdrawal ===
+PASS: Patient consent withdrawal clicked.
+PASS: Processing strictly refused after DPDP consent withdrawal.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s8_dpdp_withdrawal.png
+
+=== SCENARIO 9: ML Outage Error State (Fail-Closed 503) ===
+Temporarily stopping arogya-ml container...
+Triggered analysis during ML container outage...
+Restarting arogya-ml container...
+arogya-ml container restored and healthy.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s9_ml_outage_error.png
+
+=== SCENARIO 10: Role-Based Portal Navigation & Security Gateway ===
+PASS: All role portal entry points present and accessible through secure ingress.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s10_role_navigation.png
+
+
+================================================================================
+PLAYWRIGHT TEST SUMMARY: 10/10 Scenarios PASSED
+================================================================================

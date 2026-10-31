@@ -1,0 +1,26 @@
+﻿# EVIDENCE RECORD: P4.9 Streamlit AppTest Suite
+# COMMAND: uv run pytest ui/tests/ -v
+# DATE: 2026-10-31T08:18:57Z
+# COMMIT: 0ddca8db370c2343460bb68a6c6807321966fe36
+# STATUS: DIRTY
+# -------------------------------------------------------------
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
+collecting ... collected 9 items
+
+ui/tests/test_streamlit.py::test_home_page_initialization PASSED         [ 11%]
+ui/tests/test_streamlit.py::test_worker_triage_page_initialization PASSED [ 22%]
+ui/tests/test_streamlit.py::test_doctor_review_page_initialization PASSED [ 33%]
+ui/tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 44%]
+ui/tests/test_streamlit.py::test_i18n_localization_integrity PASSED      [ 55%]
+ui/tests/test_streamlit.py::test_viz_module_robustness PASSED            [ 66%]
+ui/tests/test_streamlit.py::test_api_client_thin_client_auth_helpers PASSED [ 77%]
+ui/tests/test_streamlit.py::test_api_client_no_service_secret_or_bypass PASSED [ 88%]
+ui/tests/test_streamlit.py::test_triage_analysis_with_bayesian_evidence_and_red_flags PASSED [100%]
+
+============================= 9 passed in 46.74s ==============================

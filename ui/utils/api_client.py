@@ -372,3 +372,39 @@ def run_triage_analysis(
         "statusCode": 503,
         "error": f"AI Prediction Service is currently unavailable (Backend unreachable: {backend_err_msg}). Triage cannot proceed safely without active inference engine.",
     }
+
+
+def export_admin_consultations_csv(token: str) -> bytes | None:
+    """Exports consultations as sanitized CSV from backend."""
+    try:
+        url = f"{BACKEND_URL}/admin/consultations/export-csv"
+        res = httpx.get(url, headers=get_auth_headers(token), timeout=10.0)
+        if res.status_code == 200:
+            return res.content
+    except Exception:
+        pass
+    return None
+
+
+def get_admin_sessions(token: str) -> list[dict[str, Any]]:
+    """Retrieves active user sessions in admin's organization."""
+    try:
+        url = f"{BACKEND_URL}/admin/sessions"
+        res = httpx.get(url, headers=get_auth_headers(token), timeout=5.0)
+        if res.status_code == 200:
+            return res.json().get("sessions", [])
+    except Exception:
+        pass
+    return []
+
+
+def revoke_admin_session(session_id: str, token: str) -> dict[str, Any]:
+    """Revokes a session by ID."""
+    try:
+        url = f"{BACKEND_URL}/admin/sessions/{session_id}"
+        res = httpx.delete(url, headers=get_auth_headers(token), timeout=5.0)
+        if res.status_code == 200:
+            return {"success": True, "message": res.json().get("message", "Session revoked")}
+        return {"success": False, "error": res.json().get("message", "Revocation failed")}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
