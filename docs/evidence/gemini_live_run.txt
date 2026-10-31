@@ -1,53 +1,11 @@
-# ArogyaMitra — Live Clinical Gemini LLM Inference Verification Run
-Date: 2026-10-31
-Provider: Google Gemini via OpenAI-Compatible API Endpoint
-Model: gemini-3.5-flash
-Target Condition: Malaria
-Status: SUCCESS (Live Generation, Zero Fallback)
-
---- Input Payload ---
 {
-  "primaryDiagnosis": "Malaria",
-  "confidenceScore": 0.885,
-  "severityScore": 3.2,
-  "matchedSymptoms": [
-    "chills",
-    "vomiting",
-    "high_fever",
-    "sweating",
-    "headache"
-  ],
-  "precautions": [
-    "Drink boiled water",
-    "Use mosquito bed nets",
-    "Rest"
-  ]
+  "model": "gemini-3-flash-preview",
+  "latencyMs": 2790.93,
+  "llmFallback": true,
+  "diagnosis_summary": "Patient presents clinical indicators consistent with Malaria with a model confidence of 88.5%.",
+  "confidence_interpretation": "Statistical decision-support estimation. Clinical correlation by a registered medical practitioner is required.",
+  "severity_assessment": "Calculated severity score is 3.2. Continuous monitoring of vital signs is recommended.",
+  "key_contributing_factors": "Primary presenting symptoms: chills, vomiting, high fever, sweating, headache.",
+  "recommended_next_steps": "[DRAFT - Decision Support Only, not clinically reviewed, no drug dosages] Maintain adequate oral hydration with clean boiled water; use mosquito bed nets; monitor oral temperature every 4 hours. No unvetted medication. Precautions: Drink boiled water; Use mosquito bed nets; Rest.",
+  "referral_recommendation": "Refer to Primary Health Centre (PHC) for malaria parasite rapid diagnostic test (RDT) and peripheral blood smear."
 }
-
---- Live Structured Generation Output ---
-Model Invoked: gemini-3.5-flash
-llmFallback: false
-
-Diagnosis Summary:
-The patient's clinical presentation aligns with Malaria, characterized by a classic febrile illness profile accompanied by gastrointestinal and systemic symptoms.
-
-Confidence Interpretation:
-The decision-support estimate yields a score of 0.885 (88.5%) statistical probability based on the reported symptom constellation.
-
-Severity Assessment:
-With a severity score of 3.2, the patient presents elevated acute clinical concern, particularly due to high fever and vomiting which heighten the risk of severe dehydration and systemic fatigue.
-
-Key Contributing Factors:
-Matched symptoms driving this output include high fever, chills, sweating, headache, and vomiting.
-
-Recommended Next Steps:
-Initiate oral rehydration therapy using boiled water or ORS to manage fluid loss from vomiting, enforce bed rest, utilize mosquito nets to prevent further vector exposure, and arrange for confirmatory diagnostic testing (RDT or microscopic blood smear).
-
-Referral Recommendation:
-Refer the patient to a primary healthcare center or medical officer for formal clinical evaluation, laboratory confirmation, and targeted antimalarial medication administration.
-
---- Prompt & Policy Compliance Verification ---
-1. Subjective Confidence Wording Rule: STRICT PASS (Phrased as "decision-support estimate", zero instances of "very high", "certain", "guaranteed").
-2. Unauthorized Prescription Drugs: STRICT PASS (Zero scheduled antibiotic/antimalarial brand names or dosages prescribed; instructs referral to medical officer).
-3. Primary Disease Consistency: STRICT PASS (Correctly matches predicted condition Malaria).
-4. Fallback Engagement: FALSE (Real cloud inference succeeded).

@@ -37,3 +37,4 @@ Trivy vs Pip-Audit Reconciliation
   - The Critical PyJWT CVE-2026-102268 is eliminated (PyJWT 2.15.1 installed).
   - The hundreds of non-zero counts reported by Trivy for frontend/ml/graph are strictly located in Debian 13 base OS packages (apt, bash, bsdutils, coreutils, libc6, libssl3) and have no fixed version available upstream in Debian.
   - Zero application-level Critical vulnerabilities exist in any image.
+

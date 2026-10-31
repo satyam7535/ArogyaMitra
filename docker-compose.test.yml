@@ -16,3 +16,4 @@ services:
   graph:
     environment:
       - LLM_ENABLED=false
+

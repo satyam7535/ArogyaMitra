@@ -103,3 +103,4 @@ In the consultation review workflow (`PATCH /api/v1/consultation/:id/respond`), 
   8. DPDP Act (2023) Consent Withdrawal & Deletion Safeguard.
   9. ML Outage Error State (503 Fail-Closed Alert Panel).
   10. Role-Based Navigation & Gateway Isolation.
+

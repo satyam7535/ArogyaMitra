@@ -1,39 +1,80 @@
 # ArogyaMitra — Gitleaks Baseline & Secret Scanning Justification
 
 **Policy**: Strict zero-secret policy across production codebase and VCS history.  
-**Scanner**: `gitleaks detect --source . -v --redact --gitleaks-ignore-path .gitleaksignore`  
-**Current Status**: 0 leaks detected across all 36 commits in VCS history when evaluated against this baseline.
+**Scanner**: `d:\tools\gitleaks.exe detect --source . -v --redact --gitleaks-ignore-path .gitleaksignore`  
+**Current Status**: 0 leaks detected across all 37 commits in VCS history when evaluated against `.gitleaksignore`.
 
 ---
 
-## Baseline Exceptions & Forensic Justifications
+## 1. Raw Gitleaks Output for the 5 Baseline Findings
 
-Every entry in `.gitleaksignore` has been manually inspected and justified below:
+When evaluated without `.gitleaksignore`, `gitleaks detect -v --redact` identifies exactly 5 historical findings across 37 commits:
 
-| Fingerprint | Category | Commit | File & Line | Detailed Justification |
+```text
+Finding:     ... POST requests with Idempotency-Key: REDACTED
+Secret:      REDACTED
+RuleID:      generic-api-key
+Entropy:     3.933209
+File:        docs/evidence/p3_idempotency_http.txt
+Line:        23
+Commit:      0ddca8db370c2343460bb68a6c6807321966fe36
+Fingerprint: 0ddca8db370c2343460bb68a6c6807321966fe36:docs/evidence/p3_idempotency_http.txt:generic-api-key:23
+
+Finding:     ...env.ENCRYPTION_KEY) process.env.ENCRYPTION_KEY = "REDACTED"
+Secret:      REDACTED
+RuleID:      generic-api-key
+Entropy:     4.000000
+File:        Backend/tests/setup.js
+Line:        8
+Commit:      201dc9c442b4b9332c925f0409ccd66e3b661be7
+Fingerprint: 201dc9c442b4b9332c925f0409ccd66e3b661be7:Backend/tests/setup.js:generic-api-key:8
+
+Finding:     ENCRYPTION_KEY: "REDACTED"
+Secret:      REDACTED
+RuleID:      generic-api-key
+Entropy:     4.000000
+File:        Backend/tests/security.test.js
+Line:        1615
+Commit:      201dc9c442b4b9332c925f0409ccd66e3b661be7
+Fingerprint: 201dc9c442b4b9332c925f0409ccd66e3b661be7:Backend/tests/security.test.js:generic-api-key:1615
+
+Finding:     const idempotencyKey = "REDACTED"
+Secret:      REDACTED
+RuleID:      generic-api-key
+Entropy:     4.063651
+File:        Backend/tests/raceOcc.test.js
+Line:        59
+Commit:      2f28743514cbaf36b828b9c0d9b556106ef020de
+Fingerprint: 2f28743514cbaf36b828b9c0d9b556106ef020de:Backend/tests/raceOcc.test.js:generic-api-key:59
+
+Finding:     ENCRYPTION_KEY: "REDACTED"
+Secret:      REDACTED
+RuleID:      generic-api-key
+Entropy:     4.000000
+File:        Backend/src/config/serverConfig.js
+Line:        56
+Commit:      fa04225773c30a4258acba01b5f615e54c7cac2e
+Fingerprint: fa04225773c30a4258acba01b5f615e54c7cac2e:Backend/src/config/serverConfig.js:generic-api-key:56
+```
+
+---
+
+## 2. Forensic Descriptions & Justifications
+
+| # | Fingerprint | Commit | File & Line | Detailed Forensic Justification |
 |---|---|---|---|---|
-| `2f287435...` | Test Fixture | `2f28743` | `Backend/tests/raceOcc.test.js:59` | **Synthetic Idempotency Key**: Used as a static mock string (`"unique-idempotency-key-test-12345"`) to assert that Express in-memory OCC queue rejects duplicate jobs. Contains no real secret material. |
-| `fa042257...` | Historical Placeholder | `fa04225` | `Backend/src/config/serverConfig.js:56` | **Remediated Fallback Key**: Contained a placeholder hex string (`0123456789abcdef...`) used as a fallback if `ENCRYPTION_KEY` was unset. **Remediated in commit `201dc9c`**: removed completely and replaced with fail-closed Zod schema validation requiring a real 64-char hex key from environment variables. |
-| `201dc9c4...` | Test Fixture | `201dc9c` | `Backend/tests/security.test.js:1615` | **Schema Validation Test**: Test assertion verifying that `serverConfig.envSchema` validates 64-character hex strings correctly. Replaced with dynamic `.padEnd(64, "0")` in subsequent commits. |
-| `201dc9c4...` | Test Fixture | `201dc9c` | `Backend/tests/setup.js:8` | **Ephemeral Test Key**: Fallback key used strictly by Vitest when executing in-memory unit tests in isolated test runners. Never loaded in production container. |
-| `0ddca8db...` | Raw Evidence | `0ddca8d` | `docs/evidence/p3_idempotency_http.txt:23` | **Synthetic Test UUID**: Raw console stdout from running `scripts/test_p3_idempotency_http.py` in Docker. The script generated `idem-key-{uuid.uuid4()}` which matched the Gitleaks generic API key regex. Redacted in working tree. |
-
-## Cryptographic Module Status & Fallback Key Elimination
-
-1. **Active Cryptographic Module**:
-   - The project uses `Backend/src/utils/crypto.js` for AES-256-GCM field encryption, Argon2id password hashing, and HMAC-SHA256 phone blind indexing.
-   - Files named `dataEncryption.js` or `cryptoUtils.js` do not exist in the codebase.
-2. **Fallback Key Elimination**:
-   - All fallback keys have been removed from `Backend/src/`. Specifically, the fallback string `default_hmac_secret_for_blind_index` in `computePhoneBlindIndex` has been removed. Missing keys now throw an explicit Error.
-3. **Fail-Closed Startup Enforcement**:
-   - Under `NODE_ENV=production`, `Backend/src/config/serverConfig.js` validates `ENCRYPTION_KEY` ($\ge 32$ chars) using Zod. If missing or invalid, the process terminates immediately with exit code 1 (`process.exit(1)`).
-   - Proven by automated integration test `Backend/tests/encryption_key_exit.test.js` which spawns the actual Node.js process and verifies exit code 1 and fatal error output.
+| **1** | `0ddca8db...` | `0ddca8d` | `docs/evidence/p3_idempotency_http.txt:23` | **Synthetic Test UUID**: Console stdout captured from executing `scripts/test_p3_idempotency_http.py` in Docker. The script printed `idem-key-{uuid4()}` which triggered Gitleaks generic-api-key rule. Redacted in working tree. |
+| **2** | `201dc9c4...` | `201dc9c` | `Backend/tests/setup.js:8` | **Isolated Test Key Fixture**: Fallback encryption key provided to Vitest in-memory test runner so unit tests execute in isolated worker environments without requiring a local `.env`. Never loaded in Docker production containers. |
+| **3** | `201dc9c4...` | `201dc9c` | `Backend/tests/security.test.js:1615` | **Schema Validation Test**: Assertion testing `serverConfig.envSchema` validation against 64-character hex strings. Dynamic `.padEnd(64, "0")` replaces static fixtures in subsequent tests. |
+| **4** | `2f287435...` | `2f28743` | `Backend/tests/raceOcc.test.js:59` | **Synthetic OCC Test Key**: A static test string (`"unique-idempotency-key-test-12345"`) used in unit tests verifying that Express OCC job queue prevents double-processing. |
+| **5** | `fa042257...` | `fa04225` | `Backend/src/config/serverConfig.js:56` | **Historical Default Fallback**: A placeholder string (`0123456789abcdef...`) used as a fallback if `ENCRYPTION_KEY` was unset. **Remediated in commit `201dc9c`**: removed completely and replaced by fail-closed Zod schema validation requiring a real 64-char hex key from environment variables. |
 
 ---
 
-## Production Security Verification
+## 3. Clarification on Legacy Filenames (`dataEncryption.js` & `cryptoUtils.js`)
 
-1. **Zero Real Credentials**: No real AWS, Cloudinary, Gemini, or JWT secrets exist in VCS history.
-2. **Environment Isolation**: `.env` and `*.key` files are strictly excluded via `.gitignore`.
-3. **Fail-Closed Runtime**: All services fail immediately upon startup if `JWT_SECRET`, `INTERNAL_SERVICE_SECRET`, or `ENCRYPTION_KEY` are missing or default values.
-
+- **Correction**: Earlier documentation erroneously referenced `dataEncryption.js` and `cryptoUtils.js` in relation to the Gitleaks baseline.
+- **Fact**: Neither `dataEncryption.js` nor `cryptoUtils.js` exist in the repository or git commit history, and neither file was ever flagged by Gitleaks or included in `.gitleaksignore`.
+- The active cryptographic implementation is strictly [`Backend/src/utils/crypto.js`](file:///d:/Document/Projects/Internship/Arogyamitra/Backend/src/utils/crypto.js).
+- All fallback strings (`default_hmac_secret_for_blind_index`) have been removed from `Backend/src/utils/crypto.js`.
+- Missing `ENCRYPTION_KEY` under `NODE_ENV=production` causes immediate process termination with code 1 (`Backend/tests/encryption_key_exit.test.js`).
