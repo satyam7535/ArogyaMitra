@@ -178,40 +178,53 @@ The database seed initializes three role-segregated accounts within organization
 
 ## 🧪 Testing & Verification Suites
 
-### 1. Complete Unit & Integration Suite (311 Tests)
+### 1. Complete Unit & Integration Suite (321 Tests)
 Runs linting, ML property tests, Backend security tests, LangGraph guardrails, and Streamlit AppTests:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify_all.ps1
 ```
 *Breakdown*:
 - **ML_Model Tests**: 55 passed (`verify_ml.txt`)
-- **Backend Tests**: 225 passed (`verify_backend.txt`)
-- **Graph Tests**: 22 passed (`verify_graph.txt`)
+- **Backend Tests**: 231 passed (`verify_backend.txt`) — includes `consultation_pagination.test.js` (page, limit, total, bad page/limit clamping, and worker isolation)
+- **Graph Tests**: 26 passed (`verify_graph.txt`) — includes `test_llm_timeouts_and_429.py` (wall-clock timeouts, 429 cascades, regeneration timeouts, and `max_retries=0`)
 - **UI Tests**: 9 passed (`verify_ui.txt`)
-- **Total**: 311 passed, 0 failed.
+- **Total**: 321 passed, 0 failed.
 
 ### 2. End-to-End Browser Automation (Playwright)
-Executes all 10 clinical workflow scenarios against the live Docker stack at `https://localhost`:
+Executes all 11 clinical workflow scenarios against the live Docker stack at `https://localhost`:
 ```bash
 node scripts/test_p4_playwright_suite.mjs
 ```
-Captures 10 full-page screenshots to `docs/evidence/ui_screenshots/` (`playwright_report.txt`).
+Captures 11 full-page screenshots to `docs/evidence/ui_screenshots/` (`playwright_report.txt`), including server-side list pagination (`p4_s11_ui_pagination.png`).
 
 ### 3. Ingress Load & Concurrency Benchmark
-Evaluates 2,400 requests across 4 endpoints under concurrency levels 1, 10, and 50:
+Evaluates 2,400 requests across 4 endpoints under concurrency levels 1, 10, and 50 in test mode:
 ```bash
 python scripts/run_p5_load_test.py
 ```
-Outputs latency distributions (p50, p90, p95, p99) and error rates to `docs/evidence/load_test_results.txt`.
+Outputs latency distributions (p50, p90, p95, p99) and error rates to `docs/evidence/load_test_results.txt`. Note: The list-latency reduction (60.5% p50, 77.0% p99 speedup) is the result of a combined change (server-side pagination `limit=20`, lean `.select()` field projection, and indexed sorting) and the isolated root cause was not ablated.
 
-### 4. Man-In-The-Middle (MITM) Security Probe
+### 4. OWASP ZAP Baseline Ingress Scan
+An **unauthenticated passive baseline scan** executed using official `zaproxy/zap-stable` against the internal ingress proxy:
+```bash
+docker run --rm --network arogyamitra_arogya-network zaproxy/zap-stable zap-baseline.py -t https://arogya-proxy -I
+```
+Outputs proof to `docs/evidence/zap_baseline_report.txt` (**0 FAIL-NEW, 6 WARN-NEW, 62 PASS** across 68 crawled URLs). Note: This is an unauthenticated passive baseline scan, not an active or authenticated penetration scan.
+
+### 5. Man-In-The-Middle (MITM) Security Probe
 Validates HTTP-to-HTTPS 301 redirection, untrusted CA rejection, verified CA handshake, and TLS 1.3 cipher suite:
 ```bash
 python scripts/test_p6_mitm_demo.py
 ```
 Outputs proof to `docs/evidence/mitm_demo.txt`.
 
-### 5. Master Reproduction Suite
+### 6. Clean Demo Stack Reset (No Load-Test Records)
+Tears down the container stack, wipes the MongoDB volume (`down -v`), rebuilds/starts fresh containers, and seeds pristine demo data without load-test records:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/clean_demo.ps1
+```
+
+### 7. Master Reproduction Suite
 Executes end-to-end container rebuild, database seeding, test execution, browser automation, load testing, MITM verification, and security scanning in a single pipeline:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/reproduce_all.ps1
@@ -229,10 +242,10 @@ Outputs full reproduction log to `docs/evidence/reproduce_all.txt`.
 - **Scientific Transparency**: Probabilities represent raw model likelihoods and are labeled "Model Confidence" without false calibration claims (`docs/MODEL_CARD.md`).
 
 ### Security Scanners & Hygiene
-- **Secret Detection**: `gitleaks detect` scanned 32 commits (0 leaks found).
+- **Secret Detection**: `gitleaks detect` scanned full commit history (0 leaks found).
 - **Node Dependencies**: `npm audit` on production dependencies (0 vulnerabilities).
 - **Python Dependencies**: `pip-audit` on virtual environment (0 vulnerabilities).
-- **Container Filesystems**: `trivy fs .` across lockfiles (0 vulnerabilities).
+- **Container Vulnerability Scans**: `trivy image --ignore-unfixed` across all 4 production container images (**0 fixable critical/high**). Transitive Python dependencies are unpinned/unlocked with hashes.
 - **Python Static Analysis**: `bandit` across codebase (0 vulnerabilities).
 - **Workflow Linter**: `actionlint` across GitHub Actions workflows (0 errors).
 
@@ -254,4 +267,6 @@ Outputs full reproduction log to `docs/evidence/reproduce_all.txt`.
 
 ## 📜 Licensing & Typography Notice
 
-ArogyaMitra is developed for healthcare decision support research. Bundled Devanagari typography (`Noto Sans Devanagari`) is distributed under the SIL Open Font License (OFL) v1.1. Clinical safety rules reflect published primary health center triage guidelines.
+ArogyaMitra is developed for healthcare decision support research. Bundled Devanagari typography (`Noto Sans Devanagari`) is distributed under the SIL Open Font License (OFL) v1.1. 
+
+**Devanagari Rendering Disclosure**: ReportLab has no complex text shaping engine (no HarfBuzz integration). Consequently, conjunct consonants (*samyuktaksharas*) and vowel matras (such as *chhoti-i ki matra*) may render wrongly with broken or mispositioned glyphs. Formal clinical deployment requires institutional review and full complex text shaping.

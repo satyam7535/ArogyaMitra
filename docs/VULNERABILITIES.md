@@ -22,7 +22,7 @@ This document records the exact state of all known third-party security vulnerab
 - **Resolution:** Upgraded to `pyarrow 26.0.0` with `numpy 2.4.6`.
 - **How Resolved:**
   - Benchmark-only tools (`shap`, `lightgbm`, `xgboost`) were removed from runtime production dependencies in `pyproject.toml` and segregated into `[project.optional-dependencies] benchmark`.
-  - The live inference service (`ML_Model/app.py`) operates on Bernoulli Naive Bayes (`BernoulliNB + CalibratedClassifierCV`), which fully supports NumPy 2.x without SHAP C-extensions.
+  - The live inference service (`ML_Model/app.py`) operates on Bernoulli Naive Bayes (`BernoulliNB v2.0.0`), which fully supports NumPy 2.x without SHAP C-extensions.
   - Production model artifacts were retrained under NumPy 2.x using `ML_Model/training/train_v2_naive_bayes.py`.
   - The full 248/248 test suite passed green.
   - `pip-audit` scan confirms: **No known vulnerabilities found**.

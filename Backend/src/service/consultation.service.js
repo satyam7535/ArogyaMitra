@@ -65,14 +65,19 @@ const createConsultation = async (
   return consultation;
 };
 
-// Worker gets consultations from their organization (with pagination and projection)
+// Worker gets consultations from their organization (with pagination, projection, and worker scoping)
 const getConsultationsByWorker = async (workerId, organization, options = {}) => {
   const page = Math.max(1, parseInt(options.page, 10) || 1);
   const limit = Math.min(Math.max(1, parseInt(options.limit, 10) || 20), 100);
   const skip = (page - 1) * limit;
 
+  const query = { organization };
+  if (workerId) {
+    query.submittedBy = workerId;
+  }
+
   const [consultations, total] = await Promise.all([
-    Consultation.find({ organization })
+    Consultation.find(query)
       .select(
         "patient assignedDoctor symptoms status decisionOutcome notes mlAnalysis.disease mlAnalysis.confidence mlAnalysis.needsEscalation mlAnalysis.redFlag createdAt updatedAt"
       )
@@ -81,7 +86,7 @@ const getConsultationsByWorker = async (workerId, organization, options = {}) =>
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
-    Consultation.countDocuments({ organization }),
+    Consultation.countDocuments(query),
   ]);
 
   return {
@@ -508,15 +513,25 @@ const triggerConsultationAnalysis = async (consultationId, organization, request
     language: options.language || "en",
   };
 
-  const response = await fetch(`${serverConfig.GRAPH_API_URL}/analyze/json`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Internal-Service-Token": serviceToken,
-      "Authorization": `Bearer ${serviceToken}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  const abortCtrl = new globalThis.AbortController();
+  // 30s timeout gives the 20s LangGraph LLM hard deadline sufficient headroom
+  const timeoutId = setTimeout(() => abortCtrl.abort(), 30000);
+
+  let response;
+  try {
+    response = await fetch(`${serverConfig.GRAPH_API_URL}/analyze/json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Service-Token": serviceToken,
+        "Authorization": `Bearer ${serviceToken}`,
+      },
+      body: JSON.stringify(payload),
+      signal: abortCtrl.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const errText = await response.text();

@@ -29,7 +29,7 @@ ArogyaMitra employs an automated testing pyramid ensuring functional correctness
 | **Suite 3: AI Pipeline** | `graph` | Prompt injection defenses, Pydantic v2 parsing, inter-service JWT auth, PDF generation, fallback | Pytest | **12 / 12** (100%) | [`phase3_llm_pipeline.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase3_llm_pipeline.txt) |
 | **Suite 4: Concurrency** | `Backend` | Optimistic locking `VersionError`, async job queue, worker concurrency throttle, status polling | Vitest | **7 / 7** (100%) | [`phase4_concurrency_matrix.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase4_concurrency_matrix.txt) |
 | **Suite 5: Streamlit UI** | `ui` | Headless page mounting (`AppTest`), widgets, charts, state management, exception-free rendering | Pytest | **6 / 6** (100%) | [`phase6_streamlit_evidence.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase6_streamlit_evidence.txt) |
-| **Total Test Suite** | **All Services** | **End-to-End Enterprise System Validation** | **Multi** | **53 / 53** | **All Passed (100%)** |
+| **Total Test Suite** | **All Services** | **End-to-End System Integration Validation** | **Multi** | **53 / 53** | **All Passed (100%)** |
 
 ---
 

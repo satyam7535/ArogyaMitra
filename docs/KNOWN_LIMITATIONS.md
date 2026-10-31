@@ -79,8 +79,8 @@ This document candidly lists the known technical, architectural, statistical, an
 
 1. **PDF Rendering Ligature Constraints**:
    - Multilingual clinical summary PDFs are generated using ReportLab with the bundled Open Font License `Noto Sans Devanagari` typeface.
-   - ReportLab utilizes a pure-Python font layout engine that does not incorporate full HarfBuzz complex text shaping.
-   - Consequently, while standard Devanagari characters (Hindi and Marathi) render legibly, complex half-consonant conjunct ligatures (*samyuktaksharas*) and pre-base vowel matra reordering (e.g., *chhoti-i ki matra*) may exhibit minor typographical positioning artifacts.
+   - ReportLab has no complex shaping engine (no HarfBuzz integration).
+   - Consequently, conjunct consonants (*samyuktaksharas*) and vowel matras (such as *chhoti-i ki matra*) may render wrongly with broken or mispositioned glyphs.
 
 2. **Medical Terminology Simplification**:
    - Regional language translations (Hindi, Marathi) use transliterated and colloquial disease names to assist rural frontline workers, but clinical precision in regional languages requires institutional medical translation review before formal clinical deployment.

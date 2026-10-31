@@ -515,7 +515,9 @@ const runDirectTriage = async (req, res) => {
     let response;
     try {
       const controller = new globalThis.AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      // 30s timeout gives the 20s LangGraph LLM hard deadline and ReportLab PDF synthesis
+      // sufficient headroom to finish or fall back gracefully before backend aborts
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       response = await fetch(`${serverConfig.GRAPH_API_URL}/analyze/json`, {
         method: "POST",

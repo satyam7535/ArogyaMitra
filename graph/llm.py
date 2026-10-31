@@ -5,6 +5,7 @@ Pydantic v2 structured output validation, multilingual generation (en/hi/mr),
 strict PII scrubbing, and deterministic clinical fallback on failures.
 """
 
+import concurrent.futures
 import json
 import logging
 import os
@@ -355,138 +356,163 @@ def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | No
         client = OpenAI(
             api_key=LLM_API_KEY,
             base_url=LLM_BASE_URL,
+            max_retries=0,
         )
+    elif hasattr(client, "max_retries") and client.max_retries != 0:
+        try:
+            client.max_retries = 0
+        except Exception:
+            pass
 
     models = get_configured_llm_models()
-    last_exc = None
-
     per_attempt_timeout = float(os.getenv("LLM_PER_ATTEMPT_TIMEOUT", "10.0"))
     total_timeout_cap = float(os.getenv("LLM_TOTAL_TIMEOUT_CAP", "20.0"))
     start_time = time.time()
 
-    for model_name in models:
-        elapsed = time.time() - start_time
-        if elapsed >= total_timeout_cap:
-            logger.warning(
-                f"LLM generation exceeded total timeout cap of {total_timeout_cap}s (elapsed: {elapsed:.2f}s). Engaging deterministic template fallback."
-            )
-            return generate_deterministic_fallback(xai_data, language)
-
-        try:
-            logger.info(f"Attempting clinical LLM generation with model: {model_name} (elapsed: {elapsed:.2f}s)")
-            messages = [
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": user_prompt},
-            ]
-            max_attempts = 2
-            for attempt in range(max_attempts):
-                elapsed_now = time.time() - start_time
-                remaining_time = total_timeout_cap - elapsed_now
-                if remaining_time <= 0:
-                    logger.warning(
-                        f"LLM total timeout cap of {total_timeout_cap}s exhausted during attempts (elapsed: {elapsed_now:.2f}s). Engaging fallback."
-                    )
-                    return generate_deterministic_fallback(xai_data, language)
-
-                attempt_timeout = min(per_attempt_timeout, max(1.0, remaining_time))
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=messages,
-                    temperature=0.2,
-                    timeout=attempt_timeout,
-                )
-
-                content = response.choices[0].message.content.strip()
-
-                # Parse JSON
-                match = re.search(r"(\{.*\})", content, re.DOTALL)
-                if not match:
-                    logger.warning(f"Model {model_name} response did not contain JSON block. Trying next candidate...")
-                    break
-
-                json_str = match.group(1)
-                data = json.loads(json_str)
-
-                # Validate with Pydantic v2
-                conclusion = LLMConclusion(
-                    diagnosis_summary=str(data.get("diagnosis_summary", "")),
-                    confidence_interpretation=str(data.get("confidence_interpretation", "")),
-                    severity_assessment=str(data.get("severity_assessment", "")),
-                    key_contributing_factors=str(data.get("key_contributing_factors", "")),
-                    recommended_next_steps=str(data.get("recommended_next_steps", "")),
-                    referral_recommendation=str(data.get("referral_recommendation", "")),
-                    llmFallback=False,
-                    model_used=model_name,
-                )
-
-                # Verify no empty fields
-                if not conclusion.diagnosis_summary or not conclusion.recommended_next_steps:
-                    logger.warning(f"Model {model_name} returned incomplete schema fields. Trying next candidate...")
-                    break
-
-                # Output Sanity Check 1: Primary disease consistency check
-                primary_disease = (xai_data.get("primaryDiagnosis") or xai_data.get("disease") or "").strip().lower()
-                if language == "en" and primary_disease:
-                    summary_lower = conclusion.diagnosis_summary.lower()
-                    disease_keywords = [w for w in re.split(r"[\s_]+", primary_disease) if len(w) > 3]
-                    if not any(kw in summary_lower for kw in disease_keywords):
-                        logger.warning(
-                            f"Model {model_name} omitted primary disease '{primary_disease}'. Trying next candidate..."
-                        )
-                        break
-
-                # Output Sanity Check 2: Unauthorized prescription drug prohibition
-                forbidden_drugs = [
-                    "amoxicillin", "azithromycin", "ciprofloxacin", "prednisone", "dexamethasone",
-                    "metformin", "atorvastatin", "tramadol", "hydrocodone", "ibuprofen 800",
-                    "penicillin", "cephalexin", "warfarin", "insulin glargine"
-                ]
-                combined_text = f"{conclusion.diagnosis_summary} {conclusion.recommended_next_steps} {conclusion.referral_recommendation}".lower()
-                drug_violation = any(re.search(r"\b" + re.escape(drug) + r"\b", combined_text) for drug in forbidden_drugs)
-                if drug_violation:
-                    logger.warning(f"Model {model_name} generated unauthorized prescription drug. Trying next candidate...")
-                    break
-
-                # Output Sanity Check 3: Subjective confidence phrase check
-                banned_found = check_banned_confidence_phrases(conclusion)
-                if banned_found:
-                    if attempt == 0:
-                        logger.warning(
-                            f"Model {model_name} contained banned phrase '{banned_found}'. Regenerating with strict prompt reminder."
-                        )
-                        messages.append({"role": "assistant", "content": content})
-                        messages.append({
-                            "role": "user",
-                            "content": (
-                                f"ERROR: Your previous response contained the banned subjective confidence phrase '{banned_found}'. "
-                                "You must NEVER use phrases like 'very high', 'high certainty', 'definitive', 'guaranteed', or 'certain diagnosis'. "
-                                "Characterize confidence strictly as a statistical 'model estimate'. Regenerate the JSON now with compliant wording."
-                            )
-                        })
-                        continue
-                    else:
-                        logger.warning(
-                            f"Model {model_name} retry still contained banned phrase '{banned_found}'. Trying next candidate..."
-                        )
-                        break
-
-                return conclusion
-
-        except Exception as exc:
-            last_exc = exc
-            err_str = str(exc).lower()
-            elapsed_err = time.time() - start_time
-            if elapsed_err >= total_timeout_cap:
+    def _execute_cascade() -> LLMConclusion:
+        last_exc = None
+        for model_name in models:
+            elapsed = time.time() - start_time
+            if elapsed >= total_timeout_cap:
                 logger.warning(
-                    f"Model '{model_name}' encountered error ({exc}) and total timeout cap ({total_timeout_cap}s) was reached (elapsed: {elapsed_err:.2f}s). Engaging fallback."
+                    f"LLM generation exceeded total timeout cap of {total_timeout_cap}s (elapsed: {elapsed:.2f}s). Engaging deterministic template fallback."
                 )
                 return generate_deterministic_fallback(xai_data, language)
 
-            if "429" in err_str or "resource_exhausted" in err_str or "quota" in err_str or "404" in err_str or "not_found" in err_str:
-                logger.warning(f"Model '{model_name}' hit rate limit or 404 ({exc}). Cascading to next candidate...")
-                continue
-            logger.warning(f"Model '{model_name}' invocation failed ({exc}). Cascading to next candidate...")
-            continue
+            try:
+                logger.info(f"Attempting clinical LLM generation with model: {model_name} (elapsed: {elapsed:.2f}s)")
+                messages = [
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": user_prompt},
+                ]
+                max_attempts = 2
+                for attempt in range(max_attempts):
+                    elapsed_now = time.time() - start_time
+                    remaining_time = total_timeout_cap - elapsed_now
+                    if remaining_time <= 0:
+                        logger.warning(
+                            f"LLM total timeout cap of {total_timeout_cap}s exhausted during attempts (elapsed: {elapsed_now:.2f}s). Engaging fallback."
+                        )
+                        return generate_deterministic_fallback(xai_data, language)
 
-    logger.warning(f"All candidate models exhausted (last error: {last_exc}). Engaging deterministic clinical fallback.")
-    return generate_deterministic_fallback(xai_data, language)
+                    attempt_timeout = min(per_attempt_timeout, max(0.5, remaining_time))
+                    response = client.chat.completions.create(
+                        model=model_name,
+                        messages=messages,
+                        temperature=0.2,
+                        timeout=attempt_timeout,
+                    )
+
+                    content = response.choices[0].message.content.strip()
+
+                    # Parse JSON
+                    match = re.search(r"(\{.*\})", content, re.DOTALL)
+                    if not match:
+                        logger.warning(f"Model {model_name} response did not contain JSON block. Trying next candidate...")
+                        break
+
+                    json_str = match.group(1)
+                    data = json.loads(json_str)
+
+                    # Validate with Pydantic v2
+                    conclusion = LLMConclusion(
+                        diagnosis_summary=str(data.get("diagnosis_summary", "")),
+                        confidence_interpretation=str(data.get("confidence_interpretation", "")),
+                        severity_assessment=str(data.get("severity_assessment", "")),
+                        key_contributing_factors=str(data.get("key_contributing_factors", "")),
+                        recommended_next_steps=str(data.get("recommended_next_steps", "")),
+                        referral_recommendation=str(data.get("referral_recommendation", "")),
+                        llmFallback=False,
+                        model_used=model_name,
+                    )
+
+                    # Verify no empty fields
+                    if not conclusion.diagnosis_summary or not conclusion.recommended_next_steps:
+                        logger.warning(f"Model {model_name} returned incomplete schema fields. Trying next candidate...")
+                        break
+
+                    # Output Sanity Check 1: Primary disease consistency check
+                    primary_disease = (xai_data.get("primaryDiagnosis") or xai_data.get("disease") or "").strip().lower()
+                    if language == "en" and primary_disease:
+                        summary_lower = conclusion.diagnosis_summary.lower()
+                        disease_keywords = [w for w in re.split(r"[\s_]+", primary_disease) if len(w) > 3]
+                        if not any(kw in summary_lower for kw in disease_keywords):
+                            logger.warning(
+                                f"Model {model_name} omitted primary disease '{primary_disease}'. Trying next candidate..."
+                            )
+                            break
+
+                    # Output Sanity Check 2: Unauthorized prescription drug prohibition
+                    forbidden_drugs = [
+                        "amoxicillin", "azithromycin", "ciprofloxacin", "prednisone", "dexamethasone",
+                        "metformin", "atorvastatin", "tramadol", "hydrocodone", "ibuprofen 800",
+                        "penicillin", "cephalexin", "warfarin", "insulin glargine"
+                    ]
+                    combined_text = f"{conclusion.diagnosis_summary} {conclusion.recommended_next_steps} {conclusion.referral_recommendation}".lower()
+                    drug_violation = any(re.search(r"\b" + re.escape(drug) + r"\b", combined_text) for drug in forbidden_drugs)
+                    if drug_violation:
+                        logger.warning(f"Model {model_name} generated unauthorized prescription drug. Trying next candidate...")
+                        break
+
+                    # Output Sanity Check 3: Subjective confidence phrase check
+                    banned_found = check_banned_confidence_phrases(conclusion)
+                    if banned_found:
+                        if attempt == 0:
+                            logger.warning(
+                                f"Model {model_name} contained banned phrase '{banned_found}'. Regenerating with strict prompt reminder."
+                            )
+                            messages.append({"role": "assistant", "content": content})
+                            messages.append({
+                                "role": "user",
+                                "content": (
+                                    f"ERROR: Your previous response contained the banned subjective confidence phrase '{banned_found}'. "
+                                    "You must NEVER use phrases like 'very high', 'high certainty', 'definitive', 'guaranteed', or 'certain diagnosis'. "
+                                    "Characterize confidence strictly as a statistical 'model estimate'. Regenerate the JSON now with compliant wording."
+                                )
+                            })
+                            continue
+                        else:
+                            logger.warning(
+                                f"Model {model_name} retry still contained banned phrase '{banned_found}'. Trying next candidate..."
+                            )
+                            break
+
+                    return conclusion
+
+            except Exception as exc:
+                last_exc = exc
+                err_str = str(exc).lower()
+                elapsed_err = time.time() - start_time
+                if elapsed_err >= total_timeout_cap:
+                    logger.warning(
+                        f"Model '{model_name}' encountered error ({exc}) and total timeout cap ({total_timeout_cap}s) was reached (elapsed: {elapsed_err:.2f}s). Engaging fallback."
+                    )
+                    return generate_deterministic_fallback(xai_data, language)
+
+                if "429" in err_str or "resource_exhausted" in err_str or "quota" in err_str or "404" in err_str or "not_found" in err_str:
+                    logger.warning(f"Model '{model_name}' hit rate limit or 404 ({exc}). Cascading to next candidate...")
+                    continue
+                logger.warning(f"Model '{model_name}' invocation failed ({exc}). Cascading to next candidate...")
+                continue
+
+        logger.warning(f"All candidate models exhausted (last error: {last_exc}). Engaging deterministic clinical fallback.")
+        return generate_deterministic_fallback(xai_data, language)
+
+    # Enforce strict hard deadline wrapper around entire cascade
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(_execute_cascade)
+    try:
+        return future.result(timeout=total_timeout_cap)
+    except concurrent.futures.TimeoutError:
+        elapsed_hard = time.time() - start_time
+        logger.warning(
+            f"Hard deadline reached: LLM generation exceeded total timeout cap of {total_timeout_cap}s (elapsed: {elapsed_hard:.2f}s). Engaging deterministic fallback."
+        )
+        executor.shutdown(wait=False, cancel_futures=True)
+        return generate_deterministic_fallback(xai_data, language)
+    except Exception as exc:
+        logger.warning(f"LLM cascade wrapper caught error: {exc}. Engaging fallback.")
+        executor.shutdown(wait=False, cancel_futures=True)
+        return generate_deterministic_fallback(xai_data, language)
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
