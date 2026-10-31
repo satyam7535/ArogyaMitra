@@ -1,4 +1,5 @@
-# EVIDENCE RECORD: Basic Custom OWASP API Security Check (Python Script, NOT OWASP ZAP)
+# EVIDENCE RECORD: 10 Custom Basic Checks (Python Script, NOT OWASP ZAP Baseline Scan)
+# NOTE: Relabeled per audit instructions. OWASP ZAP baseline scan evaluated separately.
 # COMMAND: python scripts/test_p6_owasp_scanner.py
 # DATE: 2026-10-31T09:41:43.721049+00:00
 # COMMIT: 9827da1bc25b3a52d2f8e7fc47dee3991cb75c36

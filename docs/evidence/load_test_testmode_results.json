@@ -1,0 +1,139 @@
+{
+  "benchmark_results": [
+    {
+      "concurrency": 1,
+      "total_requests": 20,
+      "duration_s": 7.05,
+      "throughput_rps": 2.8,
+      "latencies_ms": {
+        "p50": 178.4,
+        "p90": 962.1,
+        "p95": 976.1,
+        "p99": 976.1
+      },
+      "status_codes": {
+        "200": 20
+      },
+      "failures": {
+        "auth_401": 0,
+        "rate_limit_429": 0,
+        "server_5xx": 0,
+        "exceptions": 0
+      },
+      "endpoints": {
+        "doctor_respond": {
+          "p50_ms": 142.2,
+          "p95_ms": 190.8,
+          "count": 5
+        },
+        "health": {
+          "p50_ms": 112.3,
+          "p95_ms": 324.2,
+          "count": 5
+        },
+        "submit_triage": {
+          "p50_ms": 311.3,
+          "p95_ms": 488.7,
+          "count": 5
+        },
+        "worker_list": {
+          "p50_ms": 783.8,
+          "p95_ms": 976.1,
+          "count": 5
+        }
+      }
+    },
+    {
+      "concurrency": 10,
+      "total_requests": 50,
+      "duration_s": 4.48,
+      "throughput_rps": 11.2,
+      "latencies_ms": {
+        "p50": 804.9,
+        "p90": 1524.2,
+        "p95": 1648.4,
+        "p99": 1766.0
+      },
+      "status_codes": {
+        "200": 50
+      },
+      "failures": {
+        "auth_401": 0,
+        "rate_limit_429": 0,
+        "server_5xx": 0,
+        "exceptions": 0
+      },
+      "endpoints": {
+        "doctor_respond": {
+          "p50_ms": 737.8,
+          "p95_ms": 1233.6,
+          "count": 12
+        },
+        "health": {
+          "p50_ms": 175.1,
+          "p95_ms": 288.3,
+          "count": 13
+        },
+        "submit_triage": {
+          "p50_ms": 1021.7,
+          "p95_ms": 1766.0,
+          "count": 12
+        },
+        "worker_list": {
+          "p50_ms": 1047.2,
+          "p95_ms": 1689.9,
+          "count": 13
+        }
+      }
+    },
+    {
+      "concurrency": 50,
+      "total_requests": 100,
+      "duration_s": 9.59,
+      "throughput_rps": 10.4,
+      "latencies_ms": {
+        "p50": 2949.0,
+        "p90": 5403.9,
+        "p95": 5575.4,
+        "p99": 5872.9
+      },
+      "status_codes": {
+        "200": 100
+      },
+      "failures": {
+        "auth_401": 0,
+        "rate_limit_429": 0,
+        "server_5xx": 0,
+        "exceptions": 0
+      },
+      "endpoints": {
+        "doctor_respond": {
+          "p50_ms": 3533.8,
+          "p95_ms": 5450.3,
+          "count": 25
+        },
+        "health": {
+          "p50_ms": 401.6,
+          "p95_ms": 757.7,
+          "count": 25
+        },
+        "submit_triage": {
+          "p50_ms": 4056.0,
+          "p95_ms": 5679.0,
+          "count": 25
+        },
+        "worker_list": {
+          "p50_ms": 4096.2,
+          "p95_ms": 5403.9,
+          "count": 25
+        }
+      }
+    }
+  ],
+  "latency_profiling": {
+    "avg_ml_ms": 5.2,
+    "avg_pdf_ms": 37.8,
+    "avg_e2e_ms": 219.4,
+    "overhead_ms": 176.3
+  }
+}

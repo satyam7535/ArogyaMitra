@@ -96,7 +96,7 @@ export const startServer = async () => {
   });
 };
 
-if (process.env.NODE_ENV !== "test") {
+if (process.env.NODE_ENV !== "test" || process.env.ALLOW_LOAD_TEST === "true") {
   startServer().catch((err) => {
     console.error("Failed to start server:", err);
   });

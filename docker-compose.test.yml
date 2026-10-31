@@ -1,0 +1,18 @@
+# ArogyaMitra — Test Stack Configuration (Dedicated Test-Mode Limits)
+# Clearly labeled: This compose override operates strictly in NODE_ENV=test
+# allowing high-concurrency benchmarks without artificial rate limit capping
+# and disables external cloud LLM invocations to prevent quota exhaustion.
+
+services:
+  backend:
+    environment:
+      - NODE_ENV=test
+      - ALLOW_LOAD_TEST=true
+      - ALLOW_LOAD_TEST_RATE_LIMIT=true
+      - LOAD_TEST_AUTH_MAX=100000
+      - LOAD_TEST_API_MAX=100000
+      - LLM_ENABLED=false
+
+  graph:
+    environment:
+      - LLM_ENABLED=false

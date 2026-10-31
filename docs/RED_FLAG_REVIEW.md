@@ -1,80 +1,48 @@
-# 🚨 ArogyaMitra — Clinical Red-Flag Governance & Review Protocol
-
-> [!IMPORTANT]
-> **Status**: `DRAFT` (Pending Institutional Ethics & Medical Board Review)  
-> **Notice**: All red-flag triggers and escalation criteria in `config/red_flags.yaml` represent a provisional decision-support baseline. They MUST be formally reviewed, calibrated to regional disease patterns, and approved by a licensed Medical Officer prior to field deployment.
-
----
-
-## 1. Clinical Rationale & Objective
-In primary rural healthcare triage, community health workers (ASHA/ANM) frequently encounter acute presentations that carry severe morbidity or mortality risk if treatment is delayed. 
-
-The **ArogyaMitra Red-Flag Safety Subsystem** operates as a deterministic clinical override layer sitting in front of the statistical machine learning model. Whenever an alert symptom or critical condition is detected:
-1. `needsEscalation` is forced to `true`.
-2. `redFlag` is forced to `true`.
-3. `risk` acuity is elevated to `High`.
-4. **Decision B Override Gate**: Direct local worker acceptance is **strictly blocked** (HTTP 409 Conflict). The case cannot be closed locally and must be formally referred to a registered medical practitioner.
+# ArogyaMitra — Clinical Red-Flag Review & Vocabulary Alignment
+**Status**: DRAFT — FOR CLINICAL BOARD REVIEW  
+**Dataset Vocabulary Base**: 131 Standardized Clinical Symptoms (`ML_Model/model/symptom_columns.pkl`)  
+**Strict Rule**: `config/red_flags.yaml` must only contain terms existing in the 131-symptom vocabulary. Unmapped terms cause startup failure.
 
 ---
 
-## 2. Red-Flag Symptom Matrix (131-Feature Vocabulary)
+## 1. Candidate Emergency Symptoms Mapped to 131-Feature Vocabulary
 
-The table below lists each configured red-flag trigger strictly mapped to the model's feature vocabulary:
+The following candidate emergency indicators have been verified against the 131-feature dataset vocabulary (`symptom_columns.pkl`) and are submitted for clinical review.
 
-| Symptom Token | Acuity | Presumed Clinical Risk / Differential | Required Immediate Action | Clinician Sign-Off |
+| Candidate Symptom (Vocab Key) | Vocabulary Status | Acuity Level | Clinical Rationale | Proposed Action if Accepted |
 |---|---|---|---|---|
-| `chest_pain` | Critical | Acute Coronary Syndrome (MI), Pulmonary Embolism, Aortic Dissection | Immediate emergency transfer to facility with 12-lead ECG & cardiac care. | `[ ] Approved [ ] Modified` |
-| `coma` | Critical | Acute neurological crisis, traumatic brain injury, severe diabetic ketoacidosis/hypoglycemia | Immediate airway stabilization, emergency 108 transfer. | `[ ] Approved [ ] Modified` |
-| `breathlessness` | High | Acute pulmonary edema, severe bronchospasm, tension pneumothorax | High-flow oxygen if available; urgent physician assessment. | `[ ] Approved [ ] Modified` |
-| `blood_in_sputum` | High | Active pulmonary hemorrhage, cavitary tuberculosis, bronchogenic malignancy | Airborne isolation precautions; urgent chest radiography and sputum smear. | `[ ] Approved [ ] Modified` |
-| `bloody_stool` | High | Acute lower/upper gastrointestinal hemorrhage, dysentery with dehydration | Hemodynamic monitoring, IV fluid access, urgent medical officer referral. | `[ ] Approved [ ] Modified` |
-| `loss_of_balance` | High | Cerebellar stroke, intracranial hemorrhage, acute vestibular crisis | Neurological deficit evaluation within thrombolysis window. | `[ ] Approved [ ] Modified` |
+| `chest_pain` | **IN VOCABULARY** | Critical | Acute coronary syndrome, myocardial infarction, pulmonary embolism | Immediate cardiac emergency transfer |
+| `coma` | **IN VOCABULARY** | Critical | Acute unconsciousness, metabolic encephalopathy, severe CNS depression | Airway protection & tertiary ICU referral |
+| `breathlessness` | **IN VOCABULARY** | High / Critical | Acute respiratory failure, pulmonary edema, severe status asthmaticus | Oxygen administration & urgent physician triage |
+| `blood_in_sputum` | **IN VOCABULARY** | High | Hemoptysis, pulmonary hemorrhage, severe open cavitary tuberculosis | Urgent isolation & chest physician review |
+| `bloody_stool` | **IN VOCABULARY** | High | Massive lower/upper gastrointestinal bleeding, acute mesenteric ischemia | Hemodynamic monitoring & surgical referral |
+| `loss_of_balance` | **IN VOCABULARY** | High | Acute cerebellar stroke, vestibular crisis, posterior circulation TIA | Immediate stroke protocol evaluation |
+| `acute_liver_failure` | **IN VOCABULARY** | Critical | Fulminant hepatic failure, coagulopathy, hepatic encephalopathy | Urgent intensive care & hepatology referral |
+| `altered_sensorium` | **IN VOCABULARY** | Critical | Delirium, sepsis, severe hypoglycemia, acute encephalitis | Neurological assessment & emergency vitals |
+| `slurred_speech` | **IN VOCABULARY** | High | Acute ischemic/hemorrhagic stroke, acute cranial nerve deficit | Rapid stroke code within thrombolysis window |
+| `stomach_bleeding` | **IN VOCABULARY** | High | Peptic ulcer perforation/hemorrhage, esophageal varices bleed | Immediate IV fluids & urgent endoscopy triage |
+| `toxic_look_(typhos)` | **IN VOCABULARY** | High | Severe septicemia, severe typhoid crisis, systemic endotoxemia | Immediate antibiotic stabilization & admission |
+| `weakness_of_one_body_side` | **IN VOCABULARY** | High | Hemiparesis, acute hemispheric ischemic stroke | Emergency transfer to stroke-capable center |
 
 ---
 
-## 3. High-Risk Disease Categories (Acuity Escalation)
+## 2. Emergency Candidates NOT in Current Vocabulary (Requires Model Retraining)
 
-| Primary Condition | Clinical Category | Clinical Rule | Overriding Rationale |
+These terms represent acute clinical red flags in emergency medicine but **do not exist** in the legacy 131-feature dataset. Adding them to `config/red_flags.yaml` without retraining the underlying Bayesian/scikit-learn classifier would trigger fail-closed startup validation errors.
+
+| Unmapped Emergency Term | Vocabulary Status | Clinical Significance | Recommended Vocabulary Proxy in 131-Feature Base |
 |---|---|---|---|
-| `Heart attack` | Cardiovascular | Forced Escalation | High mortality risk outside hospital intervention. |
-| `Paralysis (brain hemorrhage)` | Neurological | Forced Escalation | Acute stroke pathway required. |
-| `Tuberculosis` | Infectious Disease | Forced Escalation | Public health notification, DOTS protocol, MDR risk. |
-| `Pneumonia` | Respiratory | Forced Escalation | Hypoxia risk requiring auscultation, CXR, and antibiotic prescription. |
+| `unconsciousness` | **NOT IN VOCABULARY** | Profound neurological depression | Use `coma` or `altered_sensorium` |
+| `cyanosis` | **NOT IN VOCABULARY** | Severe arterial hypoxemia | Use `breathlessness` |
+| `stridor` | **NOT IN VOCABULARY** | Critical upper airway obstruction | Use `breathlessness` |
+| `seizures` / `convulsions` | **NOT IN VOCABULARY** | Status epilepticus, eclampsia | Retraining feature candidate |
+| `anaphylaxis` | **NOT IN VOCABULARY** | Severe systemic allergic reaction | Retraining feature candidate |
+| `hypotension` / `shock` | **NOT IN VOCABULARY** | Circulatory collapse, septic shock | Retraining feature candidate |
+| `cardiac_arrest` | **NOT IN VOCABULARY** | Asystole / VF | Retraining feature candidate |
 
 ---
 
-## 4. Clinician Formal Review & Sign-Off Template
-
-### Medical Review Board Attestation
-
-*This section must be completed and signed by an authorized physician holding a valid Medical Council registration prior to non-experimental use.*
-
-```
-Reviewing Clinician Information:
-  Full Name: ___________________________________________________________
-  State Medical Council Registration No.: ______________________________
-  Clinical Specialty: ___________________________________________________
-  Affiliated Hospital / PHC: ___________________________________________
-  Contact Email / Phone: _______________________________________________
-
-Evaluation Checklist:
-  [ ] 1. Are the designated red-flag symptoms sufficient to capture acute life threats in rural primary care?
-  [ ] 2. Are the recommended triage immediate actions clinically safe, evidence-based, and non-prescriptive?
-  [ ] 3. Is the mandatory escalation rule (blocking local worker closure) clinically appropriate for frontline safety?
-  [ ] 4. Are there regional endemic conditions (e.g. Kyasanur Forest Disease, Scrub Typhus) that warrant addition?
-
-Review Decision:
-  [ ] APPROVED WITHOUT MODIFICATION
-  [ ] APPROVED WITH NOTED MODIFICATIONS (see attached comments)
-  [ ] REJECTED (requires revision of symptom thresholds)
-
-Clinician Signature: ___________________________    Date: _______________
-Hospital Seal:
-```
-
----
-
-## 5. Software Fail-Closed Verification
-Software enforcement of this review state is verified in the automated test suite:
-- `ML_Model/tests/test_clinical_red_flags.py`: Validates that unmapped vocabulary terms fail closed at startup.
-- `Backend/tests/security.test.js`: Confirms that attempting to accept a red-flag consultation locally strictly returns `HTTP 409 Conflict`.
+## 3. Clinical Board Recommendations
+1. Maintain `config/red_flags.yaml` in its current frozen state until formal sign-off by a licensed Medical Officer.
+2. If approved during medical board review, candidates from Section 1 (`altered_sensorium`, `acute_liver_failure`, `slurred_speech`, `stomach_bleeding`, `weakness_of_one_body_side`, `toxic_look_(typhos)`) can be safely incorporated into `config/red_flags.yaml` as zero breaking changes occur to the 131-feature schema.
+3. Features in Section 2 require dataset schema expansion (v2.0 data pipeline) before integration.

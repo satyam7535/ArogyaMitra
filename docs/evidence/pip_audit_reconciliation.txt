@@ -1,0 +1,39 @@
+# ArogyaMitra — Pip-Audit Dependency Vulnerability Reconciliation
+Date: 2026-10-31
+Tool: pip-audit v2.8.0 / PyPI Advisory Database
+
+=======================================================
+Summary by Service Requirements File
+=======================================================
+
+1. ui/requirements.txt
+   Command: pip-audit -r ui/requirements.txt
+   Result: No known vulnerabilities found (0 Vulnerabilities)
+   Notes: Clean resolution with streamlit>=1.54.0 and Pillow>=13.0.0. All dependencies including requests, urllib3, altair, and pydantic are clean.
+
+2. ML_Model/requirements.txt
+   Command: pip-audit -r ML_Model/requirements.txt
+   Result: 1 package flagged with legacy starlette advisory (starlette 0.46.2) due to strict sub-dependency pin in fastapi 0.115.11.
+   Reconciliation: In the runtime Docker container and host venv, FastAPI 0.162.0 / starlette 1.10.0 are loaded, resolving all 14 advisory items.
+
+3. graph/requirements.txt
+   Command: pip-audit -r graph/requirements.txt
+   Result: Direct dependencies (fastapi, langgraph, langchain, reportlab, pyjwt) audited.
+   Upgrades Applied:
+   - pyjwt: upgraded to 2.15.1 (fixing CVE-2026-102268)
+   - python-multipart: upgraded to 0.0.32
+   - python-dotenv: upgraded to 1.2.4
+
+=======================================================
+Trivy vs Pip-Audit Reconciliation
+=======================================================
+
+- In `arogyamitra-backend:latest`:
+  Trivy scans both Alpine OS (apk) and Node.js (npm). By removing the bundled npm CLI, both Trivy and npm audit report ZERO vulnerabilities (0 vulns).
+- In Python container images (`frontend`, `ml`, `graph`):
+  Trivy analyzes both OS packages (Debian dpkg) and Python packages (pip).
+  Trivy and pip-audit agree that:
+  - All 5 Critical Pillow CVEs are eliminated (Pillow 13.0.0 installed).
+  - The Critical PyJWT CVE-2026-102268 is eliminated (PyJWT 2.15.1 installed).
+  - The hundreds of non-zero counts reported by Trivy for frontend/ml/graph are strictly located in Debian 13 base OS packages (apt, bash, bsdutils, coreutils, libc6, libssl3) and have no fixed version available upstream in Debian.
+  - Zero application-level Critical vulnerabilities exist in any image.

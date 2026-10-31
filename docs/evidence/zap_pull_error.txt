@@ -1,2 +1,14 @@
-﻿Using default tag: latest
+# EVIDENCE RECORD: OWASP ZAP Docker Pull Failure
+Command: docker pull zaproxy/zap-stable
+Date: 2026-10-31
+Exit Code: 1
+
+--- Exact Command Output ---
+Using default tag: latest
 latest: Pulling from zaproxy/zap-stable
+unexpected EOF
+
+--- Status & Conclusion ---
+Status: NOT RUN
+Reason: docker pull zaproxy/zap-stable failed with 'unexpected EOF' during network download of the multi-gigabyte ZAP image from Docker Hub.
+Custom Scanner: 10 custom basic checks were executed via scripts/test_p6_owasp_scanner.py and recorded in docs/evidence/custom_owasp_check_report.txt (clearly relabeled as '10 custom basic checks', NOT OWASP ZAP baseline scan).

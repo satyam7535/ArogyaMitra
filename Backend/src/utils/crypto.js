@@ -178,6 +178,9 @@ export const computePhoneBlindIndex = (phoneNumber, secretKey = null) => {
     normPhone = normPhone.slice(-10);
   }
   if (!normPhone) return null;
-  const key = secretKey || serverConfig.ENCRYPTION_KEY || "default_hmac_secret_for_blind_index";
+  const key = secretKey || serverConfig.ENCRYPTION_KEY;
+  if (!key) {
+    throw new Error("ENCRYPTION_KEY is required to compute phone blind index");
+  }
   return crypto.createHmac("sha256", key).update(normPhone).digest("hex");
 };

@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install python dependencies
 RUN useradd -m -u 1000 appuser
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application and model artifacts
 COPY app.py __init__.py ./

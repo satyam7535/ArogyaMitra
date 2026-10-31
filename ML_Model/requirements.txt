@@ -4,8 +4,8 @@ uvicorn[standard]==0.34.0
 pydantic==2.10.6
 joblib==1.4.2
 numpy==2.2.3
-python-multipart==0.0.22
-python-dotenv==1.0.1
+python-multipart>=0.0.30
+python-dotenv>=1.2.2
 httpx==0.28.1
 
 # Core runtime model dependency

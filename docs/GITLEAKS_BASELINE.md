@@ -18,6 +18,17 @@ Every entry in `.gitleaksignore` has been manually inspected and justified below
 | `201dc9c4...` | Test Fixture | `201dc9c` | `Backend/tests/setup.js:8` | **Ephemeral Test Key**: Fallback key used strictly by Vitest when executing in-memory unit tests in isolated test runners. Never loaded in production container. |
 | `0ddca8db...` | Raw Evidence | `0ddca8d` | `docs/evidence/p3_idempotency_http.txt:23` | **Synthetic Test UUID**: Raw console stdout from running `scripts/test_p3_idempotency_http.py` in Docker. The script generated `idem-key-{uuid.uuid4()}` which matched the Gitleaks generic API key regex. Redacted in working tree. |
 
+## Cryptographic Module Status & Fallback Key Elimination
+
+1. **Active Cryptographic Module**:
+   - The project uses `Backend/src/utils/crypto.js` for AES-256-GCM field encryption, Argon2id password hashing, and HMAC-SHA256 phone blind indexing.
+   - Files named `dataEncryption.js` or `cryptoUtils.js` do not exist in the codebase.
+2. **Fallback Key Elimination**:
+   - All fallback keys have been removed from `Backend/src/`. Specifically, the fallback string `default_hmac_secret_for_blind_index` in `computePhoneBlindIndex` has been removed. Missing keys now throw an explicit Error.
+3. **Fail-Closed Startup Enforcement**:
+   - Under `NODE_ENV=production`, `Backend/src/config/serverConfig.js` validates `ENCRYPTION_KEY` ($\ge 32$ chars) using Zod. If missing or invalid, the process terminates immediately with exit code 1 (`process.exit(1)`).
+   - Proven by automated integration test `Backend/tests/encryption_key_exit.test.js` which spawns the actual Node.js process and verifies exit code 1 and fatal error output.
+
 ---
 
 ## Production Security Verification
@@ -25,3 +36,4 @@ Every entry in `.gitleaksignore` has been manually inspected and justified below
 1. **Zero Real Credentials**: No real AWS, Cloudinary, Gemini, or JWT secrets exist in VCS history.
 2. **Environment Isolation**: `.env` and `*.key` files are strictly excluded via `.gitignore`.
 3. **Fail-Closed Runtime**: All services fail immediately upon startup if `JWT_SECRET`, `INTERNAL_SERVICE_SECRET`, or `ENCRYPTION_KEY` are missing or default values.
+

@@ -1,12 +1,12 @@
 # FastAPI graph orchestration server dependencies
 fastapi==0.115.11
 uvicorn[standard]==0.34.0
-python-multipart==0.0.22
+python-multipart>=0.0.30
 pydantic==2.10.6
-python-dotenv==1.0.1
+python-dotenv>=1.2.2
 httpx==0.28.1
 openai==1.65.5
 langgraph==0.3.5
 langchain==0.3.20
 reportlab==4.3.1
-pyjwt==2.10.1
+pyjwt>=2.14.0

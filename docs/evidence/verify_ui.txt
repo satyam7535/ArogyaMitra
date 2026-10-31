@@ -17,4 +17,4 @@ ui/tests/test_streamlit.py::test_api_client_thin_client_auth_helpers PASSED [ 77
 ui/tests/test_streamlit.py::test_api_client_no_service_secret_or_bypass PASSED [ 88%]
 ui/tests/test_streamlit.py::test_triage_analysis_with_bayesian_evidence_and_red_flags PASSED [100%]
 
-============================= 9 passed in 37.03s ==============================
+============================= 9 passed in 45.29s ==============================

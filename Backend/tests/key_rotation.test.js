@@ -86,9 +86,10 @@ describe("P3.6: Cryptographic Key Rotation & Dual-Keyring Verification", () => {
     const sensitiveData = "Medical condition";
     const cipher = encryptField(sensitiveData, "k1", KEY_V1);
 
-    // Tamper ciphertext
+    // Tamper ciphertext deterministically
     const parts = cipher.split(":");
-    parts[3] = parts[3].replace(/a/g, "b"); // corrupt ciphertext
+    const lastChar = parts[3].slice(-1);
+    parts[3] = parts[3].slice(0, -1) + (lastChar === "0" ? "1" : "0");
     const tampered = parts.join(":");
 
     const result = decryptField(tampered, KEY_V1);
