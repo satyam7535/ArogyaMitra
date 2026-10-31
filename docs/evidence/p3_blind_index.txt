@@ -1,0 +1,21 @@
+================================================================================
+AROGYAMITRA EVIDENCE — PHASE P3.10 HMAC BLIND INDEX PHONE ALIGNMENT
+Date: 2026-10-31T07:52:48.241977+00:00
+Git Commit: fa04225 (working tree: dirty)
+Command: npx vitest run tests/blind_index.test.js
+================================================================================
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mD:/Document/Projects/Internship/Arogyamitra/Backend[39m
+
+[90mstdout[2m | tests/blind_index.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+
+ [32m✓[39m tests/blind_index.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 13:22:52
+[2m   Duration [22m 2.28s[2m (import 91%, transform 6%, worker 1%, setup 1%, tests 1%)[22m
+

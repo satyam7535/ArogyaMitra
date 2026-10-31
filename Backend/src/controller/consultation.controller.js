@@ -19,6 +19,7 @@ import {
 } from "../service/jobQueue.service.js";
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
 import Consultation from "../models/consultation/consultationSchema.js";
+import AnalysisJob from "../models/job/jobSchema.js";
 import { getJobStatusFromDb } from "../service/jobQueue.service.js";
 import jwt from "jsonwebtoken";
 import serverConfig from "../config/serverConfig.js";
@@ -278,6 +279,7 @@ const triggerAnalysis = async (req, res) => {
   try {
     const { id } = req.params;
     const { language } = req.body;
+    const idempotencyKey = req.headers["idempotency-key"] || req.headers["x-idempotency-key"] || req.body?.idempotencyKey;
 
     const consultation = await triggerConsultationAnalysis(
       id,
@@ -315,6 +317,7 @@ const triggerAnalysisAsync = async (req, res) => {
   try {
     const { id } = req.params;
     const { language } = req.body;
+    const idempotencyKey = req.headers["idempotency-key"] || req.headers["x-idempotency-key"] || req.body?.idempotencyKey;
 
     const consultation = await Consultation.findOne({
       _id: id,
@@ -340,11 +343,29 @@ const triggerAnalysisAsync = async (req, res) => {
       });
     }
 
+    if (idempotencyKey) {
+      const existingJob = await AnalysisJob.findOne({
+        idempotencyKey,
+        organization: req.user.organization,
+      });
+      if (existingJob) {
+        return res.status(202).json({
+          message: "Analysis job already enqueued",
+          job: {
+            jobId: existingJob.jobId,
+            status: existingJob.status,
+            createdAt: existingJob.createdAt,
+            isDuplicate: true,
+          },
+        });
+      }
+    }
     const job = enqueueAnalysisJob({
       consultationId: id,
       organization: req.user.organization,
       requestingUser: req.user,
       options: { language: language || "en" },
+      idempotencyKey,
     });
 
     await logAuditEvent({

@@ -366,6 +366,7 @@ describe("1.1 Dynamic Authorization Matrix & Route Table Verification", () => {
         name: "Ramesh Pawar",
         organization: orgAlpha,
         isDeleted: false,
+        deletionApproved: true,
         save: vi.fn().mockResolvedValue(true),
       };
 

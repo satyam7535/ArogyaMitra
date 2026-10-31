@@ -21,7 +21,7 @@ const patientSchema = new mongoose.Schema(
       type: String, // Encrypted at rest via AES-256-GCM
     },
     blindIndex: {
-      type: String, // Keyed HMAC blind index of (phone + name) for duplicate warning
+      type: String, // Keyed HMAC blind index of phone number (only phone is hashed with HMAC, not name) for duplicate warning and exact lookup
       index: true,
     },
     address: {

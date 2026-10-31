@@ -3,13 +3,11 @@ import Consultation from "../models/consultation/consultationSchema.js";
 import ROLES from "../config/roles.js";
 import crypto from "crypto";
 import serverConfig from "../config/serverConfig.js";
+import { computePhoneBlindIndex } from "../utils/crypto.js";
 
-// HMAC Blind Index helper for privacy-preserving duplicate detection
+// HMAC Blind Index helper for privacy-preserving duplicate detection (only phone is hashed with HMAC, not name)
 export const computePatientBlindIndex = (name, phoneNumber) => {
-  const normName = String(name || "").toLowerCase().replace(/\s+/g, "").trim();
-  const normPhone = String(phoneNumber || "").replace(/[^0-9]/g, "").trim();
-  const key = serverConfig.ENCRYPTION_KEY || "default_hmac_secret_for_blind_index";
-  return crypto.createHmac("sha256", key).update(`${normName}:${normPhone}`).digest("hex");
+  return computePhoneBlindIndex(phoneNumber);
 };
 
 // Worker registers a new patient in their organization
@@ -29,8 +27,8 @@ const createPatient = async (
   workerId,
   organization
 ) => {
-  // Duplicate-patient warning: check keyed HMAC blind index of (phone + name), warning only
-  const blindIndex = phoneNumber ? computePatientBlindIndex(name, phoneNumber) : null;
+  // Duplicate-patient warning: check keyed HMAC blind index of phone number (only phone is hashed), warning only
+  const blindIndex = phoneNumber ? computePhoneBlindIndex(phoneNumber) : null;
   let potentialDuplicate = null;
   if (blindIndex) {
     potentialDuplicate = await Patient.findOne({
@@ -154,6 +152,11 @@ const exportPatientDataScoped = async (patientId, organization, userRole) => {
   if (userRole === ROLES.ADMIN && !patient.exportApproved) {
     patient.exportApproved = true;
     await patient.save();
+  } else if (userRole !== ROLES.ADMIN && !patient.exportApproved) {
+    const err = new Error("Patient data export requires Administrator approval under DPDP Act");
+    err.statusCode = 403;
+    err.code = "ADMIN_APPROVAL_REQUIRED";
+    throw err;
   }
 
   const consultations = await Consultation.find({ patient: patientId, organization }).sort({ createdAt: -1 });
@@ -198,6 +201,11 @@ const deletePatientScoped = async (patientId, organization, userRole) => {
 
   if (userRole === ROLES.ADMIN && !patient.deletionApproved) {
     patient.deletionApproved = true;
+  } else if (userRole !== ROLES.ADMIN && !patient.deletionApproved) {
+    const err = new Error("Patient data erasure requires Administrator approval under DPDP Act");
+    err.statusCode = 403;
+    err.code = "ADMIN_APPROVAL_REQUIRED";
+    throw err;
   }
 
   patient.consentGiven = false;

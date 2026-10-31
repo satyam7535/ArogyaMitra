@@ -981,7 +981,9 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
         consentVersion: "1.0",
         organization: orgAlpha,
         registeredBy: workerAlphaId,
-        isDeleted: false,
+        isDeleted: false,
+        exportApproved: true,
+        deletionApproved: true,
       });
 
       vi.spyOn(Patient, "findOne").mockImplementation((query) => {
@@ -1043,7 +1045,9 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
         consentVersion: "1.0",
         organization: orgAlpha,
         registeredBy: workerAlphaId,
-        isDeleted: false,
+        isDeleted: false,
+        exportApproved: true,
+        deletionApproved: true,
       });
 
       mockPatient.save = vi.fn().mockImplementation(async function () {
@@ -1090,7 +1094,9 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
         medicalHistory: encryptField("Hypertension"),
         organization: orgAlpha,
         registeredBy: workerAlphaId,
-        isDeleted: false,
+        isDeleted: false,
+        exportApproved: true,
+        deletionApproved: true,
       });
 
       vi.spyOn(Patient, "findOne").mockImplementation((query) => {
@@ -1162,7 +1168,9 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
             gender: "Female",
             consentGiven: false, // Consent NOT given
             revokedAt: new Date(),
-            isDeleted: false,
+            isDeleted: false,
+        exportApproved: true,
+        deletionApproved: true,
           },
         };
 
@@ -1207,7 +1215,9 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
           consentGiven: true,
           consentWithdrawnAt: null,
           consentWithdrawalReason: null,
-          isDeleted: false,
+          isDeleted: false,
+        exportApproved: true,
+        deletionApproved: true,
           save: vi.fn().mockResolvedValue(true),
         };
 
@@ -1363,7 +1373,9 @@ describe("Phase 2 — Security & Cryptographic Integrity", () => {
           organization: orgId,
           exportApproved: false,
           deletionApproved: false,
-          isDeleted: false,
+          isDeleted: false,
+        exportApproved: true,
+        deletionApproved: true,
           save: vi.fn().mockResolvedValue(true),
         };
 

@@ -1,0 +1,21 @@
+Command exited with code 0.
+
+Command output:
+
+> techathon-3.0@1.0.0 test
+> vitest run tests/dpdp_approval.test.js
+
+
+ RUN  v5.0.5 D:/Document/Projects/Internship/Arogyamitra/Backend
+
+stdout | tests/dpdp_approval.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+
+ ✓ tests/dpdp_approval.test.js (8 tests) 509ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  18:35:48
+   Duration  8.70s (import 84%, transform 9%, tests 6%, worker 1%)
+

@@ -24,6 +24,11 @@ const analysisJobSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
+    idempotencyKey: {
+      type: String,
+      sparse: true,
+      index: true,
+    },
     status: {
       type: String,
       enum: ["queued", "processing", "completed", "failed", "dead_letter"],
@@ -92,6 +97,8 @@ const analysisJobSchema = new mongoose.Schema(
 
 // Compound index for tenant-scoped job lookup
 analysisJobSchema.index({ jobId: 1, organization: 1 });
+// Compound index for idempotency deduplication
+analysisJobSchema.index({ idempotencyKey: 1, organization: 1 }, { unique: true, sparse: true });
 // Compound index for atomic queue polling & lease recovery
 analysisJobSchema.index({ status: 1, leaseExpiresAt: 1, attempts: 1 });
 

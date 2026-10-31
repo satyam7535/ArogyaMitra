@@ -1,0 +1,51 @@
+================================================================================
+AROGYAMITRA EVIDENCE — PHASE P3.9 NON-BLOCKING BACKEND RESPONSIVENESS TEST
+Date: 2026-10-31T07:50:07.126803+00:00
+Git Commit: fa04225 (working tree: dirty)
+Command: python scripts/test_p3_non_blocking.py
+================================================================================
+
+================================================================================
+AROGYAMITRA — PHASE P3.9 NON-BLOCKING BACKEND RESPONSIVENESS TEST (DOCKER)
+Date: 2026-10-31T07:49:46.834527+00:00
+Target: https://localhost
+================================================================================
+
+[STEP 1] Authenticating as Worker...
+[+] Authenticated successfully as Worker.
+
+[STEP 2] Measuring baseline responsiveness with ML container running...
+[+] Baseline GET /health latency: 13.43ms (min: 9.10ms, max: 26.93ms)
+
+[STEP 3] Stopping arogya-ml container to induce total ML inference outage...
+[+] arogya-ml stopped successfully.
+
+[STEP 4] Testing GET /health while ML container is stopped...
+[+] Outage GET /health latency: 13.26ms (min: 9.68ms, max: 16.53ms)
+[+] VERIFIED: GET /health responds < 100ms during ML outage.
+
+[STEP 5] Performing Patient CRUD operations while ML is down...
+[+] Patient created successfully in 96.20ms (ID: 6ae59da1ebadbdc8ab056d79)
+[+] Patient read successfully in 30.34ms
+[+] Patient list returned successfully in 17.11ms
+
+[STEP 6] Confirming ML analysis returns fail-closed loud HTTP 503...
+[+] ML direct triage returned HTTP 503 in 3382.80ms
+[+] Response body: {"success":false,"code":"MODEL_UNAVAILABLE","message":"AI Pipeline failed with HTTP 503: {\"detail\":\"AI Pipeline execution failed: [Errno -2] Name or service not known\"}"}
+[+] Loud fail-closed 503 verified.
+
+[STEP 7] Firing 20 concurrent requests across health and patient endpoints during ML outage...
+[+] 20 concurrent requests completed.
+[+] Statuses: 200 x 20, other: 0
+[+] Average latency under concurrent load: 378.18ms (max: 673.73ms)
+[+] Non-blocking Express event loop verified: Zero blocking, all requests handled concurrently.
+
+[STEP 8] Restarting arogya-ml container...
+[+] arogya-ml container restarted and healthy.
+
+[STEP 9] Verifying system recovery after arogya-ml restart...
+[+] System successfully restored. Prediction: None
+
+================================================================================
+RESULT: VERIFIED — Non-blocking backend responsiveness verified during total ML outage.
+================================================================================

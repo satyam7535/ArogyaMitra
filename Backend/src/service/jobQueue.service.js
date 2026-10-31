@@ -12,6 +12,7 @@ import AnalysisJob from "../models/job/jobSchema.js";
 
 // In-memory cache with 1-hour automatic pruning for fast lookups
 const jobs = new Map();
+const idempotencyIndex = new Map();
 const JOB_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 const MAX_CONCURRENT_JOBS = 5;
 const DEFAULT_LEASE_DURATION_MS = 5 * 60 * 1000; // 5-minute lease timeout
@@ -210,8 +211,27 @@ const pumpQueue = async () => {
  * Enqueue an asynchronous consultation analysis job
  * Persists to MongoDB when database is active, and pushes to processing pump
  */
-const enqueueAnalysisJob = ({ consultationId, organization, requestingUser, options = {} }) => {
+const enqueueAnalysisJob = ({ consultationId, organization, requestingUser, options = {}, idempotencyKey }) => {
+  const orgStr = organization.toString();
+  if (idempotencyKey) {
+    const dedupeKey = `${orgStr}:${idempotencyKey}`;
+    if (idempotencyIndex.has(dedupeKey)) {
+      const existingJobId = idempotencyIndex.get(dedupeKey);
+      const existing = jobs.get(existingJobId);
+      return {
+        jobId: existingJobId,
+        status: existing ? existing.status : "queued",
+        createdAt: existing ? new Date(existing.createdAt).toISOString() : new Date().toISOString(),
+        isDuplicate: true,
+        message: "Analysis job already enqueued with this idempotency key",
+      };
+    }
+  }
+
   const jobId = randomUUID();
+  if (idempotencyKey) {
+    idempotencyIndex.set(`${orgStr}:${idempotencyKey}`, jobId);
+  }
 
   const jobRecord = {
     jobId,
@@ -237,6 +257,7 @@ const enqueueAnalysisJob = ({ consultationId, organization, requestingUser, opti
       consultationId,
       organization,
       requestingUserId: requestingUser._id || requestingUser.id,
+      idempotencyKey: idempotencyKey || null,
       status: "queued",
       attempts: 0,
       maxAttempts: 3,

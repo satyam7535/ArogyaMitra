@@ -178,6 +178,7 @@ if "triage_results" in st.session_state:
         )
 
     st.markdown("---")
+    st.caption("ℹ️ **Methodological Context:** Bernoulli Naive Bayes decision-support estimate on curated reference dataset. Assumes conditional symptom independence. Probabilities represent statistical classifier weights, not clinical morbidity risks.")
 
     # Visualizations: Bayesian Evidence Bar & Differential Probabilities
     c_left, c_right = st.columns([3, 2])
