@@ -39,8 +39,8 @@ D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\testWorkerKill.j
   10:7  warning  '__dirname' is assigned a value but never used  no-unused-vars
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\consultation.service.js
-  316:45  warning  'prescription' is defined but never used. Allowed unused args must match /^_/u        no-unused-vars
-  316:59  warning  'diagnosisConfirmed' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+  327:45  warning  'prescription' is defined but never used. Allowed unused args must match /^_/u        no-unused-vars
+  327:59  warning  'diagnosisConfirmed' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\patient.service.js
   4:8  warning  'crypto' is defined but never used        no-unused-vars

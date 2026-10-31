@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import time
 from typing import Any
 
 from dotenv import load_dotenv
@@ -359,20 +360,40 @@ def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | No
     models = get_configured_llm_models()
     last_exc = None
 
+    per_attempt_timeout = float(os.getenv("LLM_PER_ATTEMPT_TIMEOUT", "10.0"))
+    total_timeout_cap = float(os.getenv("LLM_TOTAL_TIMEOUT_CAP", "20.0"))
+    start_time = time.time()
+
     for model_name in models:
+        elapsed = time.time() - start_time
+        if elapsed >= total_timeout_cap:
+            logger.warning(
+                f"LLM generation exceeded total timeout cap of {total_timeout_cap}s (elapsed: {elapsed:.2f}s). Engaging deterministic template fallback."
+            )
+            return generate_deterministic_fallback(xai_data, language)
+
         try:
-            logger.info(f"Attempting clinical LLM generation with model: {model_name}")
+            logger.info(f"Attempting clinical LLM generation with model: {model_name} (elapsed: {elapsed:.2f}s)")
             messages = [
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": user_prompt},
             ]
             max_attempts = 2
             for attempt in range(max_attempts):
+                elapsed_now = time.time() - start_time
+                remaining_time = total_timeout_cap - elapsed_now
+                if remaining_time <= 0:
+                    logger.warning(
+                        f"LLM total timeout cap of {total_timeout_cap}s exhausted during attempts (elapsed: {elapsed_now:.2f}s). Engaging fallback."
+                    )
+                    return generate_deterministic_fallback(xai_data, language)
+
+                attempt_timeout = min(per_attempt_timeout, max(1.0, remaining_time))
                 response = client.chat.completions.create(
                     model=model_name,
                     messages=messages,
                     temperature=0.2,
-                    timeout=15.0,
+                    timeout=attempt_timeout,
                 )
 
                 content = response.choices[0].message.content.strip()
@@ -454,6 +475,13 @@ def call_llm(xai_data: dict[str, Any], language: str = "en", client: OpenAI | No
         except Exception as exc:
             last_exc = exc
             err_str = str(exc).lower()
+            elapsed_err = time.time() - start_time
+            if elapsed_err >= total_timeout_cap:
+                logger.warning(
+                    f"Model '{model_name}' encountered error ({exc}) and total timeout cap ({total_timeout_cap}s) was reached (elapsed: {elapsed_err:.2f}s). Engaging fallback."
+                )
+                return generate_deterministic_fallback(xai_data, language)
+
             if "429" in err_str or "resource_exhausted" in err_str or "quota" in err_str or "404" in err_str or "not_found" in err_str:
                 logger.warning(f"Model '{model_name}' hit rate limit or 404 ({exc}). Cascading to next candidate...")
                 continue

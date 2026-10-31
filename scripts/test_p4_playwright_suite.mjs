@@ -37,7 +37,7 @@ async function runSuite() {
   const page = await context.newPage();
 
   let passedScenarios = 0;
-  const totalScenarios = 10;
+  const totalScenarios = 11;
 
   try {
     // ── SCENARIO 1: Worker End-to-End (Demographics, Triage, Analysis, Normal Accept)
@@ -325,6 +325,47 @@ async function runSuite() {
     log(`[+] Screenshot captured: ${s10Shot}\n`);
     passedScenarios++;
 
+    // ── SCENARIO 11: Worker Consultation List Server-Side Pagination (Next / Previous)
+    log("=== SCENARIO 11: Worker Consultation List Pagination (Next / Previous) ===");
+    await page.goto("https://localhost/Worker_Triage", { waitUntil: "networkidle", timeout: 45000 });
+    await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
+    await page.waitForTimeout(1500);
+
+    // Verify initial pagination state
+    const paginationText = await page.textContent("body");
+    if (!paginationText.includes("Recent Consultation Records") || !paginationText.includes("Page 1 of")) {
+      throw new Error("Pagination container or initial Page 1 text not found on Worker Triage page.");
+    }
+    log("PASS: Initial consultation page 1 loaded with server-side count.");
+
+    // Click Next Page button
+    const nextBtn = page.getByRole("button", { name: /Next Page/i });
+    await nextBtn.click();
+    await page.waitForTimeout(2000);
+
+    const page2Text = await page.textContent("body");
+    if (!page2Text.includes("Page 2 of")) {
+      throw new Error(`Failed to navigate to Page 2. Current text preview: ${page2Text.slice(0, 300)}`);
+    }
+    log("PASS: Successfully navigated to Page 2 with updated paginated records.");
+
+    // Screenshot of Page 2
+    const s11Shot = path.join(screenshotDir, "p4_s11_ui_pagination.png");
+    await page.screenshot({ path: s11Shot, fullPage: true });
+    log(`[+] Screenshot captured: ${s11Shot}`);
+
+    // Click Previous Page button
+    const prevBtn = page.getByRole("button", { name: /Previous Page/i });
+    await prevBtn.click();
+    await page.waitForTimeout(2000);
+
+    const page1BackText = await page.textContent("body");
+    if (!page1BackText.includes("Page 1 of")) {
+      throw new Error("Failed to navigate back to Page 1.");
+    }
+    log("PASS: Successfully navigated back to Page 1.\n");
+    passedScenarios++;
+
   } catch (err) {
     log(`\n[-] SUITE FAILURE: ${err.message}`);
     const errShot = path.join(screenshotDir, "p4_error_state.png");
@@ -344,7 +385,7 @@ async function runSuite() {
 runSuite().then((success) => {
   const commit = execSync("git rev-parse HEAD").toString().trim();
   const header = `================================================================================
-AROGYAMITRA EVIDENCE — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E REPORT
+AROGYAMITRA EVIDENCE — PHASE P4 COMPLETE PLAYWRIGHT 11-SCENARIO E2E REPORT
 Date: ${new Date().toISOString()}
 Git Commit: ${commit} (working tree: dirty)
 Command: node scripts/test_p4_playwright_suite.mjs

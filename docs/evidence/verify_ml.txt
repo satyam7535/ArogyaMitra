@@ -63,4 +63,4 @@ ML_Model/tests/test_phase1.py::test_symptom_dropout_robustness PASSED    [ 96%]
 ML_Model/tests/test_phase1.py::test_suggested_follow_up_symptoms_on_uncertainty PASSED [ 98%]
 ML_Model/tests/test_phase1.py::test_production_contrastive_attribution_integrity PASSED [100%]
 
-============================= 55 passed in 30.76s =============================
+============================= 55 passed in 11.43s =============================

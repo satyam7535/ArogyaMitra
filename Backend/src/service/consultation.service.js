@@ -71,15 +71,26 @@ const getConsultationsByWorker = async (workerId, organization, options = {}) =>
   const limit = Math.min(Math.max(1, parseInt(options.limit, 10) || 20), 100);
   const skip = (page - 1) * limit;
 
-  return await Consultation.find({ organization })
-    .select(
-      "patient assignedDoctor symptoms status decisionOutcome notes mlAnalysis.disease mlAnalysis.confidence mlAnalysis.needsEscalation mlAnalysis.redFlag createdAt updatedAt"
-    )
-    .populate("patient", "name age gender")
-    .populate("assignedDoctor", "name specialization")
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
+  const [consultations, total] = await Promise.all([
+    Consultation.find({ organization })
+      .select(
+        "patient assignedDoctor symptoms status decisionOutcome notes mlAnalysis.disease mlAnalysis.confidence mlAnalysis.needsEscalation mlAnalysis.redFlag createdAt updatedAt"
+      )
+      .populate("patient", "name age gender")
+      .populate("assignedDoctor", "name specialization")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Consultation.countDocuments({ organization }),
+  ]);
+
+  return {
+    consultations,
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit) || 1,
+  };
 };
 
 // Admin gets all consultations from their organization

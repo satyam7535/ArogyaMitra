@@ -1,14 +1,14 @@
 ================================================================================
-AROGYAMITRA EVIDENCE — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E REPORT
-Date: 2026-10-31T14:52:41.113Z
-Git Commit: b290b00d02585e36b56363b945bdde19f381e20d (working tree: dirty)
+AROGYAMITRA EVIDENCE — PHASE P4 COMPLETE PLAYWRIGHT 11-SCENARIO E2E REPORT
+Date: 2026-10-31T17:09:28.272Z
+Git Commit: f7659dee21265cbe6060b8f087fba139a3fb5ac1 (working tree: dirty)
 Command: node scripts/test_p4_playwright_suite.mjs
 ================================================================================
 
 ================================================================================
 AROGYAMITRA — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E SUITE
 Target URL: https://localhost
-Date: 2026-10-31T14:51:20.249Z
+Date: 2026-10-31T17:07:51.652Z
 ================================================================================
 
 === SCENARIO 1: Worker End-to-End Triage & Normal Accept ===
@@ -35,7 +35,7 @@ PASS: Admin dashboard metrics and telemetry loaded.
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s5_admin_dashboard_revoke.png
 
 === SCENARIO 6: Administrative CSV Export ===
-PASS: CSV downloaded successfully (470 bytes).
+PASS: CSV downloaded successfully (211669 bytes).
 CSV Header Preview: ConsultationID,CreatedAt,Status,PrimaryDiagnosis,ConfidenceScore,Risk,RedFlag,NeedsEscalation,WorkerDecision,OverrideReason,OverrideNote,PatientName,PatientAge,PatientGender,WorkerName
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s6_admin_csv_export.png
 
@@ -44,6 +44,8 @@ PASS: Multilingual clinical triage executed and PDF ready for download: true
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s7_multilingual_download.png
 
 === SCENARIO 8: DPDP Patient Consent Withdrawal ===
+PASS: Patient consent withdrawal clicked.
+PASS: Processing strictly refused after DPDP consent withdrawal.
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s8_dpdp_withdrawal.png
 
 === SCENARIO 9: ML Outage Error State (Fail-Closed 503) ===
@@ -57,7 +59,13 @@ arogya-ml container restored and healthy.
 PASS: All role portal entry points present and accessible through secure ingress.
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s10_role_navigation.png
 
+=== SCENARIO 11: Worker Consultation List Pagination (Next / Previous) ===
+PASS: Initial consultation page 1 loaded with server-side count.
+PASS: Successfully navigated to Page 2 with updated paginated records.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s11_ui_pagination.png
+PASS: Successfully navigated back to Page 1.
+
 
 ================================================================================
-PLAYWRIGHT TEST SUMMARY: 10/10 Scenarios PASSED
+PLAYWRIGHT TEST SUMMARY: 11/11 Scenarios PASSED
 ================================================================================

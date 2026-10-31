@@ -1,6 +1,6 @@
 # Command: python scripts/test_p0_golden_set.py
-# Date: 2026-10-31T14:49:18.614633+00:00
-# Git Commit: b290b00d02585e36b56363b945bdde19f381e20d (dirty)
+# Date: 2026-10-31T17:03:24.435842+00:00
+# Git Commit: f7659dee21265cbe6060b8f087fba139a3fb5ac1 (dirty)
 # Ingress Target: https://localhost
 # Status: RUNNING
 
@@ -13,26 +13,26 @@ Set B (Fungal symptoms)  -> Predicted: 'Fungal infection', Confidence: 0.9844
 PASS: Both symptom sets returned correct, distinct live predictions. Anti-mock test PASSED.
 
 === Step 3: 20 Golden Cases & Boundary Validation ===
-[CASE-01] PASS: Fungal infection Case in 0.501s | Pred: 'Fungal infection' (Conf: 0.9844) | PDF bytes: 9584 | In 41-class vocab: True
-[CASE-02] PASS: Allergy Case in 0.605s | Pred: 'Allergy' (Conf: 0.9999) | PDF bytes: 9336 | In 41-class vocab: True
-[CASE-03] PASS: GERD Case in 0.891s | Pred: 'GERD' (Conf: 0.9999) | PDF bytes: 9708 | In 41-class vocab: True
-[CASE-04] PASS: Chronic cholestasis Case in 0.674s | Pred: 'Chronic cholestasis' (Conf: 0.9988) | PDF bytes: 9740 | In 41-class vocab: True
-[CASE-05] PASS: Peptic ulcer disease Case in 0.587s | Pred: 'Peptic ulcer diseae' (Conf: 0.9999) | PDF bytes: 9792 | In 41-class vocab: True
-[CASE-06] PASS: AIDS Case in 0.599s | Pred: 'AIDS' (Conf: 1) | PDF bytes: 9976 | In 41-class vocab: True
-[CASE-07] PASS: Diabetes Case in 0.62s | Pred: 'Diabetes' (Conf: 1) | PDF bytes: 10156 | In 41-class vocab: True
-[CASE-08] PASS: Gastroenteritis Case in 0.538s | Pred: 'Gastroenteritis' (Conf: 1) | PDF bytes: 10152 | In 41-class vocab: True
-[CASE-09] PASS: Bronchial Asthma Case in 0.504s | Pred: 'Bronchial Asthma' (Conf: 1) | PDF bytes: 10204 | In 41-class vocab: True
-[CASE-10] PASS: Hypertension Case in 0.606s | Pred: 'Hypertension' (Conf: 1) | PDF bytes: 10112 | In 41-class vocab: True
-[CASE-11] PASS: Migraine Case in 0.621s | Pred: 'Migraine' (Conf: 1) | PDF bytes: 9808 | In 41-class vocab: True
-[CASE-12] PASS: Cervical spondylosis Case in 0.57s | Pred: 'Cervical spondylosis' (Conf: 0.9992) | PDF bytes: 9956 | In 41-class vocab: True
-[CASE-13] PASS: Paralysis (brain hemorrhage) Case in 0.59s | Pred: 'Paralysis (brain hemorrhage)' (Conf: 0.9997) | PDF bytes: 9724 | In 41-class vocab: True
-[CASE-14] PASS: Jaundice Case in 0.636s | Pred: 'Jaundice' (Conf: 1) | PDF bytes: 10224 | In 41-class vocab: True
-[CASE-15] PASS: Malaria Case in 0.742s | Pred: 'Malaria' (Conf: 1) | PDF bytes: 10324 | In 41-class vocab: True
-[CASE-16] PASS: Chicken pox Case in 0.893s | Pred: 'Chicken pox' (Conf: 1) | PDF bytes: 10380 | In 41-class vocab: True
-[CASE-17] PASS: Dengue Case in 0.586s | Pred: 'Dengue' (Conf: 1) | PDF bytes: 11108 | In 41-class vocab: True
-[CASE-18] PASS: Typhoid Case in 0.574s | Pred: 'Typhoid' (Conf: 1) | PDF bytes: 10900 | In 41-class vocab: True
-[CASE-19] PASS: hepatitis A Case in 0.547s | Pred: 'hepatitis A' (Conf: 1) | PDF bytes: 10800 | In 41-class vocab: True
-[CASE-20] PASS: Hepatitis B Case in 0.594s | Pred: 'Hepatitis B' (Conf: 1) | PDF bytes: 11712 | In 41-class vocab: True
+[CASE-01] PASS: Fungal infection Case in 0.614s | Pred: 'Fungal infection' (Conf: 0.9844) | PDF bytes: 9580 | In 41-class vocab: True
+[CASE-02] PASS: Allergy Case in 0.706s | Pred: 'Allergy' (Conf: 0.9999) | PDF bytes: 9336 | In 41-class vocab: True
+[CASE-03] PASS: GERD Case in 0.594s | Pred: 'GERD' (Conf: 0.9999) | PDF bytes: 9708 | In 41-class vocab: True
+[CASE-04] PASS: Chronic cholestasis Case in 0.56s | Pred: 'Chronic cholestasis' (Conf: 0.9988) | PDF bytes: 9740 | In 41-class vocab: True
+[CASE-05] PASS: Peptic ulcer disease Case in 0.664s | Pred: 'Peptic ulcer diseae' (Conf: 0.9999) | PDF bytes: 9792 | In 41-class vocab: True
+[CASE-06] PASS: AIDS Case in 0.509s | Pred: 'AIDS' (Conf: 1) | PDF bytes: 9976 | In 41-class vocab: True
+[CASE-07] PASS: Diabetes Case in 0.569s | Pred: 'Diabetes' (Conf: 1) | PDF bytes: 10156 | In 41-class vocab: True
+[CASE-08] PASS: Gastroenteritis Case in 0.539s | Pred: 'Gastroenteritis' (Conf: 1) | PDF bytes: 10152 | In 41-class vocab: True
+[CASE-09] PASS: Bronchial Asthma Case in 0.545s | Pred: 'Bronchial Asthma' (Conf: 1) | PDF bytes: 10204 | In 41-class vocab: True
+[CASE-10] PASS: Hypertension Case in 0.539s | Pred: 'Hypertension' (Conf: 1) | PDF bytes: 10108 | In 41-class vocab: True
+[CASE-11] PASS: Migraine Case in 0.812s | Pred: 'Migraine' (Conf: 1) | PDF bytes: 9804 | In 41-class vocab: True
+[CASE-12] PASS: Cervical spondylosis Case in 0.496s | Pred: 'Cervical spondylosis' (Conf: 0.9992) | PDF bytes: 9956 | In 41-class vocab: True
+[CASE-13] PASS: Paralysis (brain hemorrhage) Case in 0.5s | Pred: 'Paralysis (brain hemorrhage)' (Conf: 0.9997) | PDF bytes: 9724 | In 41-class vocab: True
+[CASE-14] PASS: Jaundice Case in 0.561s | Pred: 'Jaundice' (Conf: 1) | PDF bytes: 10220 | In 41-class vocab: True
+[CASE-15] PASS: Malaria Case in 0.796s | Pred: 'Malaria' (Conf: 1) | PDF bytes: 10324 | In 41-class vocab: True
+[CASE-16] PASS: Chicken pox Case in 0.675s | Pred: 'Chicken pox' (Conf: 1) | PDF bytes: 10376 | In 41-class vocab: True
+[CASE-17] PASS: Dengue Case in 0.66s | Pred: 'Dengue' (Conf: 1) | PDF bytes: 11108 | In 41-class vocab: True
+[CASE-18] PASS: Typhoid Case in 0.6s | Pred: 'Typhoid' (Conf: 1) | PDF bytes: 10900 | In 41-class vocab: True
+[CASE-19] PASS: hepatitis A Case in 0.74s | Pred: 'hepatitis A' (Conf: 1) | PDF bytes: 10800 | In 41-class vocab: True
+[CASE-20] PASS: Hepatitis B Case in 0.662s | Pred: 'Hepatitis B' (Conf: 1) | PDF bytes: 11712 | In 41-class vocab: True
 
 PASS: All 20 Golden Set test cases predicted accurately within the 41-class boundary with valid PDFs.
 

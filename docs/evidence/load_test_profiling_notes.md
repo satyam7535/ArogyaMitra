@@ -76,3 +76,4 @@ Empirical profiling measured in-container inference and synthesis components:
 4. **Total End-to-End Triage Latency (LLM Off / Fallback)**: **125.0 ms** (100.0%)
 
 *Note on Gemini LLM Latency*: When the LLM is active, network round-trip time to Gemini 2.5 Flash is external. Due to upstream API quota limits, LLM latency is marked as "not measured".
+

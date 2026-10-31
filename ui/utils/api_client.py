@@ -126,6 +126,20 @@ def get_auth_headers(token: str | None = None) -> dict[str, str]:
     return headers
 
 
+# ── Worker Consultation History & Pagination ───────────────────────────────
+
+def get_worker_consultations(token: str, page: int = 1, limit: int = 10) -> dict[str, Any]:
+    """Retrieves paginated consultations for frontline worker."""
+    try:
+        url = f"{BACKEND_URL}/consultation/my?page={page}&limit={limit}"
+        res = httpx.get(url, headers=get_auth_headers(token), timeout=5.0)
+        if res.status_code == 200:
+            return res.json()
+    except Exception:
+        pass
+    return {"consultations": [], "page": page, "limit": limit, "total": 0, "totalPages": 1}
+
+
 # ── Doctor Operations ─────────────────────────────────────────────────────────
 
 def get_pending_consultations_for_doctor(token: str) -> list[dict[str, Any]]:

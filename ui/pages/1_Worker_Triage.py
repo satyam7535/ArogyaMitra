@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.api_client import (
     get_clinical_symptoms,
+    get_worker_consultations,
     run_triage_analysis,
 )
 from utils.i18n import t
@@ -309,3 +310,51 @@ if "triage_results" in st.session_state:
             )
         else:
             st.button(f"📄 {t('download_pdf', lang)}", disabled=True, use_container_width=True)
+
+
+# ── 4. Patient Consultation Records (Paginated) ──────────────────────────────
+st.markdown("---")
+st.markdown("### 📂 Recent Consultation Records (Paginated)")
+st.caption("Browse patient consultation history with server-side pagination and projection.")
+
+if "worker_page" not in st.session_state:
+    st.session_state["worker_page"] = 1
+
+page_limit = 5
+consult_data = get_worker_consultations(token, page=st.session_state["worker_page"], limit=page_limit) if token else {}
+consult_list = consult_data.get("consultations", [])
+total_count = consult_data.get("total", len(consult_list))
+total_pages = consult_data.get("totalPages", max(1, (total_count + page_limit - 1) // page_limit))
+curr_page = st.session_state["worker_page"]
+
+# Pagination controls
+c_prev, c_info, c_next = st.columns([1, 3, 1])
+with c_prev:
+    if st.button("⬅️ Previous Page", key="btn_prev_page", disabled=(curr_page <= 1), use_container_width=True):
+        st.session_state["worker_page"] = max(1, curr_page - 1)
+        st.rerun()
+with c_info:
+    st.markdown(f"<div style='text-align: center; padding-top: 8px; font-weight: bold;'>Page {curr_page} of {total_pages} (Total: {total_count} consultations)</div>", unsafe_allow_html=True)
+with c_next:
+    if st.button("Next Page ➡️", key="btn_next_page", disabled=(curr_page >= total_pages), use_container_width=True):
+        st.session_state["worker_page"] = min(total_pages, curr_page + 1)
+        st.rerun()
+
+if consult_list:
+    import pandas as pd
+    rows = []
+    for c in consult_list:
+        pt = c.get("patient") or {}
+        ml_res = c.get("mlAnalysis") or {}
+        rows.append({
+            "Patient": pt.get("name", "N/A"),
+            "Age/Gender": f"{pt.get('age', '-')}/{pt.get('gender', '-')}",
+            "Primary Diagnosis": ml_res.get("disease", "Pending"),
+            "Status": c.get("status", "draft"),
+            "Outcome": c.get("decisionOutcome", "none"),
+            "Created": str(c.get("createdAt", ""))[:19].replace("T", " ")
+        })
+    df = pd.DataFrame(rows)
+    st.dataframe(df, use_container_width=True, hide_index=True)
+else:
+    st.info("No consultation records found on this page.")

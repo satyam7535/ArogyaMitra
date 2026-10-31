@@ -82,8 +82,8 @@ const submitConsultation = async (req, res) => {
 const getMyConsultations = async (req, res) => {
   try {
     const { page, limit } = req.query || {};
-    const consultations = await getConsultationsByWorker(req.user.id, req.user.organization, { page, limit });
-    return res.status(200).json({ consultations });
+    const result = await getConsultationsByWorker(req.user.id, req.user.organization, { page, limit });
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
