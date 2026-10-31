@@ -68,7 +68,7 @@ Status transitions require raw command output recorded under `docs/evidence/`.
 | **P7.6** | Automated end-to-end reproduce script (scripts/reproduce_all.ps1) | VERIFIED | `scripts/reproduce_all.ps1`, `docs/evidence/reproduce_all.txt` | working-tree | Single-command reproduction script executing full stack verification |
 | **P7.7** | Medical literature & ML benchmark citations verified | VERIFIED | `docs/LITERATURE_REVIEW.md` | working-tree | 15+ peer-reviewed citations on medical AI, Naive Bayes, CDSCO, and DPDP |
 | **P7.8** | System architecture and 13-step flow diagrams generated and committed | VERIFIED | `README.md`, `docs/architecture.md` | working-tree | Mermaid diagrams of container network, microservices, and 13-step lifecycle |
-| **P8.1** | Independent verifier subagent execution & audit | MISSING | `docs/evidence/independent_audit_report.txt` | pending | Disinterested verification across acceptance criteria |
-| **P8.2** | Final rebuild & test verification across all suites | MISSING | `docs/evidence/final_verify_all.txt` | pending | Clean 6/6 container health and test count verification |
-| **P8.3** | Final VERIFICATION_REPORT.md and summary report | MISSING | `docs/VERIFICATION_REPORT.md` | pending | Complete deliverables summary and reproduction commands |
+| **P8.1** | Independent verifier subagent execution & audit | VERIFIED | `scripts/run_independent_audit.py`, `docs/evidence/independent_audit_report.txt` | working-tree | Disinterested automated audit passed 11/11 criteria with zero deficiencies |
+| **P8.2** | Final rebuild & test verification across all suites | VERIFIED | `docs/evidence/final_verify_all.txt` | working-tree | Final sweep passed all 310 tests dynamically (55 ML, 224 Backend, 22 Graph, 9 UI) |
+| **P8.3** | Final VERIFICATION_REPORT.md and summary report | VERIFIED | `docs/VERIFICATION_REPORT.md` | working-tree | Full verification report, test metrics, audit verdict, and reproduction instructions |
 

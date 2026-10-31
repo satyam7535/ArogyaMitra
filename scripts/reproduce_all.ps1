@@ -107,6 +107,8 @@ Run-Repro-Step -StepNumber "5" -StepTitle "Run Ingress Load Test Suite (run_p5_l
 
 # 6. Man-In-The-Middle (MITM) Transport Security Demo
 Run-Repro-Step -StepNumber "6" -StepTitle "Run MITM Transport Security Demo (test_p6_mitm_demo.py)" -Action {
+    Write-Host "Waiting 6 seconds for rate limit window to refresh after load test..."
+    Start-Sleep -Seconds 6
     uv run python scripts/test_p6_mitm_demo.py
 }
 

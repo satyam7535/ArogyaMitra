@@ -35,7 +35,7 @@ Every status claim in the completion ledger traces to one of these verified comm
 | [`docs/evidence/rate_limit_429.txt`](evidence/rate_limit_429.txt) | **P5.2** | `VERIFIED` | `0ebfa6a` | P5.2 Production Rate Limiter Verification |
 | [`docs/evidence/http_race_tests.txt`](evidence/http_race_tests.txt) | **P5.3** | `VERIFIED` | `0ebfa6a` | P5.3 HTTP-Level Atomic Race Tests |
 | [`docs/evidence/performance_tuning.txt`](evidence/performance_tuning.txt) | **P5.4** | `VERIFIED` | latest | Architecture characterization and bottleneck tuning notes |
-| [`docs/evidence/mitm_demo.txt`](evidence/mitm_demo.txt) | **P6.1** | `VERIFIED` | `77bb076` | P6.1 Transport Security & Man-In-The-Middle (MITM) Defense Demonstration |
+| [`docs/evidence/mitm_demo.txt`](evidence/mitm_demo.txt) | **P6.1** | `VERIFIED` | `268093b` | P6.1 Transport Security & Man-In-The-Middle (MITM) Defense Demonstration |
 | [`docs/evidence/tls_headers.txt`](evidence/tls_headers.txt) | **P6.2** | `VERIFIED` | `addf510` | P6.2 TLS Protocol, Cipher Suites & Security Headers Verification |
 | [`docs/evidence/zap_report.txt`](evidence/zap_report.txt) | **P6.3** | `VERIFIED` | `addf510` | P6.3 OWASP API Security Top 10 Automated Baseline Scan |
 | [`docs/evidence/service_isolation.txt`](evidence/service_isolation.txt) | **P6.4** | `VERIFIED` | `addf510` | P6.4 Internal Service Isolation & Network Exposure Probes |

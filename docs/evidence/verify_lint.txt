@@ -1,15 +1,4 @@
-﻿uv : Uninstalled 1 package in 4ms
-At D:\Document\Projects\Internship\Arogyamitra\scripts\verify_all.ps1:59 char:5
-+     uv run ruff check ML_Model graph ui
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (Uninstalled 1 package in 4ms:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
-         If the cache and target directories are on different filesystems, hardlinking may not be supported.
-         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
-Installed 1 package in 128ms
-All checks passed!
+﻿All checks passed!
 
 > techathon-3.0@1.0.0 lint
 > eslint src/
