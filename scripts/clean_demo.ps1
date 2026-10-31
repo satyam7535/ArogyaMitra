@@ -13,7 +13,7 @@ param()
 $ErrorActionPreference = "Stop"
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  AROGYAMITRA — CLEAN DEMO STACK RESET" -ForegroundColor Cyan
+Write-Host "  AROGYAMITRA -- CLEAN DEMO STACK RESET" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 
 Write-Host "[1/4] Stopping stack and removing all volumes (-v)..." -ForegroundColor Yellow
@@ -30,20 +30,20 @@ while ($elapsed -lt $timeout) {
     $elapsed += 3
     $unhealthy = docker ps --filter "label=com.docker.compose.project=arogyamitra" --format "{{.Names}}: {{.Status}}" | Select-String "starting|unhealthy"
     if (-not $unhealthy) {
-        Write-Host "  All containers healthy after ${elapsed}s." -ForegroundColor Green
+        Write-Host "  All containers healthy after $elapsed sec." -ForegroundColor Green
         break
     }
-    Write-Host "  Waiting for containers to become healthy (${elapsed}s)..." -ForegroundColor Gray
+    Write-Host "  Waiting for containers to become healthy: $elapsed sec..." -ForegroundColor Gray
 }
 
 Write-Host "[4/4] Seeding pristine demo fixtures (fake data only, 0 load-test records)..." -ForegroundColor Yellow
 docker exec -e NODE_ENV=development arogya-backend node src/scripts/seedDemo.js
 
-Write-Host "`n============================================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Green
 Write-Host "  CLEAN DEMO READY at https://localhost" -ForegroundColor Green
 Write-Host "  Seeded Accounts:" -ForegroundColor Green
-Write-Host "    - Worker:  worker1@arogyamitra.org / Password123!" -ForegroundColor White
-Write-Host "    - Doctor:  doc1@arogyamitra.org    / Password123!" -ForegroundColor White
-Write-Host "    - Admin:   admin1@arogyamitra.org  / Password123!" -ForegroundColor White
+Write-Host "    - Worker:  worker@arogyamitra.gov.in / Worker@Arogya2026!" -ForegroundColor White
+Write-Host "    - Doctor:  doctor@arogyamitra.gov.in / Doctor@Arogya2026!" -ForegroundColor White
+Write-Host "    - Admin:   admin@arogyamitra.gov.in  / Admin@Arogya2026!" -ForegroundColor White
 Write-Host "============================================================" -ForegroundColor Green
-
