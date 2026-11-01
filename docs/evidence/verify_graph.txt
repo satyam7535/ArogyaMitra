@@ -34,4 +34,4 @@ graph/tests/test_phase3.py::test_llm_output_sanity_check_disease_omission PASSED
 graph/tests/test_phase3.py::test_llm_output_sanity_check_forbidden_prescription_drugs PASSED [ 96%]
 graph/tests/test_phase3.py::test_multilingual_pdf_generation_bundled_font PASSED [100%]
 
-============================= 26 passed in 10.27s =============================
+============================= 26 passed in 10.54s =============================
