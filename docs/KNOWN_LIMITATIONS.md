@@ -84,3 +84,14 @@ This document candidly lists the known technical, architectural, statistical, an
 
 2. **Medical Terminology Simplification**:
    - Regional language translations (Hindi, Marathi) use transliterated and colloquial disease names to assist rural frontline workers, but clinical precision in regional languages requires institutional medical translation review before formal clinical deployment.
+
+---
+
+## 6. Resolved Prototype Workflows (Remediation Branch)
+
+The following five clinical workflow defects previously identified in earlier drafts were comprehensively diagnosed and **RESOLVED in the remediation branch**:
+1. **Consultation Persistence on Escalation**: Fixed consultation schema to include `"escalated"` status and record `registeredBy: req.user.id`, ensuring escalated consultations save to MongoDB.
+2. **Physician Review Queue Retrieval**: Replaced empty sample mock with live API query retrieving pending escalated cases for the authenticated doctor.
+3. **Physician Response & Prescription Persistence**: Added `prescription` field and verified second-opinion saving with optimistic concurrency control.
+4. **Worker Visibility of Reviewed Status**: Connected worker triage review view to live backend consultation record, displaying physician notes and prescription.
+5. **Session Expiry Auto-Recovery**: Implemented token clearing and automatic re-authentication prompt on HTTP 401, preventing worker lockouts.

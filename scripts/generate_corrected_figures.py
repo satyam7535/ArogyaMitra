@@ -377,10 +377,10 @@ def make_diag5_timeout():
 # 8. Combined UI Panels (One clean composite image)
 # -----------------------------------------------------------------------------
 def make_ui_composite():
-    p1 = os.path.join(UI_DIR, "p4_s1_worker_accept.png")
-    p2 = os.path.join(UI_DIR, "p4_s2_redflag_blocked.png")
-    p11 = os.path.join(UI_DIR, "p4_s11_ui_pagination.png")
-    p9 = os.path.join(UI_DIR, "p4_s9_ml_outage_error.png")
+    p1 = os.path.join(UI_DIR, "01_worker_result.png")
+    p2 = os.path.join(UI_DIR, "04_redflag_block.png")
+    p11 = os.path.join(UI_DIR, "07_doctor_queue_real.png")
+    p9 = os.path.join(UI_DIR, "09_worker_reviewed.png")
     
     if all(os.path.exists(p) for p in [p1, p2, p11, p9]):
         im1 = Image.open(p1)

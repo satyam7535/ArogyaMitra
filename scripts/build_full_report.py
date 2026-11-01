@@ -116,8 +116,25 @@ def build_report():
         pdf_size = os.path.getsize(PDF_PATH)
         print(f"PDF exported successfully! Size: {pdf_size:,} bytes")
         
-        pdf_pages = len(pdfium.PdfDocument(abs_pdf))
+        pdf_doc = pdfium.PdfDocument(abs_pdf)
+        pdf_pages = len(pdf_doc)
         print(f"PDF Verified Page Count: {pdf_pages} pages")
+        
+        # Copy to docs/REPORT/ as well
+        alt_pdf_path = os.path.join(BASE_DIR, "docs", "REPORT", "ArogyaMitra_BTech_Project_Report.pdf")
+        alt_docx_path = os.path.join(BASE_DIR, "docs", "REPORT", "ArogyaMitra_BTech_Project_Report.docx")
+        import shutil
+        shutil.copy2(PDF_PATH, alt_pdf_path)
+        shutil.copy2(DOCX_PATH, alt_docx_path)
+        print(f"Copied report to: {alt_pdf_path}")
+
+        # Rasterize all pages for inspection
+        print(f"Rasterizing {pdf_pages} pages to {PAGES_DIR}...")
+        for i, page in enumerate(pdf_doc):
+            image = page.render(scale=2).to_pil()
+            page_img_path = os.path.join(PAGES_DIR, f"page_{i+1:02d}.png")
+            image.save(page_img_path)
+        print("Rasterization complete.")
         
     except Exception as e:
         print(f"Error during Word COM conversion: {e}")

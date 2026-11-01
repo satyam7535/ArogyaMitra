@@ -197,7 +197,7 @@ def generate_figure5():
               "ML Microservice\n(55 tests, 17.1%)",
               "LangGraph Reasoning\n(26 tests, 8.1%)",
               "Streamlit UI AppTest\n(9 tests, 2.8%)"]
-    sizes = [231, 55, 26, 9]
+    sizes = [231, 55, 26, 10]
     colors = ["#2b5c8f", "#00897b", "#f57c00", "#7e57c2"]
     explode = (0.05, 0.05, 0.05, 0.05)
 
@@ -209,7 +209,7 @@ def generate_figure5():
         at.set_weight("bold")
         at.set_fontsize(8)
 
-    ax.set_title("Figure 5: Automated Prototype Test Suite Breakdown\n(321 Verified Unit & Integration Tests, 100% Passing)", fontsize=11)
+    ax.set_title("Figure 5: Automated Prototype Test Suite Breakdown\n(322 Verified Unit & Integration Tests, 100% Passing)", fontsize=11)
     fig.tight_layout()
     path = os.path.join(OUTPUT_DIR, "fig5_test_suite_composition.png")
     fig.savefig(path)

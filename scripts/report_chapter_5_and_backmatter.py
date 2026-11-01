@@ -25,7 +25,7 @@ def add_chapter_5(doc):
     add_p(doc, "2. Robust Bayesian Inference: Evaluated stateless Bernoulli Naive Bayes against tuned gradient-boosted trees under symptom dropout, demonstrating 0.919 accuracy vs. 0.683 for LightGBM at 50% missing data, with an inference execution time of 1.8 ms in internal container benchmarks.", space_after=3)
     add_p(doc, "3. Closed-Form Feature Attribution: Derived exact mathematical log-odds symptom attributions satisfying additive efficiency without sampling approximations.", space_after=3)
     add_p(doc, "4. Fail-Closed Safety Architecture: Decoupled emergency detection from classification via deterministic red-flag overrides; isolated the LLM narrative layer behind 10s/20s timeout caps and confidence filters backed by pre-compiled templates; and replaced client-side mocks with explicit HTTP 503 error states.", space_after=3)
-    add_p(doc, "5. Layered Container Security & Verification: Enforced TLS 1.2/1.3, Argon2id hashing, AES-256-GCM field encryption, and optimistic concurrency controls (__v). Achieved zero fixable Critical/High (Trivy --ignore-unfixed) container vulnerabilities and 100% pass rates across 321 automated prototype tests.", space_after=8)
+    add_p(doc, "5. Layered Container Security & Verification: Enforced TLS 1.2/1.3, Argon2id hashing, AES-256-GCM field encryption, and optimistic concurrency controls (__v). Achieved zero fixable Critical/High (Trivy --ignore-unfixed) container vulnerabilities and 100% pass rates across 322 automated prototype tests.", space_after=8)
 
     add_h2(doc, "5.2 Lessons Learned & Engineering Insights")
     add_p(doc, "The iterative design and testing of ArogyaMitra yielded key engineering insights:")
@@ -100,7 +100,7 @@ def add_appendix_a(doc):
 
 def add_appendix_b(doc):
     add_h1(doc, "Appendix B: Reproduction Commands Playbook")
-    add_p(doc, "Listing B.1 provides the sequence of 10 command-line instructions to launch the cluster, execute all 321 automated test suites, run golden test cases, run Playwright journeys, execute load testing, and run security scans.")
+    add_p(doc, "Listing B.1 provides the sequence of 10 command-line instructions to launch the cluster, execute all 322 automated test suites, run golden test cases, run Playwright journeys, execute load testing, and run security scans.")
 
     cmds = (
         "# 1. Clone repository and start Docker cluster\n"
@@ -114,8 +114,8 @@ def add_appendix_b(doc):
         "docker compose exec -T ml pytest -v\n\n"
         "# 5. Execute Guarded LLM Graph test suite (26 tests)\n"
         "docker compose exec -T graph pytest -v\n\n"
-        "# 6. Execute Frontend UI test suite (9 tests)\n"
-        "docker compose exec -T ui pytest -v\n\n"
+        "# 6. Execute Frontend UI test suite (10 tests)\n"
+        "docker compose exec -T frontend pytest -v\n\n"
         "# 7. Run Golden Clinical Test Set (20 cases)\n"
         "python scripts/test_p0_golden_set.py\n\n"
         "# 8. Run Playwright End-to-End Suite (11 journeys)\n"

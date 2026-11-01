@@ -21,7 +21,7 @@ def add_chapter_1(doc):
     
     add_p(doc, "When rural patients present with acute symptoms, the frontline health worker must make high-stakes triage decisions: determining whether an individual can be safely managed with supportive care, requires scheduled primary health centre (PHC) physician evaluation, or demands immediate emergency transfer to a district hospital. Errors in this triage process carry severe clinical consequences. Under-triage of acute conditions—such as myocardial infarction presenting as epigastric discomfort—leads to preventable mortality. Conversely, systematic over-triage congests secondary and tertiary facilities, imposing travel and consultation costs on rural households.")
     
-    add_p(doc, "While digital health initiatives under the Ayushman Bharat Digital Mission (ABDM) have expanded electronic health record adoption, decision support tools for community health workers remain limited. Commercial symptom checkers and diagnostic mobile applications often fail in this operating environment. They are typically engineered as consumer tools that require continuous broadband connectivity, provide no interpretable clinical rationales, and lack fail-closed safety designs. When an underlying algorithmic service experiences network timeout or server failure, such systems frequently crash or return empty screens, leaving frontline workers without guidance.")
+    add_p(doc, "While digital health initiatives under the Ayushman Bharat Digital Mission (ABDM) and statutory frameworks such as the Digital Personal Data Protection (DPDP) Act, 2023 [11] have advanced privacy standards, decision support tools for community health workers remain limited. Commercial symptom checkers and diagnostic mobile applications often fail in this operating environment. They are typically engineered as consumer tools that require continuous broadband connectivity, provide no interpretable clinical rationales, and lack fail-closed safety designs. When an underlying algorithmic service experiences network timeout or server failure, such systems frequently crash or return empty screens, leaving frontline workers without guidance.")
     
     add_p(doc, "In this project, I address these challenges by engineering ArogyaMitra, a secure, explainable, and fail-closed AI-assisted clinical decision support system prototype tailored for community healthcare workers. The system does not attempt to replace physician diagnosis. Instead, it serves as an assistive screening aid that provides differential disease estimation, enforces deterministic safety overrides for emergencies, operates with bounded latency, and protects patient privacy through containerized security.")
 
@@ -152,7 +152,7 @@ def add_chapter_2(doc):
         ("FR-7", "Template Fallback", "Engage deterministic pre-compiled templates on LLM timeout (10s/20s) or 429 quota exhaustion."),
         ("FR-8", "Worker Decision Gate", "Provide an explicit Accept / Escalate decision interface for health worker review."),
         ("FR-9", "Consultation Pagination", "Support indexed server-side pagination (limit, page) and lean projection on GET /consultation/my."),
-        ("FR-10", "DPDP-aware Retention", "Support patient consent recording, consent withdrawal, and administrator-approved anonymization.")
+        ("FR-10", "DPDP-aware Retention", "Support patient consent recording, consent withdrawal, and administrator-approved anonymization pursuant to India's DPDP Act, 2023 [11].")
     ]
     
     t21 = doc.add_table(rows=len(fr_data)+1, cols=3)
@@ -252,7 +252,7 @@ def add_chapter_2(doc):
         p2 = row_cells[2].paragraphs[0]; r = p2.add_run(smit); r.font.name = 'Times New Roman'; r.font.size = Pt(8)
 
     add_h2(doc, "2.4 Clinical Safety & Ethics Requirements")
-    add_p(doc, "In accordance with medical software safety guidelines, ArogyaMitra enforces three clinical safety principles:")
+    add_p(doc, "In accordance with medical software safety guidelines, including the WHO guidance on Ethics and Governance of Artificial Intelligence for Health [12] and ICMR Ethical Guidelines for Application of AI in Healthcare [13], ArogyaMitra enforces three clinical safety principles:")
     add_p(doc, "1. Human-in-the-Loop Operation: ArogyaMitra is architected solely as decision support, not an autonomous diagnostic agent. It cannot initiate clinical treatments or finalize discharge without human health worker confirmation.", space_after=3)
     add_p(doc, "2. Deterministic Red-Flag Precedence: Rule-based emergency detection operates with precedence over statistical predictions, ensuring that life-threatening symptoms trigger immediate emergency transfer regardless of model confidence.", space_after=3)
     add_p(doc, "3. Synthetic Data Disclosure: The machine learning model was trained on synthetic clinical datasets (304 unique rows). The system explicitly incorporates these operational limits into its documentation and consent workflows.", space_after=8)

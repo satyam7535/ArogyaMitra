@@ -38,11 +38,11 @@ def add_chapter_3(doc):
     # Table 3.2: Technology Stack (Item 13)
     add_table_caption(doc, "Table 3.2: Container Technology Stack and Component Allocation")
     tech_data = [
-        ("Edge Gateway", "Nginx Alpine", "1.25 / Port 443", "TLS 1.2/1.3 Ingress, HSTS, Rate Limiting", "Public Perimeter"),
-        ("Frontend UI", "Streamlit / Python", "1.32 / Port 8501", "Worker & Clinician Interactive Web Dashboards", "Internal Bridge"),
-        ("Core Backend API", "Express / Node.js", "20.11 / Port 5000", "State Machine, AES-256-GCM, Argon2id, OCC", "Internal Bridge"),
-        ("ML Inference Engine", "FastAPI / scikit-learn", "0.109 / Port 8000", "Stateless BernoulliNB Inference & Log-Odds", "Internal Bridge"),
-        ("Guarded Narrative", "FastAPI / LangGraph", "0.2 / Port 8001", "Gemini Cascade, 10s/20s Caps, Fallback Templates", "Internal Bridge"),
+        ("Edge Gateway", "Nginx Alpine", "1.27-alpine / Port 443", "TLS 1.2/1.3 Ingress, HSTS, Rate Limiting", "Public Perimeter"),
+        ("Frontend UI", "Streamlit / Python", "Python 3.11-slim / Port 8501", "Worker & Clinician Interactive Web Dashboards", "Internal Bridge"),
+        ("Core Backend API", "Express / Node.js", "Express 5.2 / Node 22-alpine / Port 5000", "State Machine, AES-256-GCM, Argon2id, OCC", "Internal Bridge"),
+        ("ML Inference Engine", "FastAPI / scikit-learn", "Python 3.11-slim / Port 8000", "Stateless BernoulliNB Inference & Log-Odds", "Internal Bridge"),
+        ("Guarded Narrative", "FastAPI / LangGraph", "Python 3.11-slim / Port 8001", "Gemini Cascade, 10s/20s Caps, Fallback Templates", "Internal Bridge"),
         ("Database Persistence", "MongoDB Community", "7.0 / Port 27017", "Encrypted Patient Documents, Volume mongo-data", "Private Tier Only")
     ]
     
@@ -92,7 +92,7 @@ def add_chapter_3(doc):
     add_p(doc, "The feature vocabulary consists of 131 discrete clinical symptoms curated to reflect primary healthcare presentations in rural India. When a health worker selects symptoms in the user interface, the frontend sends a JSON payload containing symptom string identifiers. The ML microservice validates the incoming payload against a Pydantic schema, verifies that all submitted identifiers exist within the master vocabulary, and constructs a 131-dimensional binary NumPy array. Unselected features are deterministically zero-padded. Crucially, the model evaluates both the presence (x_j = 1) and absence (x_j = 0) of symptoms, allowing the model to penalize disease hypotheses whose hallmark signs are explicitly denied by the patient.")
 
     add_h3(doc, "3.2.3 Explainability via Top-Feature Attribution")
-    add_p(doc, "A limitation of complex tree ensembles is their interpretability overhead. While post-hoc perturbation methods like LIME [5] are common, they introduce stochastic sampling variance and latency overhead. In contrast, ArogyaMitra derives closed-form additive log-odds feature attributions directly from the trained Bernoulli parameters. Let theta_bar_j = (1/K) * Sum_{k=1}^K theta_hat_{k, j} represent the background prevalence of symptom j across all disease classes. The individual evidence contribution w_{c, j}(x_j) of feature j toward disease class c is formulated as:")
+    add_p(doc, "A limitation of complex tree ensembles is their interpretability overhead. While post-hoc perturbation methods like LIME [10] or SHAP [5] are common, they introduce stochastic sampling variance and latency overhead. In contrast, ArogyaMitra derives closed-form additive log-odds feature attributions directly from the trained Bernoulli parameters. Let theta_bar_j = (1/K) * Sum_{k=1}^K theta_hat_{k, j} represent the background prevalence of symptom j across all disease classes. The individual evidence contribution w_{c, j}(x_j) of feature j toward disease class c is formulated as:")
     
     add_callout(doc, "w_{c, j}(x_j) = x_j * ln( theta_hat_{c, j} / theta_bar_j ) + (1 - x_j) * ln( (1 - theta_hat_{c, j}) / (1 - theta_bar_j) )", "Additive Feature Log-Odds")
 
@@ -192,10 +192,10 @@ def add_chapter_3(doc):
     add_p(doc, "Layer 2 — Gateway Rate Limiting: Restricts authentication routes (5 req/15 min) and API routes (100 req/15 min) in production mode.", space_after=2)
     add_p(doc, "Layer 3 — Authentication & Sessions: Protects passwords using Argon2id (3 iterations, 64 MB RAM, 4 threads). Issues signed JWTs with 15-minute expirations.", space_after=2)
     add_p(doc, "Layer 4 — Role-Based Authorization & Org Scoping: Validates user permissions ('worker', 'doctor', 'admin') and enforces organization boundaries (orgScope.middleware.js) so users cannot access data outside their assigned healthcare organization.", space_after=2)
-    add_p(doc, "Layer 5 — Field-Level Encryption: Patient direct identifiers (name, contact, location) are encrypted at rest using AES-256-GCM with unique 96-bit initialization vectors. An automated startup guard (encryption_key_exit.test.js) verifies that the backend exits with code 1 if the master key is missing.", space_after=6)
+    add_p(doc, "Layer 5 — Field-Level Encryption: Patient direct identifiers (name, contact, location) are encrypted at rest using AES-256-GCM [15] with unique 96-bit initialization vectors. The multi-layered defense architecture mitigates the OWASP Top 10 web application vulnerabilities [14]. An automated startup guard (encryption_key_exit.test.js) verifies that the backend exits with code 1 if the master key is missing.", space_after=6)
 
     add_h2(doc, "3.7 Database Design, Concurrency & Data Integrity")
-    add_p(doc, "The persistence layer uses MongoDB 7.0 with five core schemas: Consultation, User, AuditLog, Organization, and Patient. To preserve data integrity during simultaneous updates, the system implements Optimistic Concurrency Control (OCC) [10].")
+    add_p(doc, "The persistence layer uses MongoDB 7.0 with five core schemas: Consultation, User, AuditLog, Organization, and Patient. To preserve data integrity during simultaneous updates, the system implements Optimistic Concurrency Control (OCC) [9] (Kung & Robinson, 1981).")
     
     add_p(doc, "Each consultation document maintains a version key (__v). When a status update is submitted, Mongoose executes an atomic conditional update: Consultation.findOneAndUpdate({ _id: id, __v: currentVersion, status: 'PENDING' }, { $set: updateData, $inc: { __v: 1 } }). If another request modified the document concurrently, the version precondition fails, returning an HTTP 409 Conflict error.")
     
@@ -204,14 +204,17 @@ def add_chapter_3(doc):
     add_h2(doc, "3.8 Logging and Audit System")
     add_p(doc, "ArogyaMitra implements structured, PII-free JSON logging via piiFreeLoggingMiddleware in Backend/src/middlewares/logging.middleware.js. All incoming HTTP requests receive a unique X-Request-Id. Sensitive fields (passwords, tokens, patient names, phone numbers) are stripped by sanitizeForLogging before logs are written.")
     
-    add_p(doc, "Listing 3.1 displays real log excerpts from the running Docker cluster during testing:")
+    add_p(doc, "Listing 3.1 displays real log excerpts from the running Docker cluster during testing (docs/evidence/backend_access_log_sample.txt:13-19):")
     
     log_sample = (
-        '{"timestamp":"2026-10-31T17:03:24.450Z","requestId":"c1f7b830-4e2a-4a61-9f20-80251759281a",'
-        '"method":"POST","path":"/api/v1/consultation/triage","statusCode":200,"durationMs":125,'
-        '"role":"worker","organization":"6723a1e2f49d3b123456789a"}\n'
-        '{"timestamp":"2026-10-31T17:03:25.102Z","requestId":"d8e9c124-7b3f-4e89-a123-90341859392b",'
-        '"method":"GET","path":"/api/v1/consultation/my?page=1&limit=20","statusCode":200,"durationMs":76,'
-        '"role":"worker","organization":"6723a1e2f49d3b123456789a"}'
+        '{"timestamp":"2026-10-31T23:46:08.147Z","requestId":"d46bea0c-0255-4d13-8abd-8ae7f7da222e",'
+        '"method":"POST","path":"/api/v1/consultation","statusCode":201,"durationMs":84,'
+        '"role":"Worker","organization":"6ae673842406379e020d1401"}\n'
+        '{"timestamp":"2026-10-31T23:46:11.005Z","requestId":"6fac6e95-1ced-4ac9-bfa0-2be960a001e9",'
+        '"method":"GET","path":"/api/v1/consultation/pending","statusCode":200,"durationMs":34,'
+        '"role":"Doctor","organization":"6ae673842406379e020d1401"}\n'
+        '{"timestamp":"2026-10-31T23:46:13.550Z","requestId":"ae7ab4d0-c27c-41c4-a89d-c944725df9f6",'
+        '"method":"PATCH","path":"/api/v1/consultation/6ae67dc06a8649a948b9ef85/respond","statusCode":200,"durationMs":80,'
+        '"role":"Doctor","organization":"6ae673842406379e020d1401"}'
     )
     add_callout(doc, log_sample, "Listing 3.1: Structured PII-Free JSON Access Log Excerpts")

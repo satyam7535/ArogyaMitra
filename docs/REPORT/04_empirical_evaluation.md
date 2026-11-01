@@ -99,10 +99,10 @@ Across all subsystems and integration boundaries, ArogyaMitra achieved a **100% 
 
 - **Golden Set Evaluation**: **20 / 20 PASSED** ([`docs/evidence/p0_golden_set_live_output.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/p0_golden_set_live_output.txt))
   - Validates 20 clinically realistic symptom profiles against the 41-class disease boundary, verifies bilingual PDF byte emission, and proves fail-closed HTTP 503 behavior on upstream ML container outage.
-- **Full Prototype Integration & Unit Suite**: **321 / 321 PASSED (100%)**
-  - **ML Microservice Contract & Safety**: 55 / 55 PASSED ([`docs/evidence/verify_ml.txt:14`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/verify_ml.txt))
-  - **Backend API, Auth & Security Matrix**: 231 / 231 PASSED ([`docs/evidence/verify_backend.txt:8`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/verify_backend.txt))
-  - **LangGraph Reasoning, Injection & Fallbacks**: 26 / 26 PASSED ([`docs/evidence/verify_graph.txt:15`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/verify_graph.txt))
-  - **Streamlit Headless Interface (AppTest)**: 9 / 9 PASSED ([`docs/evidence/verify_ui.txt:16`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/verify_ui.txt))
+- **Full Prototype Integration & Unit Suite**: **322 / 322 PASSED (100%)**
+  - **ML Microservice Contract & Safety**: 55 / 55 PASSED ([`docs/evidence/verify_ml.txt:47`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/verify_ml.txt))
+  - **Backend API, Auth & Security Matrix**: 231 / 231 PASSED ([`docs/evidence/verify_backend.txt:85`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/verify_backend.txt))
+  - **LangGraph Reasoning, Injection & Fallbacks**: 26 / 26 PASSED ([`docs/evidence/verify_graph.txt:32`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/verify_graph.txt))
+  - **Streamlit Headless Interface (AppTest)**: 10 / 10 PASSED ([`docs/evidence/verify_ui.txt:21`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/verify_ui.txt))
 - **Playwright Browser End-to-End Suite**: **11 / 11 Scenarios PASSED** ([`docs/evidence/playwright_report.txt:64`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/playwright_report.txt))
   - Covers end-to-end triage, cardiac red-flag block, doctor second opinion workstation, admin dashboard & CSV export, multilingual PDF download, DPDP patient consent withdrawal, upstream ML outage fail-closed 503, role navigation, and server-side consultation list pagination.

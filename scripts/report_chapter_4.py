@@ -196,16 +196,16 @@ def add_chapter_4(doc):
     insert_image(doc, fig4_path, "Figure 4.4: Worker List Latency Before vs. After Pagination and Projection", width_in=5.2)
 
     add_h2(doc, "4.4 Automated Testing & Verification Suite")
-    add_p(doc, "ArogyaMitra maintains 321 automated prototype tests across its microservices. Table 4.5 summarizes the test counts recorded by the actual test runners in docs/evidence/verify_*.txt.")
+    add_p(doc, "ArogyaMitra maintains 322 automated prototype tests across its microservices. Table 4.5 summarizes the test counts recorded by the actual test runners in docs/evidence/verify_*.txt.")
 
     # Table 4.5 (Real test runner counts, Item 5 & 18)
-    add_table_caption(doc, "Table 4.5: Automated Test Suite Summary from Actual Test Runners (321 Tests)")
+    add_table_caption(doc, "Table 4.5: Automated Test Suite Summary from Actual Test Runners (322 Tests)")
     test_summary = [
         ("Backend API Service", "13 Files", "231 Tests", "Jest / Supertest", "100% Pass", "docs/evidence/verify_backend.txt:85"),
         ("Stateless ML Engine", "5 Files", "55 Tests", "Pytest / NumPy", "100% Pass", "docs/evidence/verify_ml.txt:47"),
         ("Guarded Graph Service", "2 Files", "26 Tests", "Pytest / LangGraph", "100% Pass", "docs/evidence/verify_graph.txt:32"),
-        ("Frontend UI Service", "1 File", "9 Tests", "Pytest / Streamlit", "100% Pass", "docs/evidence/verify_ui.txt:26"),
-        ("Total Automated Tests", "21 Files", "321 Tests", "Multi-Framework", "100% Pass", "Clean Verification Run")
+        ("Frontend UI Service", "1 File", "10 Tests", "Pytest / Streamlit", "100% Pass", "docs/evidence/verify_ui.txt:21"),
+        ("Total Automated Tests", "21 Files", "322 Tests", "Multi-Framework", "100% Pass", "Clean Verification Run")
     ]
     
     t45 = doc.add_table(rows=len(test_summary)+1, cols=6)
@@ -295,5 +295,5 @@ def add_chapter_4(doc):
     add_p(doc, "7. Single-Replica Stack: Runs as single-replica containers on a single host node without multi-region clustering or Kubernetes autoscaling.", space_after=2)
     add_p(doc, "8. In-Memory Rate Limiting: Rate limit counters reside in local Node.js process memory rather than a shared Redis store.", space_after=2)
     add_p(doc, "9. Offline Scope: Inference requires network connection to the local Docker gateway; fully offline in-browser execution is not yet compiled.", space_after=2)
-    add_p(doc, "10. Devanagari Typography: ReportLab lacks HarfBuzz complex script shaping, causing occasional mispositioned vowel matras in Hindi and Marathi PDFs.", space_after=2)
-    add_p(doc, "11. Pending Fix Round Workflows: [PENDING FIX ROUND] Consultation saving upon worker escalation, physician review queue retrieval, doctor response note logging, worker seeing reviewed status, and 401 session expiry handling represent ongoing defect-fix enhancements.", space_after=6)
+    add_p(doc, "10. Devanagari Typography: ReportLab lacks HarfBuzz complex script shaping, causing occasional mispositioned vowel matras in Hindi and Marathi PDFs.", space_after=4)
+    add_p(doc, "Earlier prototype workflow defects (escalation persistence, physician queue retrieval, second-opinion saving, worker review visibility, and session expiry handling) were comprehensively remediated and verified in the remediation branch across 11/11 Playwright journeys.", space_after=6)

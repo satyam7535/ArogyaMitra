@@ -203,7 +203,7 @@ def add_abstract(doc):
     
     add_p(doc, "To address these operational risks, this project implements ArogyaMitra, a decision support prototype designed for frontline health workers. The system incorporates: (1) a stateless Bernoulli Naive Bayes classifier trained across 41 disease classes and 131 symptoms, accompanied by closed-form additive log-odds feature attributions; (2) a deterministic red-flag screening layer that overrides model predictions when emergency symptoms are present; (3) a guarded Large Language Model narrative layer with ordered model cascade, a 10-second per-attempt timeout, a 20-second hard cap, and whole-phrase confidence filtering backed by pre-compiled fallback templates; and (4) a containerized architecture with TLS 1.2/1.3, Argon2id password hashing, field-level AES-256-GCM encryption, and optimistic concurrency controls.", space_before=4, space_after=8)
     
-    add_p(doc, "Empirical evaluation on a deduplicated benchmark of 304 unique rows (derived by removing 4,616 exact duplicate rows from a 4,920-row dataset) using 5x3 repeated stratified cross-validation showed BernoulliNB achieving Top-1 accuracy of 1.000 ± 0.000 at 0% dropout, 0.989 ± 0.014 at 30% dropout, and 0.919 ± 0.023 at 50% dropout, compared to Tuned LightGBM (0.989, 0.864, 0.683) and Tuned XGBoost (0.984, 0.868, 0.720). Load testing across 2,400 requests in test mode showed system throughput reaching 14.7 req/s under 50 concurrent users with 100% HTTP 200 responses, while server-side pagination and projection reduced worker list p50 latency from 193.0 ms to 76.2 ms. Automated test suites verify 321 prototype test cases, 20 golden cases, 11 Playwright journeys, and zero fixable Critical/High (Trivy --ignore-unfixed) container vulnerabilities.", space_before=4, space_after=12)
+    add_p(doc, "Empirical evaluation on a deduplicated benchmark of 304 unique rows (derived by removing 4,616 exact duplicate rows from a 4,920-row dataset) using 5x3 repeated stratified cross-validation showed BernoulliNB achieving Top-1 accuracy of 1.000 ± 0.000 at 0% dropout, 0.989 ± 0.014 at 30% dropout, and 0.919 ± 0.023 at 50% dropout, compared to Tuned LightGBM (0.989, 0.864, 0.683) and Tuned XGBoost (0.984, 0.868, 0.720). Load testing across 2,400 requests in test mode showed system throughput reaching 14.7 req/s under 50 concurrent users with 100% HTTP 200 responses, while server-side pagination and projection reduced worker list p50 latency from 193.0 ms to 76.2 ms. Automated test suites verify 322 prototype test cases, 20 golden cases, 11 Playwright journeys, and zero fixable Critical/High (Trivy --ignore-unfixed) container vulnerabilities.", space_before=4, space_after=12)
     
     p_kw = doc.add_paragraph()
     p_kw.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -347,7 +347,7 @@ def add_merged_list_of_figures_and_tables(doc):
         ("Table 4.2", "Expected Calibration Error (ECE) Across Dropout Rates", "17"),
         ("Table 4.3", "Load Test Benchmark Results Across Concurrency Levels (2,400 Requests)", "18"),
         ("Table 4.4", "Worker List Latency Before vs. After Pagination and Projection", "18"),
-        ("Table 4.5", "Automated Test Suite Summary from Actual Test Runners (321 Tests)", "19"),
+        ("Table 4.5", "Automated Test Suite Summary from Actual Test Runners (322 Tests)", "19"),
         ("Table 4.6", "OWASP ZAP Dynamic Security Baseline Scan Dispositions (6 Alerts)", "20"),
         ("Table A.1", "Engineering Challenges, Root Causes, and Architectural Remediation Fixes", "26"),
     ]

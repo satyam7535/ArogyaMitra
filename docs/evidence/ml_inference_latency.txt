@@ -1,0 +1,16 @@
+﻿================================================================================
+AROGYAMITRA — ML INFERENCE LATENCY BENCHMARK
+Endpoint: http://127.0.0.1:8000/predict (Container Internal)
+Model: Bernoulli Naive Bayes (41 Disease Classes, Exact Additive Log-Odds)
+Iterations: 200
+Payload Symptoms: ['itching', 'skin_rash', 'nodal_skin_eruptions']
+================================================================================
+Mean Latency:   10.72 ms
+Median (p50):   9.00 ms
+p95 Latency:    18.47 ms
+p99 Latency:    37.63 ms
+Min Latency:    4.10 ms
+Max Latency:    44.40 ms
+Std Dev:        5.62 ms
+Status:         100% Successful (0 HTTP errors)
+================================================================================
