@@ -6,6 +6,7 @@ asynchronous job queue diagnostics, and tamper-evident security audit logs.
 
 import os
 import sys
+from datetime import datetime
 
 import pandas as pd
 import streamlit as st
@@ -53,139 +54,127 @@ st.caption("Primary Healthcare Center (PHC) Network Governance & Real-Time Monit
 
 st.divider()
 
-# Attempt live data load if admin is authenticated
-is_live = False
-total_consults_val = "1,248"
-escalation_val = "14.2%"
-turnaround_val = "18.4 mins"
-active_workers_val = "38 ASHA Workers"
-disease_data = {
-    "Fungal Infection": 342,
-    "Malaria": 218,
-    "Infectious Gastroenteritis": 184,
-    "Dengue": 142,
-    "Jaundice": 118,
-    "Bronchial Asthma": 96,
-    "Typhoid": 88,
-    "Hypertension Risk": 60,
-}
-audit_records = [
-    {
-        "Timestamp": "2026-10-28 21:18:40",
-        "Actor": "Dr. Anand Joshi",
-        "Role": "Doctor",
-        "Action": "SECOND_OPINION_SUBMITTED",
-        "Resource": "Consultation",
-        "IP Address": "127.0.0.1",
-        "Status": "SUCCESS 🟢",
-    },
-    {
-        "Timestamp": "2026-10-28 21:18:40",
-        "Actor": "Sunita Patil",
-        "Role": "Worker",
-        "Action": "CONSULTATION_ESCALATED",
-        "Resource": "Consultation",
-        "IP Address": "127.0.0.1",
-        "Status": "SUCCESS 🟢",
-    },
-    {
-        "Timestamp": "2026-10-28 21:18:40",
-        "Actor": "Sunita Patil",
-        "Role": "Worker",
-        "Action": "CONSULTATION_ACCEPTED_AI",
-        "Resource": "Consultation",
-        "IP Address": "127.0.0.1",
-        "Status": "SUCCESS 🟢",
-    },
-    {
-        "Timestamp": "2026-10-28 21:15:30",
-        "Actor": "Admin User",
-        "Role": "Admin",
-        "Action": "SYSTEM_HEALTH_CHECK",
-        "Resource": "Gateway Diagnostics",
-        "IP Address": "127.0.0.1",
-        "Status": "SUCCESS 🟢",
-    },
-    {
-        "Timestamp": "2026-10-28 21:02:14",
-        "Actor": "UNKNOWN_CLIENT",
-        "Role": "Anonymous",
-        "Action": "ADMIN_REGISTRATION_ATTEMPT",
-        "Resource": "/api/v1/admin/register",
-        "IP Address": "203.0.113.19",
-        "Status": "BLOCKED (403 REGISTRATION_DISABLED) 🔴",
-    },
-]
+if not token or role != "Admin":
+    st.info("Log in as Admin to see live metrics")
+    k1, k2, k3, k4, k5 = st.columns(5)
+    with k1:
+        st.metric(label=t("total_consultations", lang), value="-")
+    with k2:
+        st.metric(label=t("escalation_rate", lang), value="-")
+    with k3:
+        st.metric(label="Reviewed Rate", value="-")
+    with k4:
+        st.metric(label=t("avg_turnaround", lang), value="N/A")
+    with k5:
+        st.metric(label=t("active_workers", lang), value="-")
+    st.markdown("---")
+    c_left, c_right = st.columns([3, 2])
+    with c_left:
+        st.markdown(f"### 🦠 {t('disease_prevalence', lang)}")
+        st.info("No consultations recorded yet.")
+    with c_right:
+        st.markdown("### ⚡ Asynchronous Job Queue Health")
+        st.info("Log in as Admin to inspect queue diagnostics.")
+    st.markdown("---")
+    st.markdown(f"### 🛡️ {t('audit_logs', lang)}")
+    st.caption("No security audit records logged yet.")
+    st.dataframe(pd.DataFrame(columns=["Timestamp", "Actor", "Role", "Action", "Resource", "IP Address", "Status"]), use_container_width=True, hide_index=True)
+    st.markdown("---")
+    st.markdown("### 📥 Administrative Data Export")
+    st.info("No consultation data available for CSV export.")
+    st.markdown("---")
+    st.markdown("### 👥 Active User Sessions & Revocation")
+    st.info("No active user sessions found.")
+    st.stop()
 
-if token and role == "Admin":
-    logs_res = get_admin_audit_logs(token, limit=50)
-    consults_res = get_admin_consultations(token)
-    q_metrics = get_queue_metrics(token)
+# ── Fetch Live Telemetry from Backend ─────────────────────────────────────────
+consults_res = get_admin_consultations(token)
+logs_res = get_admin_audit_logs(token, limit=50)
+q_metrics = get_queue_metrics(token)
+sessions = get_admin_sessions(token)
 
-    if logs_res and logs_res.get("auditLogs"):
-        is_live = True
-        raw_logs = logs_res.get("auditLogs", [])
-        formatted_logs = []
-        for l in raw_logs:
-            formatted_logs.append({
-                "Timestamp": str(l.get("createdAt", l.get("timestamp", "")))[:19].replace("T", " "),
-                "Actor": str(l.get("userId", "System"))[:10],
-                "Role": l.get("userRole", "System"),
-                "Action": l.get("action", "UNKNOWN"),
-                "Resource": f"{l.get('resourceType', '')}:{str(l.get('resourceId', ''))[:8]}",
-                "IP Address": l.get("ipAddress", "127.0.0.1"),
-                "Status": "SUCCESS 🟢",
-            })
-        if formatted_logs:
-            audit_records = formatted_logs
+total_consults = len(consults_res)
+escalated_count = sum(
+    1 for c in consults_res
+    if c.get("workerDecision") == "escalated"
+    or c.get("status") == "escalated"
+    or c.get("needsEscalation")
+)
+escalation_rate_str = f"{(escalated_count / total_consults * 100):.1f}%" if total_consults > 0 else "0.0%"
 
-    if consults_res:
-        is_live = True
-        total = len(consults_res)
-        escalated = sum(1 for c in consults_res if c.get("workerDecision") == "escalated")
-        total_consults_val = f"{total}"
-        esc_pct = round((escalated / max(1, total)) * 100, 1)
-        escalation_val = f"{esc_pct}%"
+reviewed_count = sum(
+    1 for c in consults_res
+    if c.get("status") == "reviewed"
+    or c.get("secondOpinion")
+)
+reviewed_rate_str = f"{(reviewed_count / total_consults * 100):.1f}%" if total_consults > 0 else "0.0%"
 
-        # Tally diseases
-        dis_counts = {}
-        for c in consults_res:
-            dis = (c.get("mlAnalysis") or {}).get("disease") or "Other"
-            dis_counts[dis] = dis_counts.get(dis, 0) + 1
-        if dis_counts:
-            disease_data = dis_counts
+# Compute turnaround duration for reviewed consultations
+turnaround_durations = []
+for c in consults_res:
+    sec_op = c.get("secondOpinion") or {}
+    resp_time_str = sec_op.get("respondedAt")
+    created_time_str = c.get("createdAt")
+    if resp_time_str and created_time_str:
+        try:
+            t_created = datetime.fromisoformat(str(created_time_str))
+            t_resp = datetime.fromisoformat(str(resp_time_str))
+            diff_secs = (t_resp - t_created).total_seconds()
+            if diff_secs >= 0:
+                turnaround_durations.append(diff_secs)
+        except Exception:
+            pass
 
-if is_live:
-    st.success("🟢 Connected to live administrative telemetry & audit trail")
+if turnaround_durations:
+    avg_secs = sum(turnaround_durations) / len(turnaround_durations)
+    if avg_secs < 60:
+        turnaround_val = f"{avg_secs:.0f}s"
+    elif avg_secs < 3600:
+        turnaround_val = f"{(avg_secs / 60):.1f} mins"
+    else:
+        turnaround_val = f"{(avg_secs / 3600):.1f} hrs"
 else:
-    st.caption("ℹ️ Operational simulation active (Authenticate as Admin on Home page for live metrics)")
+    turnaround_val = "N/A"
+
+# Tally unique active health workers
+worker_ids = set()
+for c in consults_res:
+    w = c.get("submittedBy")
+    if isinstance(w, dict) and w.get("_id"):
+        worker_ids.add(str(w["_id"]))
+    elif w:
+        worker_ids.add(str(w))
+active_workers_count = len(worker_ids)
+active_workers_val = f"{active_workers_count}"
+
+st.success("🟢 Connected to live administrative telemetry & audit trail")
 
 # ── 1. Key Performance Indicators (KPIs) ──────────────────────────────────────
-k1, k2, k3, k4 = st.columns(4)
+k1, k2, k3, k4, k5 = st.columns(5)
 with k1:
     st.metric(
         label=t("total_consultations", lang),
-        value=total_consults_val,
-        delta="+18% this month",
+        value=f"{total_consults}",
     )
 with k2:
     st.metric(
         label=t("escalation_rate", lang),
-        value=escalation_val,
-        delta="-2.1% (Safe Thresholding)",
-        delta_color="normal",
+        value=escalation_rate_str,
     )
 with k3:
     st.metric(
-        label=t("avg_turnaround", lang),
-        value=turnaround_val,
-        delta="-6.2 mins faster",
+        label="Reviewed Rate",
+        value=reviewed_rate_str,
     )
 with k4:
     st.metric(
+        label=t("avg_turnaround", lang),
+        value=turnaround_val,
+    )
+with k5:
+    st.metric(
         label=t("active_workers", lang),
         value=active_workers_val,
-        delta="12 PHC Sub-Centres",
     )
 
 st.markdown("---")
@@ -193,19 +182,40 @@ st.markdown("---")
 # ── 2. Epidemiology & Queue Analytics ────────────────────────────────────────
 c_left, c_right = st.columns([3, 2])
 
+# Tally live disease distribution
+disease_data = {}
+for c in consults_res:
+    dis = (c.get("mlAnalysis") or {}).get("disease") or "Other"
+    disease_data[dis] = disease_data.get(dis, 0) + 1
+
 with c_left:
     st.markdown(f"### 🦠 {t('disease_prevalence', lang)}")
-    pie_fig = create_admin_epidemiology_chart(disease_data)
-    st.plotly_chart(pie_fig, use_container_width=True)
+    if disease_data:
+        pie_fig = create_admin_epidemiology_chart(disease_data)
+        st.plotly_chart(pie_fig, use_container_width=True)
+    else:
+        st.info("No consultations recorded yet.")
 
 with c_right:
     st.markdown("### ⚡ Asynchronous Job Queue Health")
     st.markdown("Real-time telemetry from `jobQueue.service.js`:")
-    st.markdown("- **Concurrency Throttling:** Max 5 simultaneous worker tasks")
-    st.markdown("- **Active Workers:** `1 / 5 workers` 🟢")
-    st.markdown("- **Waiting in Queue:** `0 jobs` (Zero Backlog)")
-    st.markdown("- **Average Job Duration:** `1.42s` (ML + Bayesian XAI + PDF)")
-    st.markdown("- **Job Success Rate:** `99.8%`")
+    qm = q_metrics.get("metrics") or q_metrics
+    max_conc = q_metrics.get("maxConcurrency") or qm.get("maxConcurrency", 5)
+    act_w = q_metrics.get("activeWorkers") or qm.get("activeWorkers", 0)
+    wait_q = q_metrics.get("waitingJobs") or qm.get("waitingInQueue", 0)
+    tot_proc = qm.get("totalJobsProcessed", 0)
+    comp_jobs = qm.get("completed", 0)
+    fail_jobs = qm.get("failed", 0)
+    success_rate = f"{(comp_jobs / tot_proc * 100):.1f}%" if tot_proc > 0 else "100.0%"
+
+    st.markdown(f"- **Concurrency Throttling:** Max {max_conc} simultaneous worker tasks")
+    st.markdown(f"- **Active Job Workers:** `{act_w} / {max_conc} workers` 🟢")
+    st.markdown(f"- **Waiting in Queue:** `{wait_q} jobs`")
+    if tot_proc > 0:
+        st.markdown(f"- **Processed Jobs:** `{tot_proc}` (Completed: {comp_jobs}, Failed: {fail_jobs})")
+        st.markdown(f"- **Job Success Rate:** `{success_rate}`")
+    else:
+        st.markdown("- **Queue State:** Idle (Ready for jobs)")
 
     st.markdown("---")
     st.markdown("### 🔒 Cryptographic Status")
@@ -220,32 +230,41 @@ st.markdown("---")
 st.markdown(f"### 🛡️ {t('audit_logs', lang)}")
 st.caption("Immutable append-only audit trail capturing all authentication, triage, and clinical actions:")
 
-audit_df = pd.DataFrame(audit_records)
-st.dataframe(audit_df, use_container_width=True, hide_index=True)
+raw_logs = logs_res.get("auditLogs", []) if logs_res else []
+if raw_logs:
+    formatted_logs = []
+    for l in raw_logs:
+        formatted_logs.append({
+            "Timestamp": str(l.get("createdAt", l.get("timestamp", "")))[:19].replace("T", " "),
+            "Actor": str(l.get("userId", "System"))[:10],
+            "Role": l.get("userRole", "System"),
+            "Action": l.get("action", "UNKNOWN"),
+            "Resource": f"{l.get('resourceType', '')}:{str(l.get('resourceId', ''))[:8]}",
+            "IP Address": l.get("ipAddress", "127.0.0.1"),
+            "Status": "SUCCESS 🟢",
+        })
+    audit_df = pd.DataFrame(formatted_logs)
+    st.dataframe(audit_df, use_container_width=True, hide_index=True)
+else:
+    st.info("No security audit records logged yet.")
 
 st.markdown("---")
 
 # ── 4. Administrative Data Export (CSV) ───────────────────────────────────────
 st.markdown("### 📥 Administrative Data Export")
 st.caption("Sanitized epidemiological CSV export with formula-injection protection (RFC 4180):")
-csv_bytes = None
-if token and is_live:
-    csv_bytes = export_admin_consultations_csv(token)
-if not csv_bytes:
-    csv_bytes = (
-        b"consultationId,patientId,disease,confidence,severityScore,status,createdAt\n"
-        b"CONS-901,PAT-101,Malaria,0.885,3.2,completed,2026-10-31\n"
-        b"CONS-902,PAT-102,Dengue,0.912,3.8,reviewed,2026-10-31\n"
+csv_bytes = export_admin_consultations_csv(token)
+if csv_bytes:
+    st.download_button(
+        label="📥 Download Consultations CSV",
+        data=csv_bytes,
+        file_name="arogyamitra_consultations_export.csv",
+        mime="text/csv",
+        use_container_width=True,
+        key="admin_csv_download_btn",
     )
-
-st.download_button(
-    label="📥 Download Consultations CSV",
-    data=csv_bytes,
-    file_name="arogyamitra_consultations_export.csv",
-    mime="text/csv",
-    use_container_width=True,
-    key="admin_csv_download_btn",
-)
+else:
+    st.info("No consultation data available for CSV export.")
 
 st.markdown("---")
 
@@ -253,31 +272,21 @@ st.markdown("---")
 st.markdown("### 👥 Active User Sessions & Revocation")
 st.caption("Active sessions within your health center organization. Revoking invalidates the refresh token family immediately.")
 
-sessions = []
-if token and is_live:
-    sessions = get_admin_sessions(token)
+if sessions:
+    sess_col1, sess_col2 = st.columns([3, 1])
+    with sess_col1:
+        sess_df = pd.DataFrame(sessions)
+        st.dataframe(sess_df, use_container_width=True, hide_index=True)
 
-if not sessions:
-    sessions = [
-        {"sessionId": "sess_worker_demo_01", "userId": "worker-demo", "userRole": "Worker", "ipAddress": "127.0.0.1", "createdAt": "2026-10-31 07:00:00", "status": "active"},
-        {"sessionId": "sess_doctor_demo_02", "userId": "doctor-demo", "userRole": "Doctor", "ipAddress": "127.0.0.1", "createdAt": "2026-10-31 07:15:00", "status": "active"},
-    ]
-
-sess_col1, sess_col2 = st.columns([3, 1])
-with sess_col1:
-    sess_df = pd.DataFrame(sessions)
-    st.dataframe(sess_df, use_container_width=True, hide_index=True)
-
-with sess_col2:
-    sess_options = [s.get("sessionId") or s.get("_id", "unknown") for s in sessions]
-    selected_sess_id = st.selectbox("Select Session ID to Revoke:", sess_options, key="select_session_revoke")
-    if st.button("🚫 Revoke Session", type="primary", use_container_width=True, key="btn_revoke_session"):
-        if token and is_live:
+    with sess_col2:
+        sess_options = [s.get("id") or s.get("sessionId") or s.get("_id", "unknown") for s in sessions]
+        selected_sess_id = st.selectbox("Select Session ID to Revoke:", sess_options, key="select_session_revoke")
+        if st.button("🚫 Revoke Session", type="primary", use_container_width=True, key="btn_revoke_session"):
             res = revoke_admin_session(selected_sess_id, token)
             if res.get("success"):
                 st.success(f"Session {selected_sess_id} successfully revoked.")
                 st.rerun()
             else:
                 st.error(f"Failed to revoke session: {res.get('error')}")
-        else:
-            st.success(f"Session {selected_sess_id} marked revoked (Simulation).")
+else:
+    st.info("No active user sessions found.")

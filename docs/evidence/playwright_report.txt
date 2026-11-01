@@ -1,14 +1,14 @@
 ================================================================================
 AROGYAMITRA EVIDENCE — PHASE P4 COMPLETE PLAYWRIGHT 11-SCENARIO E2E REPORT
-Date: 2026-10-31T23:58:56.731Z
-Git Commit: 7472970c02fb6d11789b295c9f253db43d321486 (working tree: dirty)
+Date: 2026-11-01T08:52:30.511Z
+Git Commit: 748256a5ff2086dd4d0e3e241a00b3b37658da51 (working tree: dirty)
 Command: node scripts/test_p4_playwright_suite.mjs
 ================================================================================
 
 ================================================================================
 AROGYAMITRA — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E SUITE
 Target URL: https://localhost
-Date: 2026-10-31T23:57:43.312Z
+Date: 2026-11-01T08:50:47.178Z
 ================================================================================
 
 === SCENARIO 1: Worker End-to-End Triage & Normal Accept ===
@@ -35,7 +35,7 @@ PASS: Admin dashboard metrics and telemetry loaded.
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s5_admin_dashboard_revoke.png
 
 === SCENARIO 6: Administrative CSV Export ===
-PASS: CSV downloaded successfully (1269 bytes).
+PASS: CSV downloaded successfully (4060 bytes).
 CSV Header Preview: ConsultationID,CreatedAt,Status,PrimaryDiagnosis,ConfidenceScore,Risk,RedFlag,NeedsEscalation,WorkerDecision,OverrideReason,OverrideNote,PatientName,PatientAge,PatientGender,WorkerName
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s6_admin_csv_export.png
 

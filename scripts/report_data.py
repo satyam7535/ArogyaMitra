@@ -168,7 +168,7 @@ APPENDIX_A_CHALLENGES = [
     {
         "problem": "Session Expiry & Second-Opinion Escalation Lifecycle",
         "found": "Frontline workers experienced silent token expiration, while clinician escalation saving and review workflows required dedicated integration.",
-        "fix": "Designed explicit 401 session expiry warning in UI client and structured consultation review state machine. Complete end-to-end multi-role persistence is scheduled for completion in [PENDING FIX ROUND].",
-        "evidence": "ui/utils/api_client.py, docs/KNOWN_LIMITATIONS.md"
+        "fix": "Implemented explicit 401 session expiry banners and token refresh handling in the UI client, and established end-to-end multi-role consultation persistence connecting worker escalation, physician review queue with OCC updates, and worker reviewed status inspection.",
+        "evidence": "ui/utils/api_client.py, backend/src/controllers/consultation/consultationController.js, docs/evidence/playwright_report.txt"
     }
 ]

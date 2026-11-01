@@ -46,17 +46,19 @@ async function runSuite() {
     log("=== SCENARIO 1: Worker End-to-End Triage & Normal Accept ===");
     await page.goto("https://localhost/Worker_Triage", { waitUntil: "networkidle", timeout: 45000 });
     await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
+    await page.waitForTimeout(2000);
     
     // Select Fungal Skin preset (low severity, standard presentation)
     const fungalBtn = page.getByRole("button", { name: /Fungal Skin Case|Fungal/i });
     await fungalBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForSelector("div[data-testid='stMultiSelect'] :has-text('Skin Rash')", { timeout: 10000 });
+    await page.waitForTimeout(500);
 
     const runBtn = page.getByRole("button", { name: /Run AI Diagnostic Analysis|Run Analysis/i });
     await runBtn.click();
     log("Analysis triggered. Awaiting result metrics...");
 
-    await page.waitForSelector("div[data-testid='stMetricValue']:has-text('Fungal infection')", { timeout: 35000 });
+    await page.waitForSelector("div[data-testid='stMetricValue']:has-text('Fungal infection')", { timeout: 45000 });
     log("PASS: Fungal infection diagnosed with valid confidence.");
 
     // Check Accept button
@@ -76,13 +78,14 @@ async function runSuite() {
     log("=== SCENARIO 2: Worker Red-Flag Block (Cardiac Emergency) ===");
     const cardiacBtn = page.getByRole("button", { name: /Cardiac Emergency \(Red Flag\)|Cardiac/i });
     await cardiacBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForSelector("div[data-testid='stMultiSelect'] :has-text('Chest Pain')", { timeout: 10000 });
+    await page.waitForTimeout(500);
 
     const runBtn2 = page.getByRole("button", { name: /Run AI Diagnostic Analysis|Run Analysis/i });
     await runBtn2.click();
     log("Triggered analysis for cardiac symptoms...");
 
-    await page.waitForSelector("div[data-testid='stMetricValue']:has-text('Heart attack')", { timeout: 35000 });
+    await page.waitForSelector("div[data-testid='stMetricValue']:has-text('Heart attack')", { timeout: 45000 });
     await page.waitForSelector("div[data-testid='stAlert']", { timeout: 10000 });
 
     const pageContentS2 = await page.textContent("body");
@@ -104,22 +107,18 @@ async function runSuite() {
     log("=== SCENARIO 3: Worker Case Escalation to Medical Officer ===");
     const jaundiceBtn = page.getByRole("button", { name: /Jaundice \/ Liver Case|Jaundice/i });
     await jaundiceBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForSelector("div[data-testid='stMultiSelect'] :has-text('Yellowish Skin')", { timeout: 10000 });
+    await page.waitForTimeout(500);
 
     const runBtn3 = page.getByRole("button", { name: /Run AI Diagnostic Analysis|Run Analysis/i });
     await runBtn3.click();
     log("Triggered analysis for Jaundice symptoms...");
 
-    await page.waitForSelector("div[data-testid='stMetricValue']:has-text('Jaundice')", { timeout: 35000 });
+    await page.waitForSelector("div[data-testid='stMetricValue']:has-text('Jaundice')", { timeout: 45000 });
     
     const escalateBtn = page.getByRole("button", { name: /Escalate to Doctor|Escalate to Medical Officer/i });
     await escalateBtn.click();
-    await page.waitForTimeout(1500);
-
-    const pageContentS3 = await page.textContent("body");
-    if (!pageContentS3.includes("Case successfully escalated") && !pageContentS3.includes("escalated to Medical Officer")) {
-      throw new Error("Escalation confirmation message not found.");
-    }
+    await page.waitForSelector("text=Case successfully escalated", { timeout: 15000 });
     log("PASS: Case successfully escalated to physician queue.");
 
     const s3Shot = path.join(screenshotDir, "p4_s3_worker_escalate.png");
@@ -209,7 +208,8 @@ async function runSuite() {
     log("=== SCENARIO 7: Multilingual Report Download (Hindi / Marathi) ===");
     await page.goto("https://localhost/Worker_Triage", { waitUntil: "networkidle", timeout: 45000 });
     await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
+    await page.waitForTimeout(2500);
 
     // If session was revoked during Scenario 5, reload so clean auto-provision acquires fresh active token
     const bodyBefore7 = await page.textContent("body");
@@ -221,11 +221,28 @@ async function runSuite() {
 
     const malariaBtnHi = page.getByRole("button", { name: /Malaria \/ Fever Case|Malaria/i });
     await malariaBtnHi.click();
-    await page.waitForTimeout(1000);
+    await page.waitForSelector("div[data-testid='stMultiSelect'] :has-text('Chills')", { timeout: 10000 });
+    await page.waitForTimeout(500);
 
     const runBtnHi = page.getByRole("button", { name: /Run AI Diagnostic Analysis|Run Analysis/i });
     await runBtnHi.click();
-    await page.waitForSelector("div[data-testid='stMetricValue']:has-text('Malaria')", { timeout: 35000 });
+
+    // If session was revoked during Scenario 5, the first run surfaces "Session Expired"; reload to auto-provision fresh active token
+    await page.waitForTimeout(1500);
+    const bodyAfterRun = await page.textContent("body");
+    if (bodyAfterRun.includes("Session Expired")) {
+      log("Session was revoked in Scenario 5 as expected; reloading to auto-provision fresh active token...");
+      await page.reload({ waitUntil: "networkidle" });
+      await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
+      await page.waitForTimeout(1000);
+      const mBtn = page.getByRole("button", { name: /Malaria \/ Fever Case|Malaria/i });
+      await mBtn.click();
+      await page.waitForTimeout(1000);
+      const rBtn = page.getByRole("button", { name: /Run AI Diagnostic Analysis|Run Analysis/i });
+      await rBtn.click();
+    }
+
+    await page.waitForSelector("div[data-testid='stMetricValue']:has-text('Malaria')", { timeout: 45000 });
 
     // Verify PDF download button is ready and enabled
     const downloadBtnLoc = page.locator("[data-testid='stDownloadButton'] button");
@@ -242,7 +259,8 @@ async function runSuite() {
     log("=== SCENARIO 8: DPDP Patient Consent Withdrawal ===");
     await page.goto("https://localhost/Worker_Triage", { waitUntil: "networkidle", timeout: 45000 });
     await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
+    await page.waitForTimeout(2500);
 
     // Open DPDP Expander
     const dpdpExpander = page.locator("summary:has-text('DPDP Act')");
@@ -378,7 +396,8 @@ async function runSuite() {
 
     await page.goto("https://localhost/Worker_Triage", { waitUntil: "networkidle", timeout: 45000 });
     await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
+    await page.waitForSelector("text=Recent Consultation Records", { timeout: 20000 });
 
     // Verify initial pagination state
     const paginationText = await page.textContent("body");

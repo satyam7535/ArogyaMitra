@@ -44,9 +44,10 @@ async function run() {
     // Fill Demographics: Patient Name
     log(`Entering unique patient demographics: ${testPatientName}...`);
     const nameInput = page.locator("input").first();
+    await nameInput.click();
     await nameInput.fill(testPatientName);
-    await nameInput.press("Enter");
-    await page.waitForTimeout(1000);
+    await page.keyboard.press("Tab");
+    await page.waitForTimeout(2000);
 
     // Click Jaundice Preset
     log("Selecting presenting symptoms for clinical jaundice...");
@@ -94,7 +95,7 @@ async function run() {
     log("Clicking Escalate to Doctor button...");
     const escalateBtn = page.getByRole("button", { name: /Escalate to Doctor|Escalate/i });
     await escalateBtn.click();
-    await page.waitForTimeout(2000);
+    await page.waitForSelector("text=Case successfully escalated", { timeout: 15000 });
 
     // Verify escalation confirmation
     const bodyContent = await page.textContent("body");
@@ -113,6 +114,14 @@ async function run() {
     // Scroll to Recent Consultation Records & verify patient appears at top
     log("Verifying Recent Consultation Records table shows escalated status...");
     await page.waitForSelector("div[data-testid='stDataFrame']", { timeout: 15000 });
+    await page.waitForFunction(
+      (name) => {
+        const el = document.querySelector("div[data-testid='stDataFrame']");
+        return el && el.textContent.includes(name);
+      },
+      testPatientName,
+      { timeout: 20000 }
+    );
     const tableText = await page.textContent("div[data-testid='stDataFrame']");
     log(`Table preview: ${tableText.slice(0, 150)}...`);
 

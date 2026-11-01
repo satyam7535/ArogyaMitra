@@ -184,7 +184,14 @@ def add_chapter_3(doc):
     add_p(doc, "3. Statistical Inference: If red flags are absent, Backend calls ML Engine (:8000), obtaining top-3 differentials in ~1.8 ms.", space_after=2)
     add_p(doc, "4. Narrative Synthesis: Backend calls Graph Service (:8001) for summary generation. On timeout or 429 quota exhaustion, deterministic template is rendered.", space_after=2)
     add_p(doc, "5. Worker Review (Decision B): Health worker reviews top contributing symptoms and selects Accept or Escalate.", space_after=2)
-    add_p(doc, "6. Escalation & Doctor Review: [PENDING FIX ROUND] Consultation saving upon worker escalation, physician review queue retrieval, doctor response note logging, and worker seeing reviewed status represent ongoing defect-fix enhancements.", space_after=6)
+    add_p(doc, "6. Escalation & Doctor Review: When a worker escalates a consultation, the system persists the case with status 'escalated'. The Medical Officer retrieves pending cases via the review queue, inputs diagnosis notes and prescriptions with OCC version checks, and updates status to 'reviewed'. The worker workstation dynamically reflects the doctor's completed assessment upon refresh.", space_after=6)
+
+    add_h3(doc, "3.5.1 Verified Clinical Workflow Demonstration")
+    add_p(doc, "The closed-loop consultation lifecycle was executed and verified against the live Docker cluster. The operational sequence progresses deterministically across roles: (1) Frontline worker intake records patient demographics and symptoms, receiving ML-assisted differential diagnosis and Bayesian log-odds feature importance; (2) Red-flag safety interceptor locks triage to emergency upon detection of acute indicators (e.g., chest pain), disabling worker self-acceptance with HTTP 409 RED_FLAG_ACCEPT_BLOCKED; (3) Frontline worker dispatches mandatory escalation note to the Medical Officer queue; (4) Attending physician inspects the pending case with full Bayesian attribution context; (5) Physician records clinical override, prescriptions, and emergency hospital referral under optimistic concurrency control; and (6) System administrator dashboard visualizes real-time operational telemetry and tamper-evident audit logs without simulated metrics.", space_after=4)
+
+    # Insert Figure 3.4
+    wf_fig_path = os.path.join(FIG_DIR, "fig_clinical_workflow_panels.png")
+    insert_image(doc, wf_fig_path, "Figure 3.4: Verified End-to-End Clinical Workflow Across Frontline Worker, Doctor, and Admin Interfaces", width_in=5.4)
 
     add_h2(doc, "3.6 Security Architecture & Cryptographic Implementation")
     add_p(doc, "ArogyaMitra implements five layers of defense-in-depth security:")

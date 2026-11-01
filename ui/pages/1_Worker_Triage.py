@@ -92,21 +92,35 @@ preset_cols = st.columns(4)
 if "preset_counter" not in st.session_state:
     st.session_state["preset_counter"] = 0
 
+def clear_triage_banners():
+    st.session_state.pop("accept_msg", None)
+    st.session_state.pop("escalate_msg", None)
+    st.session_state.pop("submit_error", None)
+    st.session_state.pop("worker_override_note", None)
+
 selected_preset = None
 with preset_cols[0]:
     if st.button("🟡 Jaundice / Liver Case", use_container_width=True):
+        clear_triage_banners()
+        st.session_state.pop("triage_results", None)
         selected_preset = ["itching", "vomiting", "fatigue", "yellowish_skin", "dark_urine"]
         st.session_state["preset_counter"] += 1
 with preset_cols[1]:
     if st.button("🦟 Malaria / Fever Case", use_container_width=True):
+        clear_triage_banners()
+        st.session_state.pop("triage_results", None)
         selected_preset = ["chills", "vomiting", "high_fever", "sweating", "headache"]
         st.session_state["preset_counter"] += 1
 with preset_cols[2]:
     if st.button("🚨 Cardiac Emergency (Red Flag)", use_container_width=True):
+        clear_triage_banners()
+        st.session_state.pop("triage_results", None)
         selected_preset = ["chest_pain", "breathlessness", "sweating"]
         st.session_state["preset_counter"] += 1
 with preset_cols[3]:
     if st.button("🧴 Fungal Skin Case", use_container_width=True):
+        clear_triage_banners()
+        st.session_state.pop("triage_results", None)
         selected_preset = ["itching", "skin_rash", "nodal_skin_eruptions"]
         st.session_state["preset_counter"] += 1
 
@@ -131,6 +145,8 @@ st.divider()
 
 # ── 3. Run Analysis ──────────────────────────────────────────────────────────
 if st.button(f"🔍 {t('run_analysis', lang)}", type="primary", use_container_width=True):
+    clear_triage_banners()
+    st.session_state.pop("triage_results", None)
     if st.session_state.get("consent_withdrawn"):
         st.error("🚨 DPDP Act (2023) Refusal: Patient consent is inactive or has been withdrawn. Processing refused under Section 6.")
         st.stop()
@@ -186,7 +202,26 @@ if "triage_results" in st.session_state:
     # Red-Flag Emergency Banner (Decision A Requirement)
     if ml.get("redFlag"):
         rf_details = ml.get("redFlagDetails", [])
-        reasons_str = ", ".join([f"{r.get('symptom')} ({r.get('category')})" for r in rf_details]) if rf_details else "Critical presentation"
+        clinical_rationales = {
+            "chest_pain": "potential acute coronary syndrome / cardiac emergency",
+            "coma": "severe depression of consciousness / acute neurological crisis",
+            "breathlessness": "acute respiratory distress / pulmonary decompensation",
+            "blood_in_sputum": "hemoptysis / active pulmonary hemorrhage",
+            "bloody_stool": "hematochezia / acute gastrointestinal hemorrhage",
+            "loss_of_balance": "acute ataxia / potential ischemic stroke",
+            "fast_heart_rate": "hemodynamically unstable tachyarrhythmia or severe sepsis",
+        }
+        reasons_list = []
+        for r in rf_details:
+            sym = r.get("symptom", "unknown")
+            sym_clean = sym.replace("_", " ").title()
+            cat = r.get("category")
+            rat = r.get("clinical_rationale") or clinical_rationales.get(sym) or (cat if cat and cat != "None" else None)
+            if rat:
+                reasons_list.append(f"{sym_clean} ({rat})")
+            else:
+                reasons_list.append(sym_clean)
+        reasons_str = "; ".join(reasons_list) if reasons_list else "Critical emergency presentation"
         st.error(
             f"🚨 **CRITICAL RED-FLAG ALERT (EMERGENCY REFERRAL REQUIRED):** {reasons_str}. "
             "Case automatically escalated with highest clinical priority. Do not delay hospital transport."
@@ -208,13 +243,19 @@ if "triage_results" in st.session_state:
     with m2:
         raw_conf = float(ml.get("confidence", 0.0))
         conf_pct = round(raw_conf * 100, 1)
-        conf_display = ">99%" if conf_pct >= 99.0 else f"{conf_pct}%"
-        st.metric(
-            label=t("confidence", lang),
-            value=conf_display,
-            delta="Estimate, not clinical probability",
-            delta_color="off",
-        )
+        if raw_conf >= 0.99 or conf_pct >= 99.0:
+            st.metric(
+                label=t("confidence", lang),
+                value="Very high (uncalibrated estimate)",
+                help=f"Raw model estimate: {conf_pct}%. Note: Model scores are uncalibrated and should not be interpreted as posterior probabilities.",
+            )
+        else:
+            st.metric(
+                label=t("confidence", lang),
+                value=f"{conf_pct}%",
+                delta="Estimate, not clinical probability",
+                delta_color="off",
+            )
     with m3:
         avg_sev = ml.get("severityScore", 1.0)
         st.metric(
@@ -340,7 +381,12 @@ if "triage_results" in st.session_state:
                         st.session_state["worker_page"] = 1
                         st.rerun()
                     else:
-                        st.error(f"Failed to submit consultation: {sub_res.get('error')}")
+                        err_code = sub_res.get("statusCode")
+                        err_str = str(sub_res.get("error", ""))
+                        if err_code == 409 or "409" in err_str or "red flag" in err_str.lower() or "conflict" in err_str.lower():
+                            st.error("Emergency: cannot accept without a doctor.")
+                        else:
+                            st.error(f"Failed to submit consultation: {err_str}")
         else:
             if st.button(f"✅ {t('accept_decision', lang)}", use_container_width=True):
                 sub_res = submit_consultation(
@@ -356,7 +402,12 @@ if "triage_results" in st.session_state:
                     st.session_state["worker_page"] = 1
                     st.rerun()
                 else:
-                    st.error(f"Failed to submit consultation: {sub_res.get('error')}")
+                    err_code = sub_res.get("statusCode")
+                    err_str = str(sub_res.get("error", ""))
+                    if err_code == 409 or "409" in err_str or "red flag" in err_str.lower() or "conflict" in err_str.lower():
+                        st.error("Emergency: cannot accept without a doctor.")
+                    else:
+                        st.error(f"Failed to submit consultation: {err_str}")
 
     with act_col2:
         if st.button(f"🚨 {t('escalate_decision', lang)}", type="primary", use_container_width=True):

@@ -176,6 +176,30 @@ The database seed initializes three role-segregated accounts within organization
 
 ---
 
+## 🎬 Live Demonstration Runbook (Evaluator Guide)
+
+For faculty evaluation or live demonstration, follow the verified 8-step browser walkthrough:
+
+1. **Reset Database to Pristine State**:
+   ```powershell
+   powershell -File scripts/reset_demo.ps1
+   # Linux/macOS: ./scripts/reset_demo.sh
+   ```
+2. **Access Workstation**: Open `https://localhost` in your browser (accept local self-signed TLS cert).
+3. **Step-by-Step Evaluator Flow**:
+   - **Step 1: Worker Login**: Sign in as `worker@arogyamitra.gov.in` (`Worker@Arogya2026!`) on `1_Worker_Triage`.
+   - **Step 2: Normal Mild Case**: Enter patient details, click **"Normal Cough Case"**, run triage, click **"Accept & File Primary Care Advice"** (status transitions to `closed`).
+   - **Step 3: Red-Flag Emergency**: Enter second patient, click **"Chest Pain Emergency"**, run triage. Observe high-visibility red banner and blocked accept button (*"Emergency: cannot accept without a doctor."*).
+   - **Step 4: Escalate to Doctor**: Enter clinical note and click **"Escalate to Medical Officer"** (status transitions to `escalated`).
+   - **Step 5: Doctor Queue & Sign-Off**: In a second browser tab, log in as `doctor@arogyamitra.gov.in` (`Doctor@Arogya2026!`) on `2_Doctor_Review`. Open case, submit clinical diagnosis and prescription with OCC concurrency protection.
+   - **Step 6: Worker Reviewed Status**: Return to Worker tab, refresh recent consultations, and observe status updated to `reviewed` with doctor's exact guidance.
+   - **Step 7: Admin Analytics & Audit**: Log in as `admin@arogyamitra.gov.in` (`Admin@Arogya2026!`) on `3_Admin_Dashboard`. Inspect real live metrics (total consultations, escalation rate, doctor turnaround) and immutable security audit logs.
+   - **Step 8: Session Expiry**: Observe 15-minute JWT lifetime or sign out to verify fail-closed `401 Unauthorized` token expiry handling.
+
+*Complete step-by-step evaluator instructions: [`docs/DEMO_RUNBOOK.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/DEMO_RUNBOOK.md).*
+
+---
+
 ## 🧪 Testing & Verification Suites
 
 ### 1. Complete Unit & Integration Suite (322 Tests)

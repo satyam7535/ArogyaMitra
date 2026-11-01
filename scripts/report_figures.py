@@ -264,31 +264,31 @@ def generate_diagrams():
     ax.text(0.04, 0.9, "Docker Bridge Network (arogya-network) — Private RFC 1918 Address Space", fontsize=10, weight="bold", color="#37474f")
 
     # Ingress box
-    ax.add_patch(plt.Rectangle((0.05, 0.35), 0.2, 0.45, color="#e3f2fd", ec="#1e88e5", lw=2))
-    ax.text(0.15, 0.65, "Nginx Proxy\n(arogya-proxy)\n:80 -> 301\n:443 TLS 1.3", ha="center", va="center", weight="bold", fontsize=9)
+    ax.add_patch(plt.Rectangle((0.04, 0.28), 0.22, 0.54, color="#e3f2fd", ec="#1e88e5", lw=2))
+    ax.text(0.15, 0.55, "Nginx Proxy\n(arogya-proxy)\n:80 -> 301 Redirect\n:443 TLS 1.3 Strict", ha="center", va="center", weight="bold", fontsize=8)
 
     # UI box
-    ax.add_patch(plt.Rectangle((0.32, 0.55), 0.28, 0.3, color="#f3e5f5", ec="#8e24aa", lw=2))
-    ax.text(0.46, 0.7, "Streamlit Web UI\n(arogya-frontend :8501)\nWorker/Doctor/Admin Portals", ha="center", va="center", weight="bold", fontsize=9)
+    ax.add_patch(plt.Rectangle((0.32, 0.54), 0.29, 0.32, color="#f3e5f5", ec="#8e24aa", lw=2))
+    ax.text(0.465, 0.70, "Streamlit Web UI\n(arogya-frontend :8501)\nWorker/Doctor/Admin Portals", ha="center", va="center", weight="bold", fontsize=8)
 
     # Backend Gateway
-    ax.add_patch(plt.Rectangle((0.32, 0.12), 0.28, 0.35, color="#e8f5e9", ec="#43a047", lw=2))
-    ax.text(0.46, 0.3, "Express 5 Backend\n(arogya-backend :5000)\nAuth, Crypto, Job Queue", ha="center", va="center", weight="bold", fontsize=9)
+    ax.add_patch(plt.Rectangle((0.32, 0.10), 0.29, 0.36, color="#e8f5e9", ec="#43a047", lw=2))
+    ax.text(0.465, 0.28, "Express 5 Backend Gateway\n(arogya-backend :5000)\nRBAC, AES-256-GCM, OCC", ha="center", va="center", weight="bold", fontsize=8)
 
     # ML Microservice
-    ax.add_patch(plt.Rectangle((0.68, 0.55), 0.26, 0.3, color="#fff3e0", ec="#fb8c00", lw=2))
-    ax.text(0.81, 0.7, "ML Microservice\n(arogya-ml :8000)\nFastAPI / BernoulliNB", ha="center", va="center", weight="bold", fontsize=9)
+    ax.add_patch(plt.Rectangle((0.67, 0.54), 0.28, 0.32, color="#fff3e0", ec="#fb8c00", lw=2))
+    ax.text(0.81, 0.70, "ML Microservice\n(arogya-ml :8000)\nFastAPI / BernoulliNB v2.0.0", ha="center", va="center", weight="bold", fontsize=8)
 
     # Graph Microservice
-    ax.add_patch(plt.Rectangle((0.68, 0.12), 0.26, 0.35, color="#fbe9e7", ec="#d84315", lw=2))
-    ax.text(0.81, 0.3, "LangGraph Pipeline\n(arogya-graph :8001)\nGemini / ReportLab", ha="center", va="center", weight="bold", fontsize=9)
+    ax.add_patch(plt.Rectangle((0.67, 0.10), 0.28, 0.36, color="#fbe9e7", ec="#d84315", lw=2))
+    ax.text(0.81, 0.28, "LangGraph Pipeline\n(arogya-graph :8001)\nGemini Guardrails / Fallback", ha="center", va="center", weight="bold", fontsize=8)
 
     # Connecting arrows
-    ax.annotate("", xy=(0.32, 0.7), xytext=(0.25, 0.65), arrowprops=dict(arrowstyle="->", lw=1.5, color="#1565c0"))
-    ax.annotate("", xy=(0.32, 0.3), xytext=(0.25, 0.45), arrowprops=dict(arrowstyle="->", lw=1.5, color="#1565c0"))
-    ax.annotate("", xy=(0.46, 0.47), xytext=(0.46, 0.55), arrowprops=dict(arrowstyle="<->", lw=1.5, color="#4a148c"))
-    ax.annotate("", xy=(0.68, 0.7), xytext=(0.60, 0.35), arrowprops=dict(arrowstyle="<->", lw=1.5, color="#2e7d32"))
-    ax.annotate("", xy=(0.68, 0.3), xytext=(0.60, 0.25), arrowprops=dict(arrowstyle="<->", lw=1.5, color="#2e7d32"))
+    ax.annotate("", xy=(0.32, 0.70), xytext=(0.26, 0.65), arrowprops=dict(arrowstyle="->", lw=1.5, color="#1565c0"))
+    ax.annotate("", xy=(0.32, 0.28), xytext=(0.26, 0.45), arrowprops=dict(arrowstyle="->", lw=1.5, color="#1565c0"))
+    ax.annotate("", xy=(0.465, 0.46), xytext=(0.465, 0.54), arrowprops=dict(arrowstyle="<->", lw=1.5, color="#4a148c"))
+    ax.annotate("", xy=(0.67, 0.70), xytext=(0.61, 0.35), arrowprops=dict(arrowstyle="<->", lw=1.5, color="#2e7d32"))
+    ax.annotate("", xy=(0.67, 0.28), xytext=(0.61, 0.25), arrowprops=dict(arrowstyle="<->", lw=1.5, color="#2e7d32"))
 
     ax.set_title("Diagram 1: ArogyaMitra Container Network Architecture & Trust Boundaries", fontsize=11, weight="bold")
     path = os.path.join(OUTPUT_DIR, "diag1_architecture_trust_boundaries.png")
@@ -455,6 +455,38 @@ def generate_diagrams():
     plt.close(fig)
     print(f"[+] Saved: {path}")
 
+def generate_workflow_panels():
+    """Generates Figure 3.4: Verified End-to-End Clinical Workflow Across Frontline Worker, Doctor, and Admin Interfaces."""
+    from PIL import Image
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    screenshots_dir = os.path.join(base_dir, "docs", "evidence", "ui_screenshots")
+    
+    panel_files = [
+        ("01_worker_result.png", "(a) Frontline Worker Intake & ML Differential"),
+        ("04_redflag_block.png", "(b) Red-Flag Accept Intercept (HTTP 409 Safety Gate)"),
+        ("05_escalate_confirmation.png", "(c) Frontline Worker Mandatory Doctor Escalation"),
+        ("07_doctor_queue_real.png", "(d) Medical Officer Escalated Case Queue"),
+        ("08_doctor_response.png", "(e) Doctor Assessment & Sign-Off (OCC __v Checked)"),
+        ("admin_dashboard_real.png", "(f) System Admin Live Governance & Audit Trail"),
+    ]
+    
+    fig, axes = plt.subplots(3, 2, figsize=(8.5, 9.5), dpi=300)
+    axes = axes.flatten()
+    
+    for i, (fname, label) in enumerate(panel_files):
+        img_p = os.path.join(screenshots_dir, fname)
+        if os.path.exists(img_p):
+            img = Image.open(img_p)
+            axes[i].imshow(img)
+        axes[i].axis("off")
+        axes[i].set_title(label, fontsize=8, weight="bold", color="#154360", pad=3)
+        
+    fig.tight_layout(pad=1.5)
+    path = os.path.join(OUTPUT_DIR, "fig_clinical_workflow_panels.png")
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+    print(f"[+] Saved: {path}")
+
 if __name__ == "__main__":
     generate_figure1()
     generate_figure2()
@@ -463,4 +495,5 @@ if __name__ == "__main__":
     generate_figure5()
     generate_figure6()
     generate_diagrams()
+    generate_workflow_panels()
     print("All report figures and diagrams generated successfully.")

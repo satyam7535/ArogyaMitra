@@ -177,3 +177,101 @@ def test_ui_401_expired_session_handling(monkeypatch):
     assert res.get("modelUnavailable") is False
     assert "Your session expired" in res.get("error", "")
     assert "AI Prediction Service Unavailable" not in res.get("error", "")
+
+
+
+def test_worker_triage_stale_state_reset():
+    """Verify item 6: preset buttons and analysis run reset previous accept/escalate messages and results."""
+    triage_file = os.path.join(ui_dir, "pages", "1_Worker_Triage.py")
+    at = AppTest.from_file(triage_file, default_timeout=15.0)
+    at.session_state["accept_msg"] = "Stale accept message"
+    at.session_state["escalate_msg"] = "Stale escalate message"
+    at.session_state["triage_results"] = {"mlResult": {"disease": "Jaundice", "confidence": 0.95}}
+    at.run()
+    jaundice_btn = next(b for b in at.button if "Jaundice" in b.label)
+    jaundice_btn.click().run()
+    assert "accept_msg" not in at.session_state
+    assert "escalate_msg" not in at.session_state
+    assert "triage_results" not in at.session_state
+
+
+def test_worker_triage_red_flag_rationale_no_none():
+    """Verify item 7: red flag alert renders clinical rationale and never outputs '(None)'."""
+    triage_file = os.path.join(ui_dir, "pages", "1_Worker_Triage.py")
+    at = AppTest.from_file(triage_file, default_timeout=15.0)
+    at.session_state["triage_results"] = {
+        "success": True,
+        "mlResult": {
+            "disease": "Heart Attack",
+            "confidence": 0.995,
+            "redFlag": True,
+            "redFlagDetails": [{"symptom": "chest_pain", "category": None}],
+            "needsEscalation": True,
+            "matchedSymptoms": ["chest_pain"],
+            "severityScore": 6.8,
+        },
+        "llmResult": {},
+    }
+    at.run()
+    assert not at.exception
+    rf_errors = [e.value for e in at.error if "CRITICAL RED-FLAG ALERT" in e.value]
+    assert len(rf_errors) == 1
+    err_text = rf_errors[0]
+    assert "(None)" not in err_text
+    assert "Chest Pain" in err_text
+    assert "cardiac emergency" in err_text.lower() or "acute coronary" in err_text.lower()
+
+
+def test_worker_triage_http_409_friendly_message():
+    """Verify item 8: HTTP 409 red-flag rejection shows plain English clinical emergency message."""
+    triage_file = os.path.join(ui_dir, "pages", "1_Worker_Triage.py")
+    at = AppTest.from_file(triage_file, default_timeout=15.0)
+    at.session_state["triage_results"] = {
+        "success": True,
+        "mlResult": {
+            "disease": "Fungal infection",
+            "confidence": 0.95,
+            "redFlag": False,
+            "needsEscalation": False,
+            "matchedSymptoms": ["itching"],
+            "severityScore": 1.2,
+        },
+    }
+    import utils.api_client as ac
+    original_submit = ac.submit_consultation
+    try:
+        ac.submit_consultation = lambda *args, **kwargs: {
+            "success": False,
+            "statusCode": 409,
+            "error": "HTTP 409 Conflict: Cannot accept red-flag consultation without Medical Officer review."
+        }
+        at.run()
+        accept_btn = next(b for b in at.button if "Accept" in b.label or "स्वीकारा" in b.label or "स्वीकार" in b.label)
+        accept_btn.click().run()
+        error_msgs = [e.value for e in at.error]
+        assert any("Emergency: cannot accept without a doctor." in msg for msg in error_msgs)
+        assert not any("HTTP 409" in msg for msg in error_msgs)
+    finally:
+        ac.submit_consultation = original_submit
+
+
+def test_worker_triage_honest_confidence_label():
+    """Verify item 9: confidence >= 0.99 displays 'Very high (uncalibrated estimate)'."""
+    triage_file = os.path.join(ui_dir, "pages", "1_Worker_Triage.py")
+    at = AppTest.from_file(triage_file, default_timeout=15.0)
+    at.session_state["triage_results"] = {
+        "success": True,
+        "mlResult": {
+            "disease": "Malaria",
+            "confidence": 0.998,
+            "redFlag": False,
+            "needsEscalation": False,
+            "matchedSymptoms": ["chills", "high_fever"],
+            "severityScore": 3.0,
+        },
+    }
+    at.run()
+    assert not at.exception
+    conf_metrics = [m for m in at.metric if "confidence" in m.label.lower() or "विश्वास" in m.label or "अंदाज" in m.label]
+    assert len(conf_metrics) == 1
+    assert conf_metrics[0].value == "Very high (uncalibrated estimate)"

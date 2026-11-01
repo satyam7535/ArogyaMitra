@@ -5,16 +5,16 @@
 
 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mD:/Document/Projects/Internship/Arogyamitra/Backend[39m
 
-[90mstdout[2m | tests/authMatrix.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
-
- [32m✓[39m tests/encryption_key_exit.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 5127[2mms[22m[39m
+ [32m✓[39m tests/encryption_key_exit.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 10290[2mms[22m[39m
    [32m✓[39m Production Startup Environment Validation [2m(1)[22m
-     [33m[2m✓[22m[39m must exit with non-zero code if ENCRYPTION_KEY is missing or invalid in production[33m 5121[2mms[22m[39m
+     [33m[2m✓[22m[39m must exit with non-zero code if ENCRYPTION_KEY is missing or invalid in production[33m 10270[2mms[22m[39m
 [90mstdout[2m | tests/security.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+[90mstdout[2m | tests/authMatrix.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
 
 node.exe : [90mstderr[2m | tests/security.test.js[2m > [22m[2mPhase 2 — Security & Cryptographic Integrity[2m > 
 [22m[2m1. AES-256-GCM Field-Level Encryption[2m > [22m[2mshould handle null or invalid ciphertexts gracefully
@@ -26,79 +26,98 @@ At C:\Program Files\nodejs\npm.ps1:29 char:3
  
 [22m[39mFailed to decrypt field: Invalid authentication tag length: 0
 
- [32m✓[39m tests/authMatrix.test.js [2m([22m[2m101 tests[22m[2m)[22m[33m 1959[2mms[22m[39m
+ [32m✓[39m tests/authMatrix.test.js [2m([22m[2m101 tests[22m[2m)[22m[33m 3972[2mms[22m[39m
+   [32m✓[39m 1.1 Dynamic Authorization Matrix & Route Table Verification [2m(101)[22m
+     [32m✓[39m Cross-Organization & Positive Control Write Probes [2m(4)[22m
+       [33m[2m✓[22m[39m should reject cross-org consultation escalation with 404 and allow same-org with 200[33m 382[2mms[22m[39m
 [90mstdout[2m | tests/decisionB.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
-
- [32m✓[39m tests/security.test.js [2m([22m[2m67 tests[22m[2m)[22m[33m 5189[2mms[22m[39m
-   [32m✓[39m Phase 2 — Security & Cryptographic Integrity [2m(67)[22m
-     [32m✓[39m 2. Argon2id Password Hashing [2m(2)[22m
-       [33m[2m✓[22m[39m should hash password with Argon2id and verify correctly[33m 1370[2mms[22m[39m
-     [32m✓[39m 7. Brute-Force Protection & Account Lockout [2m(2)[22m
-       [33m[2m✓[22m[39m should lock account after 5 failed password attempts[33m 731[2mms[22m[39m
-       [33m[2m✓[22m[39m should reject attempts on a locked account with HTTP 423 Locked[33m 523[2mms[22m[39m
-     [32m✓[39m 13. Admin Soft-Deactivation & Deactivated Login Rejection [2m(4)[22m
-       [33m[2m✓[22m[39m should strictly reject login attempts from soft-deactivated worker (403 ACCOUNT_DEACTIVATED)[33m 427[2mms[22m[39m
-       [33m[2m✓[22m[39m should permit login for active worker[33m 754[2mms[22m[39m
- [32m✓[39m tests/decisionB.test.js [2m([22m[2m13 tests[22m[2m)[22m[33m 512[2mms[22m[39m
-[90mstdout[2m | tests/dpdp_approval.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  enable debug logging with { debug: true }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
-
- [32m✓[39m tests/dpdp_approval.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 300[2mms[22m[39m
-[90mstdout[2m | tests/upload_adapter.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  override existing env vars with { override: true }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
-
-[90mstdout[2m | tests/consultation_pagination.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
-
- [32m✓[39m tests/upload_adapter.test.js [2m([22m[2m9 tests[22m[2m)[22m[33m 430[2mms[22m[39m
- [32m✓[39m tests/raceOcc.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 84[2mms[22m[39m
- [32m✓[39m tests/consultation_pagination.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 235[2mms[22m[39m
-[90mstdout[2m | tests/key_rotation.test.js
 [22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
 [dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+ [32m✓[39m tests/security.test.js [2m([22m[2m67 tests[22m[2m)[22m[33m 13362[2mms[22m[39m
+   [32m✓[39m Phase 2 — Security & Cryptographic Integrity [2m(67)[22m
+     [32m✓[39m 2. Argon2id Password Hashing [2m(2)[22m
+       [33m[2m✓[22m[39m should hash password with Argon2id and verify correctly[33m 2586[2mms[22m[39m
+     [32m✓[39m 7. Brute-Force Protection & Account Lockout [2m(2)[22m
+       [33m[2m✓[22m[39m should lock account after 5 failed password attempts[33m 2034[2mms[22m[39m
+       [33m[2m✓[22m[39m should reject attempts on a locked account with HTTP 423 Locked[33m 1573[2mms[22m[39m
+     [32m✓[39m 8. HTTP Level Security & Disabled Public Endpoints [2m(4)[22m
+       [33m[2m✓[22m[39m should return 403 Forbidden on public admin registration[33m 972[2mms[22m[39m
+     [32m✓[39m 13. Admin Soft-Deactivation & Deactivated Login Rejection [2m(4)[22m
+       [33m[2m✓[22m[39m should strictly reject login attempts from soft-deactivated worker (403 ACCOUNT_DEACTIVATED)[33m 1049[2mms[22m[39m
+       [33m[2m✓[22m[39m should permit login for active worker[33m 2382[2mms[22m[39m
+ [32m✓[39m tests/decisionB.test.js [2m([22m[2m13 tests[22m[2m)[22m[33m 1279[2mms[22m[39m
+   [32m✓[39m WP2 — Decision B Override, State Machine & redFlag Enforcement [2m(13)[22m
+     [32m✓[39m 2.1 & 2.4 Red-Flag Block & referred_to_hospital Outcome [2m(2)[22m
+       [33m[2m✓[22m[39m should strictly return HTTP 409 RED_FLAG_ACCEPT_BLOCKED when worker attempts to accept a red-flag case[33m 587[2mms[22m[39m
+[90mstdout[2m | tests/upload_adapter.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  override existing env vars with { override: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+[90mstdout[2m | tests/dpdp_approval.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+
+ [32m✓[39m tests/upload_adapter.test.js [2m([22m[2m9 tests[22m[2m)[22m[33m 1146[2mms[22m[39m
+   [32m✓[39m Phase P3.5: Upload Storage Adapter & Magic-Byte Defense Suite [2m(9)[22m
+     [32m✓[39m 2. HTTP Route Level Enforcement (POST /api/v1/consultation) [2m(3)[22m
+       [33m[2m✓[22m[39m should reject unauthenticated upload attempt with HTTP 401 Unauthorized[33m 650[2mms[22m[39m
+[90mstdout[2m | tests/blind_index.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+
+ [32m✓[39m tests/dpdp_approval.test.js [2m([22m[2m8 tests[22m[2m)[22m[33m 2547[2mms[22m[39m
+   [32m✓[39m Phase P3.4: DPDP Admin-Approved Export & Erasure Protocol [2m(8)[22m
+     [33m[2m✓[22m[39m 1. Worker attempting POST approve-export should be strictly rejected with HTTP 403 Forbidden[33m 700[2mms[22m[39m
+     [33m[2m✓[22m[39m 5. Admin successfully approves data export with HTTP 200[33m 325[2mms[22m[39m
+     [33m[2m✓[22m[39m 6. Worker attempting GET export AFTER Admin approval succeeds with HTTP 200[33m 303[2mms[22m[39m
+     [33m[2m✓[22m[39m 8. Worker attempting DELETE erasure AFTER Admin approval succeeds with HTTP 200 & anonymization[33m 308[2mms[22m[39m
+[90mstdout[2m | tests/consultation_pagination.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+
+ [32m✓[39m tests/blind_index.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 233[2mms[22m[39m
+ [32m✓[39m tests/consultation_pagination.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 714[2mms[22m[39m
+   [32m✓[39m WP5 — Consultation Pagination & Worker Scoping Tests [2m(6)[22m
+     [32m✓[39m HTTP API Layer: GET /api/v1/consultation/my [2m(3)[22m
+       [33m[2m✓[22m[39m should return HTTP 200 with paginated structure when requested by authorized worker[33m 434[2mms[22m[39m
+[90mstdout[2m | tests/key_rotation.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
 
 [90mstderr[2m | tests/key_rotation.test.js[2m > [22m[2mP3.6: Cryptographic Key Rotation & Dual-Keyring 
 Verification[2m > [22m[2mshould fail gracefully when attempting decryption with wrong key or invalid tag
 [22m[39mFailed to decrypt field: Unsupported state or unable to authenticate data
 
- [32m✓[39m tests/key_rotation.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 28[2mms[22m[39m
-[90mstdout[2m | tests/blind_index.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
-
+ [32m✓[39m tests/key_rotation.test.js [2m([22m[2m4 tests[22m[2m)[22m[33m 329[2mms[22m[39m
 [90mstdout[2m | tests/concurrency.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
 
- [32m✓[39m tests/blind_index.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 153[2mms[22m[39m
- [32m✓[39m tests/concurrency.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 126[2mms[22m[39m
+ [32m✓[39m tests/concurrency.test.js [2m([22m[2m9 tests[22m[2m)[22m[33m 302[2mms[22m[39m
+ [32m✓[39m tests/raceOcc.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 143[2mms[22m[39m
 [90mstdout[2m | tests/mc37_host_binding.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
 
+[90mstdout[2m | tests/adminOps.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+ [32m✓[39m tests/adminOps.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 51[2mms[22m[39m
 [90mstdout[2m | tests/mc37_host_binding.test.js[2m > [22m[2mMC37: Backend HOST Binding Default (127.0.0.1 Containment)[2m > [22m[2mshould strictly bind to 127.0.0.1 by default when process.env.HOST is unset
 [22m[39mServer is running on http://127.0.0.1:5000 in test mode
 
 [90mstdout[2m | tests/mc37_host_binding.test.js[2m > [22m[2mMC37: Backend HOST Binding Default (127.0.0.1 Containment)[2m > [22m[2mshould allow explicit HOST override only when configured via environment
 [22m[39mServer is running on http://10.0.0.5:5000 in test mode
 
- [32m✓[39m tests/mc37_host_binding.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 21[2mms[22m[39m
-[90mstdout[2m | tests/adminOps.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
-
- [32m✓[39m tests/adminOps.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/mc37_host_binding.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 134[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m13 passed[39m[22m[90m (13)[39m
 [2m      Tests [22m [1m[32m231 passed[39m[22m[90m (231)[39m
-[2m   Start at [22m 05:46:44
-[2m   Duration [22m 38.84s[2m (import 84%, tests 14%, worker 1%, transform 1%)[22m
+[2m   Start at [22m 16:13:06
+[2m   Duration [22m 134.44s[2m (import 89%, tests 10%, worker 1%)[22m
 
-[2m    Isolate [22m [33m13 workers spawned[39m[2m · ~791ms startup each (spawn + environment, per file)[22m
-[2m            [22m [2mat least ~2.64s faster with [22m[33misolate: false[39m[2m — reuses workers across files instead of one per file[22m
+[2m    Isolate [22m [33m13 workers spawned[39m[2m · ~2.21s startup each (spawn + environment, per file)[22m
+[2m            [22m [2mat least ~7.36s faster with [22m[33misolate: false[39m[2m — reuses workers across files instead of one per file[22m
 

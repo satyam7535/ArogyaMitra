@@ -1,4 +1,7 @@
-﻿============================================================
+Command exited with code 0.
+
+Command output:
+============================================================
   RUNNING: Lint (Python Ruff & Node ESLint)
 ============================================================
 # Running ruff check on ML_Model, graph, ui...
@@ -16,7 +19,7 @@ D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\admin.control
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\consultation.controller.js
    17:3   warning  'getJobStatus' is defined but never used             no-unused-vars
-  294:11  warning  'idempotencyKey' is assigned a value but never used  no-unused-vars
+  392:11  warning  'idempotencyKey' is assigned a value but never used  no-unused-vars
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\doctor.controller.js
   258:12  warning  'err' is defined but never used  no-unused-vars
@@ -46,16 +49,15 @@ D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\testWorkerKill.j
   10:7  warning  '__dirname' is assigned a value but never used  no-unused-vars
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\consultation.service.js
-  307:45  warning  'prescription' is defined but never used. Allowed unused args must match /^_/u        no-unused-vars
-  307:59  warning  'diagnosisConfirmed' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+  364:59  warning  'diagnosisConfirmed' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\patient.service.js
   4:8  warning  'crypto' is defined but never used        no-unused-vars
   5:8  warning  'serverConfig' is defined but never used  no-unused-vars
 
-✖ 18 problems (0 errors, 18 warnings)
+✖ 17 problems (0 errors, 17 warnings)
 
-PASSED: Lint (Python Ruff & Node ESLint) in 11286ms
+PASSED: Lint (Python Ruff & Node ESLint) in 46632ms
 ============================================================
   RUNNING: ML Tests (ML_Model Phase 0 & Phase 1 contracts)
 ============================================================
@@ -124,8 +126,8 @@ ML_Model/tests/test_phase1.py::test_symptom_dropout_robustness PASSED    [ 96%]
 ML_Model/tests/test_phase1.py::test_suggested_follow_up_symptoms_on_uncertainty PASSED [ 98%]
 ML_Model/tests/test_phase1.py::test_production_contrastive_attribution_integrity PASSED [100%]
 
-============================= 55 passed in 9.60s ==============================
-PASSED: ML Tests (ML_Model Phase 0 & Phase 1 contracts) in 14313ms
+============================= 55 passed in 19.50s =============================
+PASSED: ML Tests (ML_Model Phase 0 & Phase 1 contracts) in 28591ms
 ============================================================
   RUNNING: Backend Tests (Security, Auth, Concurrency, Crypto)
 ============================================================
@@ -134,90 +136,117 @@ PASSED: ML Tests (ML_Model Phase 0 & Phase 1 contracts) in 14313ms
 > vitest run
 
 
-[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mD:/Document/Projects/Internship/Arogyamitra/Backend[39m
+ RUN  v5.0.5 D:/Document/Projects/Internship/Arogyamitra/Backend
 
-[90mstdout[2m | tests/dpdp_approval.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  override existing env vars with { override: true }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
-
-[90mstdout[2m | tests/security.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
-
-[90mstdout[2m | tests/authMatrix.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  enable debug logging with { debug: true }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
-
-[90mstderr[2m | tests/security.test.js[2m > [22m[2mPhase 2 — Security & Cryptographic Integrity[2m > [22m[2m1. AES-256-GCM Field-Level Encryption[2m > [22m[2mshould handle null or invalid ciphertexts gracefully
-[22m[39mFailed to decrypt field: Invalid authentication tag length: 0
-System.Management.Automation.RemoteException
- [32m✓[39m tests/dpdp_approval.test.js [2m([22m[2m8 tests[22m[2m)[22m[33m 403[2mms[22m[39m
- [32m✓[39m tests/authMatrix.test.js [2m([22m[2m101 tests[22m[2m)[22m[33m 1885[2mms[22m[39m
- [32m✓[39m tests/security.test.js [2m([22m[2m67 tests[22m[2m)[22m[33m 5341[2mms[22m[39m
-   [32m✓[39m Phase 2 — Security & Cryptographic Integrity [2m(67)[22m
-     [32m✓[39m 2. Argon2id Password Hashing [2m(2)[22m
-       [33m[2m✓[22m[39m should hash password with Argon2id and verify correctly[33m 1419[2mms[22m[39m
-     [32m✓[39m 7. Brute-Force Protection & Account Lockout [2m(2)[22m
-       [33m[2m✓[22m[39m should lock account after 5 failed password attempts[33m 995[2mms[22m[39m
-       [33m[2m✓[22m[39m should reject attempts on a locked account with HTTP 423 Locked[33m 489[2mms[22m[39m
-     [32m✓[39m 13. Admin Soft-Deactivation & Deactivated Login Rejection [2m(4)[22m
-       [33m[2m✓[22m[39m should strictly reject login attempts from soft-deactivated worker (403 ACCOUNT_DEACTIVATED)[33m 446[2mms[22m[39m
-       [33m[2m✓[22m[39m should permit login for active worker[33m 875[2mms[22m[39m
-[90mstdout[2m | tests/decisionB.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
-
-[90mstdout[2m | tests/upload_adapter.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+ ✓ tests/encryption_key_exit.test.js (1 test) 10290ms
+   ✓ Production Startup Environment Validation (1)
+     ✓ must exit with non-zero code if ENCRYPTION_KEY is missing or invalid in production 10270ms
+stdout | tests/security.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
 [dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
 
- [32m✓[39m tests/decisionB.test.js [2m([22m[2m13 tests[22m[2m)[22m[33m 482[2mms[22m[39m
- [32m✓[39m tests/raceOcc.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 85[2mms[22m[39m
- [32m✓[39m tests/upload_adapter.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 296[2mms[22m[39m
-[90mstdout[2m | tests/blind_index.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
-
-[90mstdout[2m | tests/key_rotation.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
-
-[90mstderr[2m | tests/key_rotation.test.js[2m > [22m[2mP3.6: Cryptographic Key Rotation & Dual-Keyring Verification[2m > [22m[2mshould fail gracefully when attempting decryption with wrong key or invalid tag
-[22m[39mFailed to decrypt field: Unsupported state or unable to authenticate data
-System.Management.Automation.RemoteException
- [32m✓[39m tests/key_rotation.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 29[2mms[22m[39m
-[90mstdout[2m | tests/concurrency.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
-[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
-
- [32m✓[39m tests/blind_index.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 24[2mms[22m[39m
- [32m✓[39m tests/concurrency.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 47[2mms[22m[39m
-[90mstdout[2m | tests/adminOps.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
-[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
-
- [32m✓[39m tests/adminOps.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
-[90mstdout[2m | tests/mc37_host_binding.test.js
-[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+stdout | tests/authMatrix.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
 [dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
 
-[90mstdout[2m | tests/mc37_host_binding.test.js[2m > [22m[2mMC37: Backend HOST Binding Default (127.0.0.1 Containment)[2m > [22m[2mshould strictly bind to 127.0.0.1 by default when process.env.HOST is unset
-[22m[39mServer is running on http://127.0.0.1:5000 in test mode
+stderr | tests/security.test.js > Phase 2 — Security & Cryptographic Integrity > 1. AES-256-GCM Field-Level Encryption > should handle null or invalid ciphertexts gracefully
+Failed to decrypt field: Invalid authentication tag length: 0
+System.Management.Automation.RemoteException
+ ✓ tests/authMatrix.test.js (101 tests) 3972ms
+   ✓ 1.1 Dynamic Authorization Matrix & Route Table Verification (101)
+     ✓ Cross-Organization & Positive Control Write Probes (4)
+       ✓ should reject cross-org consultation escalation with 404 and allow same-org with 200 382ms
+stdout | tests/decisionB.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
 
-[90mstdout[2m | tests/mc37_host_binding.test.js[2m > [22m[2mMC37: Backend HOST Binding Default (127.0.0.1 Containment)[2m > [22m[2mshould allow explicit HOST override only when configured via environment
-[22m[39mServer is running on http://10.0.0.5:5000 in test mode
+ ✓ tests/security.test.js (67 tests) 13362ms
+   ✓ Phase 2 — Security & Cryptographic Integrity (67)
+     ✓ 2. Argon2id Password Hashing (2)
+       ✓ should hash password with Argon2id and verify correctly 2586ms
+     ✓ 7. Brute-Force Protection & Account Lockout (2)
+       ✓ should lock account after 5 failed password attempts 2034ms
+       ✓ should reject attempts on a locked account with HTTP 423 Locked 1573ms
+     ✓ 8. HTTP Level Security & Disabled Public Endpoints (4)
+       ✓ should return 403 Forbidden on public admin registration 972ms
+     ✓ 13. Admin Soft-Deactivation & Deactivated Login Rejection (4)
+       ✓ should strictly reject login attempts from soft-deactivated worker (403 ACCOUNT_DEACTIVATED) 1049ms
+       ✓ should permit login for active worker 2382ms
+ ✓ tests/decisionB.test.js (13 tests) 1279ms
+   ✓ WP2 — Decision B Override, State Machine & redFlag Enforcement (13)
+     ✓ 2.1 & 2.4 Red-Flag Block & referred_to_hospital Outcome (2)
+       ✓ should strictly return HTTP 409 RED_FLAG_ACCEPT_BLOCKED when worker attempts to accept a red-flag case 587ms
+stdout | tests/upload_adapter.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  override existing env vars with { override: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
 
- [32m✓[39m tests/mc37_host_binding.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+stdout | tests/dpdp_approval.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
 
-[2m Test Files [22m [1m[32m11 passed[39m[22m[90m (11)[39m
-[2m      Tests [22m [1m[32m224 passed[39m[22m[90m (224)[39m
-[2m   Start at [22m 14:55:00
-[2m   Duration [22m 23.53s[2m (import 82%, tests 15%, transform 1%, worker 1%)[22m
+ ✓ tests/upload_adapter.test.js (9 tests) 1146ms
+   ✓ Phase P3.5: Upload Storage Adapter & Magic-Byte Defense Suite (9)
+     ✓ 2. HTTP Route Level Enforcement (POST /api/v1/consultation) (3)
+       ✓ should reject unauthenticated upload attempt with HTTP 401 Unauthorized 650ms
+stdout | tests/blind_index.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
 
-[2m    Isolate [22m [33m11 workers spawned[39m[2m · ~548ms startup each (spawn + environment, per file)[22m
-[2m            [22m [2mat least ~1.46s faster with [22m[33misolate: false[39m[2m — reuses workers across files instead of one per file[22m
+ ✓ tests/dpdp_approval.test.js (8 tests) 2547ms
+   ✓ Phase P3.4: DPDP Admin-Approved Export & Erasure Protocol (8)
+     ✓ 1. Worker attempting POST approve-export should be strictly rejected with HTTP 403 Forbidden 700ms
+     ✓ 5. Admin successfully approves data export with HTTP 200 325ms
+     ✓ 6. Worker attempting GET export AFTER Admin approval succeeds with HTTP 200 303ms
+     ✓ 8. Worker attempting DELETE erasure AFTER Admin approval succeeds with HTTP 200 & anonymization 308ms
+stdout | tests/consultation_pagination.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
 
-PASSED: Backend Tests (Security, Auth, Concurrency, Crypto) in 26357ms
+ ✓ tests/blind_index.test.js (6 tests) 233ms
+ ✓ tests/consultation_pagination.test.js (6 tests) 714ms
+   ✓ WP5 — Consultation Pagination & Worker Scoping Tests (6)
+     ✓ HTTP API Layer: GET /api/v1/consultation/my (3)
+       ✓ should return HTTP 200 with paginated structure when requested by authorized worker 434ms
+stdout | tests/key_rotation.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+
+stderr | tests/key_rotation.test.js > P3.6: Cryptographic Key Rotation & Dual-Keyring Verification > should fail gracefully when attempting decryption with wrong key or invalid tag
+Failed to decrypt field: Unsupported state or unable to authenticate data
+System.Management.Automation.RemoteException
+ ✓ tests/key_rotation.test.js (4 tests) 329ms
+stdout | tests/concurrency.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+
+ ✓ tests/concurrency.test.js (9 tests) 302ms
+ ✓ tests/raceOcc.test.js (2 tests) 143ms
+stdout | tests/mc37_host_binding.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+
+stdout | tests/adminOps.test.js
+[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+ ✓ tests/adminOps.test.js (3 tests) 51ms
+stdout | tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should strictly bind to 127.0.0.1 by default when process.env.HOST is unset
+Server is running on http://127.0.0.1:5000 in test mode
+
+stdout | tests/mc37_host_binding.test.js > MC37: Backend HOST Binding Default (127.0.0.1 Containment) > should allow explicit HOST override only when configured via environment
+Server is running on http://10.0.0.5:5000 in test mode
+
+ ✓ tests/mc37_host_binding.test.js (2 tests) 134ms
+
+ Test Files  13 passed (13)
+      Tests  231 passed (231)
+   Start at  16:13:06
+   Duration  134.44s (import 89%, tests 10%, worker 1%)
+
+    Isolate  13 workers spawned · ~2.21s startup each (spawn + environment, per file)
+             at least ~7.36s faster with isolate: false — reuses workers across files instead of one per file
+
+PASSED: Backend Tests (Security, Auth, Concurrency, Crypto) in 145161ms
 ============================================================
   RUNNING: Graph Tests (AI Reasoning, Fallback, Prompt Defense, PDF)
 ============================================================
@@ -228,33 +257,37 @@ hypothesis profile 'default'
 rootdir: D:\Document\Projects\Internship\Arogyamitra
 configfile: pyproject.toml
 plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
-collecting ... collected 22 items
+collecting ... collected 26 items
 
-graph/tests/test_phase3.py::test_prompt_injection_sanitization PASSED    [  4%]
-graph/tests/test_phase3.py::test_sanitize_nested_data PASSED             [  9%]
-graph/tests/test_phase3.py::test_deterministic_fallback_multilingual PASSED [ 13%]
-graph/tests/test_phase3.py::test_call_llm_valid_mock_response PASSED     [ 18%]
-graph/tests/test_phase3.py::test_call_llm_malformed_json_triggers_fallback PASSED [ 22%]
-graph/tests/test_phase3.py::test_call_llm_exception_triggers_fallback PASSED [ 27%]
-graph/tests/test_phase3.py::test_verify_service_token_valid PASSED       [ 31%]
-graph/tests/test_phase3.py::test_verify_service_token_missing PASSED     [ 36%]
-graph/tests/test_phase3.py::test_verify_service_token_expired PASSED     [ 40%]
-graph/tests/test_phase3.py::test_verify_service_token_wrong_audience PASSED [ 45%]
-graph/tests/test_phase3.py::test_verify_service_token_forged PASSED      [ 50%]
-graph/tests/test_phase3.py::test_pdf_generation_multilingual PASSED      [ 54%]
-graph/tests/test_phase3.py::test_pdf_generation_includes_red_flag_banner PASSED [ 59%]
-graph/tests/test_phase3.py::test_e2e_graph_invocation PASSED             [ 63%]
-graph/tests/test_phase3.py::test_pdf_generator_labels_use_bayesian_evidence PASSED [ 68%]
-graph/tests/test_phase3.py::test_prompt_injection_corpus_twenty_attacks PASSED [ 72%]
-graph/tests/test_phase3.py::test_pii_never_transmitted_to_llm PASSED     [ 77%]
-graph/tests/test_phase3.py::test_langgraph_node_sequence_per_scenario PASSED [ 81%]
-graph/tests/test_phase3.py::test_20_prompt_injection_attacks_suite PASSED [ 86%]
-graph/tests/test_phase3.py::test_llm_output_sanity_check_disease_omission PASSED [ 90%]
-graph/tests/test_phase3.py::test_llm_output_sanity_check_forbidden_prescription_drugs PASSED [ 95%]
+graph/tests/test_llm_timeouts_and_429.py::test_llm_wall_clock_timeout_fake_server_sleep PASSED [  3%]
+graph/tests/test_llm_timeouts_and_429.py::test_llm_429_cascade_then_slow_fake_server PASSED [  7%]
+graph/tests/test_llm_timeouts_and_429.py::test_llm_banned_phrase_regeneration_step_slow PASSED [ 11%]
+graph/tests/test_llm_timeouts_and_429.py::test_llm_client_max_retries_enforced_zero PASSED [ 15%]
+graph/tests/test_phase3.py::test_prompt_injection_sanitization PASSED    [ 19%]
+graph/tests/test_phase3.py::test_sanitize_nested_data PASSED             [ 23%]
+graph/tests/test_phase3.py::test_deterministic_fallback_multilingual PASSED [ 26%]
+graph/tests/test_phase3.py::test_call_llm_valid_mock_response PASSED     [ 30%]
+graph/tests/test_phase3.py::test_call_llm_malformed_json_triggers_fallback PASSED [ 34%]
+graph/tests/test_phase3.py::test_call_llm_exception_triggers_fallback PASSED [ 38%]
+graph/tests/test_phase3.py::test_verify_service_token_valid PASSED       [ 42%]
+graph/tests/test_phase3.py::test_verify_service_token_missing PASSED     [ 46%]
+graph/tests/test_phase3.py::test_verify_service_token_expired PASSED     [ 50%]
+graph/tests/test_phase3.py::test_verify_service_token_wrong_audience PASSED [ 53%]
+graph/tests/test_phase3.py::test_verify_service_token_forged PASSED      [ 57%]
+graph/tests/test_phase3.py::test_pdf_generation_multilingual PASSED      [ 61%]
+graph/tests/test_phase3.py::test_pdf_generation_includes_red_flag_banner PASSED [ 65%]
+graph/tests/test_phase3.py::test_e2e_graph_invocation PASSED             [ 69%]
+graph/tests/test_phase3.py::test_pdf_generator_labels_use_bayesian_evidence PASSED [ 73%]
+graph/tests/test_phase3.py::test_prompt_injection_corpus_twenty_attacks PASSED [ 76%]
+graph/tests/test_phase3.py::test_pii_never_transmitted_to_llm PASSED     [ 80%]
+graph/tests/test_phase3.py::test_langgraph_node_sequence_per_scenario PASSED [ 84%]
+graph/tests/test_phase3.py::test_20_prompt_injection_attacks_suite PASSED [ 88%]
+graph/tests/test_phase3.py::test_llm_output_sanity_check_disease_omission PASSED [ 92%]
+graph/tests/test_phase3.py::test_llm_output_sanity_check_forbidden_prescription_drugs PASSED [ 96%]
 graph/tests/test_phase3.py::test_multilingual_pdf_generation_bundled_font PASSED [100%]
 
-============================= 22 passed in 5.49s ==============================
-PASSED: Graph Tests (AI Reasoning, Fallback, Prompt Defense, PDF) in 9768ms
+============================= 26 passed in 36.98s =============================
+PASSED: Graph Tests (AI Reasoning, Fallback, Prompt Defense, PDF) in 69293ms
 ============================================================
   RUNNING: UI Tests (Streamlit AppTest headless suite)
 ============================================================
@@ -265,27 +298,32 @@ hypothesis profile 'default'
 rootdir: D:\Document\Projects\Internship\Arogyamitra
 configfile: pyproject.toml
 plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
-collecting ... collected 9 items
+collecting ... collected 14 items
 
-ui/tests/test_streamlit.py::test_home_page_initialization PASSED         [ 11%]
-ui/tests/test_streamlit.py::test_worker_triage_page_initialization PASSED [ 22%]
-ui/tests/test_streamlit.py::test_doctor_review_page_initialization PASSED [ 33%]
-ui/tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 44%]
-ui/tests/test_streamlit.py::test_i18n_localization_integrity PASSED      [ 55%]
-ui/tests/test_streamlit.py::test_viz_module_robustness PASSED            [ 66%]
-ui/tests/test_streamlit.py::test_api_client_thin_client_auth_helpers PASSED [ 77%]
-ui/tests/test_streamlit.py::test_api_client_no_service_secret_or_bypass PASSED [ 88%]
-ui/tests/test_streamlit.py::test_triage_analysis_with_bayesian_evidence_and_red_flags PASSED [100%]
+ui/tests/test_streamlit.py::test_home_page_initialization PASSED         [  7%]
+ui/tests/test_streamlit.py::test_worker_triage_page_initialization PASSED [ 14%]
+ui/tests/test_streamlit.py::test_doctor_review_page_initialization PASSED [ 21%]
+ui/tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 28%]
+ui/tests/test_streamlit.py::test_i18n_localization_integrity PASSED      [ 35%]
+ui/tests/test_streamlit.py::test_viz_module_robustness PASSED            [ 42%]
+ui/tests/test_streamlit.py::test_api_client_thin_client_auth_helpers PASSED [ 50%]
+ui/tests/test_streamlit.py::test_api_client_no_service_secret_or_bypass PASSED [ 57%]
+ui/tests/test_streamlit.py::test_triage_analysis_with_bayesian_evidence_and_red_flags PASSED [ 64%]
+ui/tests/test_streamlit.py::test_ui_401_expired_session_handling PASSED  [ 71%]
+ui/tests/test_streamlit.py::test_worker_triage_stale_state_reset PASSED  [ 78%]
+ui/tests/test_streamlit.py::test_worker_triage_red_flag_rationale_no_none PASSED [ 85%]
+ui/tests/test_streamlit.py::test_worker_triage_http_409_friendly_message PASSED [ 92%]
+ui/tests/test_streamlit.py::test_worker_triage_honest_confidence_label PASSED [100%]
 
-============================= 9 passed in 31.86s ==============================
-PASSED: UI Tests (Streamlit AppTest headless suite) in 36066ms
+======================= 14 passed in 111.86s (0:01:51) ========================
+PASSED: UI Tests (Streamlit AppTest headless suite) in 138945ms
 
 ============================================================
   ALL SUITES PASSED VERIFICATION
   Test Summary (Dynamically Parsed):
     - ML Tests:      55 passed
-    - Backend Tests: 224 passed
-    - Graph Tests:   22 passed
-    - UI Tests:      9 passed
-    - Total Tests:   310 passed (0 failed)
+    - Backend Tests: 231 passed
+    - Graph Tests:   26 passed
+    - UI Tests:      14 passed
+    - Total Tests:   326 passed (0 failed)
 ============================================================

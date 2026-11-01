@@ -90,14 +90,29 @@ def get_clinical_symptoms() -> list[dict[str, Any]]:
 
 # ── Thin-Client Authentication ────────────────────────────────────────────────
 
+_AUTH_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+
+
+def clear_auth_cache():
+    _AUTH_CACHE.clear()
+
+
 def login_user(email: str, password: str, role: str) -> dict[str, Any]:
     """
     Authenticates user via Express Backend and retrieves JWT access token.
     Role must be one of: 'Worker', 'Doctor', 'Admin'.
     """
+    import time
     endpoint_role = role.strip().lower()
     if endpoint_role not in ("worker", "doctor", "admin"):
         return {"success": False, "error": f"Invalid role: {role}"}
+
+    cache_key = f"{email}:{endpoint_role}"
+    now = time.time()
+    if cache_key in _AUTH_CACHE:
+        cached_time, cached_res = _AUTH_CACHE[cache_key]
+        if now - cached_time < 300:
+            return cached_res
 
     url = f"{BACKEND_URL}/{endpoint_role}/login"
     try:
@@ -105,13 +120,15 @@ def login_user(email: str, password: str, role: str) -> dict[str, Any]:
         if res.status_code == 200:
             data = res.json()
             user_data = data.get(endpoint_role) or data.get("user") or {}
-            return {
+            ret = {
                 "success": True,
                 "accessToken": data.get("accessToken"),
                 "refreshToken": data.get("refreshToken"),
                 "user": user_data,
                 "role": role.strip(),
             }
+            _AUTH_CACHE[cache_key] = (now, ret)
+            return ret
         error_msg = res.json().get("message", "Authentication failed")
         return {"success": False, "error": error_msg, "statusCode": res.status_code}
     except Exception as e:

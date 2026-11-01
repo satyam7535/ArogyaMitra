@@ -3,7 +3,7 @@
 **Date**: November 1, 2026  
 **Branch**: `remediation`  
 **Repository**: `https://github.com/satyam7535/ArogyaMitra.git`  
-**System Status**: All 6 microservices healthy, 322/322 automated tests passing (100%), fail-closed clinical workflow operational end-to-end.
+**System Status**: All 6 microservices healthy, 326/326 automated tests passing (100%), fail-closed clinical workflow operational end-to-end, live 8-step evaluator demo verified.
 
 ---
 
@@ -11,7 +11,7 @@
 
 This document summarizes the comprehensive remediation and formal report synthesis for **ArogyaMitra**, a privacy-first, explainable, and fail-closed AI-assisted primary healthcare clinical decision support system designed for rural frontline health workers.
 
-All requirements across **Part A (Workflow Remediation & UI Verification)**, **Part B (Academic Report Generation & Verification)**, and **Part C (Final Quality Gate & Verification)** have been executed, empirically verified against live command outputs, and committed strictly to the `remediation` branch.
+All requirements across **Part A (Workflow Remediation & UI Verification)**, **Part B (Academic Report Generation & Verification)**, **Part C (Final Quality Gate & Verification)**, and the **Final Polish Run (Real Admin Telemetry, Clean Demo Reset, 37-page Report Reflow)** have been executed, empirically verified against live command outputs, and committed strictly to the `remediation` branch.
 
 ---
 
@@ -40,9 +40,9 @@ All requirements across **Part A (Workflow Remediation & UI Verification)**, **P
 
 ### 3.1 Report Metrics & Verification
 - **Generated PDF Path**: `docs/REPORT_FINAL/ArogyaMitra_BTech_Project_Report.pdf` (and `docs/REPORT/ArogyaMitra_BTech_Project_Report.pdf`).
-- **Verified Page Count**: **36 Pages** (strictly within the 35–38 page target).
+- **Verified Page Count**: **37 Pages** (strictly within the 35–38 page target).
 - **Generation Method**: Microsoft Word COM Automation (`win32com.client`) ensuring native typography, clean page breaks, and zero text collisions.
-- **Rasterized Verification**: All 36 pages rendered to PNG in `docs/REPORT_FINAL/pdf_pages/` and inspected for formatting integrity.
+- **Rasterized Verification**: All 37 pages rendered to PNG in `docs/REPORT_FINAL/pdf_pages/` and inspected for formatting integrity.
 
 ### 3.2 Formal References & Citation Audit
 - **Citation Pass Rate**: **100% PASS** on all 15 formal references `[1]` through `[15]` (`docs/evidence/report_citation_check.txt`).
@@ -93,8 +93,8 @@ All requirements across **Part A (Workflow Remediation & UI Verification)**, **P
 | **ML Inference & Safety Contracts** | Pytest / NumPy / Scikit-learn | 5 Files | 55 | 100% (55/55) | `docs/evidence/verify_ml.txt:47` |
 | **Backend API, Auth & Concurrency** | Jest / Supertest | 13 Files | 231 | 100% (231/231) | `docs/evidence/verify_backend.txt:85` |
 | **Guarded Graph, Timeout & Guardrails** | Pytest / LangGraph | 2 Files | 26 | 100% (26/26) | `docs/evidence/verify_graph.txt:32` |
-| **Frontend UI Headless AppTest** | Pytest / Streamlit AppTest | 1 File | 10 | 100% (10/10) | `docs/evidence/verify_ui.txt:21` |
-| **Total Prototype Suite** | **Multi-Framework** | **21 Files** | **322** | **100% (322/322)** | `powershell -File scripts/verify_all.ps1` |
+| **Frontend UI Headless AppTest** | Pytest / Streamlit AppTest | 1 File | 14 | 100% (14/14) | `ui/tests/test_streamlit.py` |
+| **Total Prototype Suite** | **Multi-Framework** | **21 Files** | **326** | **100% (326/326)** | `powershell -File scripts/verify_all.ps1` (`docs/evidence/final_verify_all.txt`) |
 | **Golden Set Evaluation** | Live Python HTTP Client | 1 File | 20 Cases | 100% (20/20) | `docs/evidence/p0_docker_tests.txt` |
 | **Playwright Browser Journeys** | Playwright / Chromium | 1 Suite | 11 Journeys | 100% (11/11) | `docs/evidence/p4_playwright_suite.txt:72` |
 
@@ -158,3 +158,4 @@ In compliance with engineering and clinical disclosure standards, the following 
 
 ---
 *Signed off by Engineering Team — Remediation Branch — November 1, 2026*
+
