@@ -17,6 +17,7 @@ from utils.api_client import (
     get_clinical_symptoms,
     get_worker_consultations,
     run_triage_analysis,
+    submit_consultation,
 )
 from utils.i18n import t
 from utils.viz import create_shap_waterfall_or_bar, create_top_predictions_chart
@@ -32,7 +33,7 @@ token = st.session_state.get("token")
 user = st.session_state.get("user") or {}
 
 # Auto-provision active session for frontline clinical testing if not already logged in
-if not token:
+if not token and not st.session_state.get("login_failed"):
     try:
         from utils.api_client import login_user
         auth_res = login_user("worker@arogyamitra.gov.in", "Worker@Arogya2026!", "Worker")
@@ -42,8 +43,10 @@ if not token:
             st.session_state["role"] = auth_res["role"]
             token = auth_res["accessToken"]
             user = auth_res["user"]
+        else:
+            st.session_state["login_failed"] = True
     except Exception:
-        pass
+        st.session_state["login_failed"] = True
 
 
 st.title(f"👩‍⚕️ {t('nav_triage', lang)}")
@@ -86,31 +89,41 @@ st.markdown(f"### 🩺 {t('symptoms_title', lang)}")
 # Quick presets for fast clinical demonstration
 st.markdown("**Quick Preset Clinical Cases:**")
 preset_cols = st.columns(4)
+if "preset_counter" not in st.session_state:
+    st.session_state["preset_counter"] = 0
+
 selected_preset = None
 with preset_cols[0]:
     if st.button("🟡 Jaundice / Liver Case", use_container_width=True):
         selected_preset = ["itching", "vomiting", "fatigue", "yellowish_skin", "dark_urine"]
+        st.session_state["preset_counter"] += 1
 with preset_cols[1]:
     if st.button("🦟 Malaria / Fever Case", use_container_width=True):
         selected_preset = ["chills", "vomiting", "high_fever", "sweating", "headache"]
+        st.session_state["preset_counter"] += 1
 with preset_cols[2]:
     if st.button("🚨 Cardiac Emergency (Red Flag)", use_container_width=True):
         selected_preset = ["chest_pain", "breathlessness", "sweating"]
+        st.session_state["preset_counter"] += 1
 with preset_cols[3]:
     if st.button("🧴 Fungal Skin Case", use_container_width=True):
         selected_preset = ["itching", "skin_rash", "nodal_skin_eruptions"]
+        st.session_state["preset_counter"] += 1
 
 all_symptoms_data = get_clinical_symptoms()
 symptom_ids = [s["id"] for s in all_symptoms_data]
 
-default_symptoms = selected_preset or st.session_state.get("triage_symptoms", ["itching", "skin_rash", "nodal_skin_eruptions"])
-if selected_preset:
+if selected_preset is not None:
     st.session_state["triage_symptoms"] = selected_preset
+    default_symptoms = selected_preset
+else:
+    default_symptoms = st.session_state.get("triage_symptoms", ["itching", "skin_rash", "nodal_skin_eruptions"])
 
 selected_symptoms = st.multiselect(
     t("select_symptoms", lang),
     options=symptom_ids,
     default=default_symptoms,
+    key=f"symptoms_ms_{st.session_state['preset_counter']}",
     format_func=lambda s: s.replace("_", " ").title(),
 )
 
@@ -135,11 +148,25 @@ if st.button(f"🔍 {t('run_analysis', lang)}", type="primary", use_container_wi
             results = run_triage_analysis(selected_symptoms, patient_info, language=lang, token=token)
             st.session_state["triage_results"] = results
             st.session_state["triage_patient"] = patient_info
+            st.session_state["triage_symptoms"] = selected_symptoms
 
 # ── 4. Render Results ────────────────────────────────────────────────────────
 if "triage_results" in st.session_state:
     results = st.session_state["triage_results"]
-    if results.get("modelUnavailable") or not results.get("success", True):
+    patient_info = st.session_state.get("triage_patient", {
+        "name": patient_name,
+        "age": patient_age,
+        "gender": patient_gender,
+        "location": patient_location,
+        "workerName": user.get("name", "Sunita Patil (ASHA Worker)"),
+    })
+    curr_symptoms = st.session_state.get("triage_symptoms", selected_symptoms)
+    if results.get("sessionExpired") or results.get("statusCode") == 401:
+        st.session_state["token"] = None
+        st.session_state.pop("triage_results", None)
+        st.error("🚨 **Session Expired:** Your session expired. Please sign in again.")
+        st.stop()
+    elif results.get("modelUnavailable") or not results.get("success", True):
         st.error(f"🚨 **AI Prediction Service Unavailable (HTTP {results.get('statusCode', 503)}):** {results.get('error', 'Prediction service is currently unreachable.')}")
         st.warning("⚠️ ArogyaMitra enforces fail-closed clinical safety: no diagnostic assessment or clinical advice will be generated while upstream services are down. Please verify connectivity or escalate directly to a Medical Officer.")
         st.stop()
@@ -150,6 +177,11 @@ if "triage_results" in st.session_state:
     filename = results.get("filename", "ArogyaMitra_Report.pdf")
 
     st.markdown(f"## 📊 {t('results_title', lang)}")
+
+    if "escalate_msg" in st.session_state:
+        st.warning(st.session_state.pop("escalate_msg"))
+    if "accept_msg" in st.session_state:
+        st.success(st.session_state.pop("accept_msg"))
 
     # Red-Flag Emergency Banner (Decision A Requirement)
     if ml.get("redFlag"):
@@ -174,19 +206,22 @@ if "triage_results" in st.session_state:
             value=ml.get("disease", "Unknown"),
         )
     with m2:
-        conf_pct = round(float(ml.get("confidence", 0.0)) * 100, 1)
+        raw_conf = float(ml.get("confidence", 0.0))
+        conf_pct = round(raw_conf * 100, 1)
+        conf_display = ">99%" if conf_pct >= 99.0 else f"{conf_pct}%"
         st.metric(
             label=t("confidence", lang),
-            value=f"{conf_pct}%",
-            delta=None,
+            value=conf_display,
+            delta="Estimate, not clinical probability",
+            delta_color="off",
         )
     with m3:
-        sev = ml.get("severityScore", 1.0)
+        avg_sev = ml.get("severityScore", 1.0)
         st.metric(
-            label=t("severity", lang),
-            value=f"{sev} / 5.0",
-            delta="High Risk" if sev >= 3.5 else "Standard",
-            delta_color="inverse" if sev >= 3.5 else "normal",
+            label="Average Severity",
+            value=f"{avg_sev:.1f} / 7.0",
+            delta="High Risk" if avg_sev >= 4.0 else "Standard",
+            delta_color="inverse" if avg_sev >= 4.0 else "normal",
         )
     with m4:
         st.metric(
@@ -230,9 +265,10 @@ if "triage_results" in st.session_state:
             st.markdown(f"**Referral Advice:** {referral}")
 
         if llm.get("llmFallback", True):
-            st.info("📋 **Provenance:** Standard Clinical Decision-Support Template (Deterministic Safe Mode)")
+            st.info("📋 **Provenance:** Standard Decision-Support Template (Deterministic Safe Mode)")
         else:
-            st.success("✨ **Provenance:** AI-Generated Clinical Summary (Google Gemini)")
+            model_name = llm.get("model_used") or "Google Gemini"
+            st.success(f"✨ **Provenance:** AI-Generated Clinical Summary ({model_name})")
 
     with prec_col:
         st.markdown(f"#### 🛡️ {t('precautions_title', lang)}")
@@ -289,14 +325,57 @@ if "triage_results" in st.session_state:
                 if len(note_clean) < 10:
                     st.error("Validation Error: Clinical override note must contain at least 10 non-whitespace characters.")
                 else:
-                    st.success(f"Consultation accepted under Decision B override: '{st.session_state.get('worker_override_reason')}' recorded.")
+                    sub_res = submit_consultation(
+                        patient_info=patient_info,
+                        symptoms=curr_symptoms,
+                        token=token,
+                        worker_decision="accepted",
+                        override_reason=st.session_state.get("worker_override_reason"),
+                        override_note=note_clean,
+                        ml_analysis=ml,
+                        llm_analysis=llm,
+                    )
+                    if sub_res.get("success"):
+                        st.session_state["accept_msg"] = f"Consultation accepted under Decision B override: '{st.session_state.get('worker_override_reason')}' recorded."
+                        st.session_state["worker_page"] = 1
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to submit consultation: {sub_res.get('error')}")
         else:
             if st.button(f"✅ {t('accept_decision', lang)}", use_container_width=True):
-                st.success("Triage consultation finalized and saved to patient record.")
+                sub_res = submit_consultation(
+                    patient_info=patient_info,
+                    symptoms=curr_symptoms,
+                    token=token,
+                    worker_decision="accepted",
+                    ml_analysis=ml,
+                    llm_analysis=llm,
+                )
+                if sub_res.get("success"):
+                    st.session_state["accept_msg"] = "Triage consultation finalized and saved to patient record."
+                    st.session_state["worker_page"] = 1
+                    st.rerun()
+                else:
+                    st.error(f"Failed to submit consultation: {sub_res.get('error')}")
 
     with act_col2:
         if st.button(f"🚨 {t('escalate_decision', lang)}", type="primary", use_container_width=True):
-            st.warning("Case successfully escalated to Medical Officer for second opinion.")
+            esc_reason = ml.get("uncertaintyReason") or "Clinical second opinion requested"
+            sub_res = submit_consultation(
+                patient_info=patient_info,
+                symptoms=curr_symptoms,
+                token=token,
+                worker_decision="escalated",
+                escalation_reason=esc_reason,
+                ml_analysis=ml,
+                llm_analysis=llm,
+            )
+            if sub_res.get("success"):
+                st.session_state["escalate_msg"] = "Case successfully escalated to Medical Officer for second opinion."
+                st.session_state["worker_page"] = 1
+                st.rerun()
+            else:
+                st.error(f"Failed to escalate consultation: {sub_res.get('error')}")
 
     with act_col3:
         if pdf_base64:
@@ -346,12 +425,15 @@ if consult_list:
     for c in consult_list:
         pt = c.get("patient") or {}
         ml_res = c.get("mlAnalysis") or {}
+        sec_op = c.get("secondOpinion") or {}
+        doc_reply = sec_op.get("recommendation") or sec_op.get("prescription") or "-"
         rows.append({
             "Patient": pt.get("name", "N/A"),
             "Age/Gender": f"{pt.get('age', '-')}/{pt.get('gender', '-')}",
             "Primary Diagnosis": ml_res.get("disease", "Pending"),
             "Status": c.get("status", "draft"),
             "Outcome": c.get("decisionOutcome", "none"),
+            "Doctor Reply": doc_reply,
             "Created": str(c.get("createdAt", ""))[:19].replace("T", " ")
         })
     df = pd.DataFrame(rows)

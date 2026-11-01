@@ -23,14 +23,14 @@ logger = logging.getLogger("arogyamitra.llm")
 # LLM Provider Configuration (Google Gemini via OpenAI-compatible endpoint)
 LLM_API_KEY = os.getenv("LLM_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.getenv("OPENAI_API_KEY") or "mock-key"
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
-LLM_MODEL = os.getenv("LLM_MODEL") or os.getenv("LLM_MODEL_NAME") or os.getenv("MODEL_NAME", "gemini-2.5-flash")
+LLM_MODEL = os.getenv("LLM_MODEL") or os.getenv("LLM_MODEL_NAME") or os.getenv("MODEL_NAME", "gemini-3.8-flash")
 
 
 def get_configured_llm_models() -> list[str]:
     """Returns an ordered cascade list of candidate Gemini models."""
-    raw = os.getenv("LLM_MODELS") or os.getenv("LLM_MODEL") or os.getenv("LLM_MODEL_NAME") or "gemini-3-flash-preview,gemini-3.5-flash,gemini-2.5-flash"
+    raw = os.getenv("LLM_MODELS") or os.getenv("LLM_MODEL") or os.getenv("LLM_MODEL_NAME") or "gemini-3.8-flash,gemini-3-flash-preview,gemini-2.5-flash"
     models = [m.strip() for m in raw.split(",") if m.strip()]
-    return models if models else ["gemini-3-flash-preview", "gemini-3.5-flash", "gemini-2.5-flash"]
+    return models if models else ["gemini-3.8-flash", "gemini-3-flash-preview", "gemini-2.5-flash"]
 
 
 def is_llm_enabled() -> bool:

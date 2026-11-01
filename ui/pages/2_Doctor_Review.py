@@ -51,109 +51,59 @@ st.info(f"⚠️ **{t('disclaimer_title', lang)}:** {t('disclaimer_text', lang)}
 
 st.divider()
 
-# Sample Pending Cases Database (Integration Fallback)
-SAMPLE_PENDING_CASES = [
-    {
-        "id": "CASE-9021",
-        "patientName": "Ramesh Shinde",
-        "age": 48,
-        "gender": "Male",
-        "location": "Pali Sub-Centre, Raigad",
-        "submittedBy": "Sunita Patil (ASHA Worker)",
-        "symptoms": ["chills", "vomiting", "high_fever", "sweating", "headache"],
-        "primaryDiagnosis": "Malaria",
-        "confidence": 0.885,
-        "severityScore": 3.8,
-        "needsEscalation": True,
-        "uncertaintyReason": "HIGH_SEVERITY",
-        "notes": "Patient reported high spiking fever with severe rigors and chills for 3 days. Weak and dehydrated.",
-        "shap": [
-            {"symptom": "chills", "impact": 0.44, "direction": "Supports Diagnosis"},
-            {"symptom": "high_fever", "impact": 0.38, "direction": "Supports Diagnosis"},
-            {"symptom": "sweating", "impact": 0.31, "direction": "Supports Diagnosis"},
-            {"symptom": "vomiting", "impact": 0.18, "direction": "Supports Diagnosis"},
-        ],
-        "topPredictions": [
-            {"disease": "Malaria", "probability": 0.885},
-            {"disease": "Dengue", "probability": 0.082},
-            {"disease": "Typhoid", "probability": 0.033},
-        ],
-        "llmSummary": "Clinical signs strongly indicate plasmodium infection. Rapid diagnostic test (RDT) and blood smear required immediately."
-    },
-    {
-        "id": "CASE-9022",
-        "patientName": "Anandi Bai",
-        "age": 62,
-        "gender": "Female",
-        "location": "Bhor PHC, Pune",
-        "submittedBy": "Rekha Gaikwad (ANM)",
-        "symptoms": ["itching", "yellowish_skin", "dark_urine", "nausea", "fatigue"],
-        "primaryDiagnosis": "Jaundice",
-        "confidence": 0.824,
-        "severityScore": 3.2,
-        "needsEscalation": True,
-        "uncertaintyReason": "CLINICAL_RISK",
-        "notes": "Noticeable scleral icterus observed by health worker. Patient complains of severe anorexia and dark urine.",
-        "shap": [
-            {"symptom": "yellowish_skin", "impact": 0.46, "direction": "Supports Diagnosis"},
-            {"symptom": "dark_urine", "impact": 0.39, "direction": "Supports Diagnosis"},
-            {"symptom": "itching", "impact": 0.22, "direction": "Supports Diagnosis"},
-        ],
-        "topPredictions": [
-            {"disease": "Jaundice", "probability": 0.824},
-            {"disease": "Hepatitis A", "probability": 0.112},
-            {"disease": "Chronic Cholestasis", "probability": 0.064},
-        ],
-        "llmSummary": "Hepatobiliary dysfunction suspected. Liver Function Tests (LFT) and abdominal ultrasonography recommended."
-    },
-]
+if "doctor_review_msg" in st.session_state:
+    st.success(f"✅ {st.session_state.pop('doctor_review_msg')}")
 
-# Attempt to load dynamic pending cases from backend if doctor token exists
-cases_to_display = SAMPLE_PENDING_CASES
-is_live_backend = False
+if not token or role != "Doctor":
+    st.warning("Please sign in as a Medical Officer to access the review queue.")
+    st.stop()
 
-if token and role == "Doctor":
-    live_cases = get_pending_consultations_for_doctor(token)
-    if live_cases:
-        formatted = []
-        for c in live_cases:
-            patient = c.get("patient") or {}
-            ml = c.get("mlAnalysis") or {}
-            formatted.append({
-                "id": str(c.get("_id", "UNKNOWN")),
-                "patientName": patient.get("name", "Unknown Patient"),
-                "age": patient.get("age", 35),
-                "gender": patient.get("gender", "Unknown"),
-                "location": "PHC Center",
-                "submittedBy": (c.get("submittedBy") or {}).get("name", "Health Worker"),
-                "symptoms": c.get("symptoms", []),
-                "primaryDiagnosis": ml.get("disease", "Pending"),
-                "confidence": ml.get("confidence", 0.0),
-                "severityScore": ml.get("severityScore", 2.0),
-                "needsEscalation": ml.get("needsEscalation", True),
-                "uncertaintyReason": ml.get("uncertaintyReason", "ESCALATED"),
-                "notes": c.get("notes") or c.get("escalationReason") or "",
-                "shap": ml.get("shapExplanation") or [
-                    {"symptom": s, "impact": 0.3, "direction": "Supports Diagnosis"}
-                    for s in c.get("symptoms", [])[:4]
-                ],
-                "topPredictions": ml.get("topPredictions") or [
-                    {"disease": ml.get("disease", "Primary"), "probability": ml.get("confidence", 0.8)}
-                ],
-                "llmSummary": (c.get("llmAnalysis") or {}).get("summary", "Review required"),
-            })
-        if formatted:
-            cases_to_display = formatted
-            is_live_backend = True
+# Query pending cases from backend API
+pending_cases = get_pending_consultations_for_doctor(token)
+if pending_cases is None:
+    st.error("🚨 Failed to connect to consultation review queue API.")
+    st.stop()
+
+if not pending_cases:
+    st.info("ℹ️ No cases awaiting review.")
+    st.stop()
+
+formatted = []
+for c in pending_cases:
+    patient = c.get("patient") or {}
+    ml = c.get("mlAnalysis") or {}
+    llm = c.get("llmAnalysis") or {}
+    formatted.append({
+        "id": str(c.get("_id", "UNKNOWN")),
+        "patientName": patient.get("name", "Unknown Patient"),
+        "age": patient.get("age", 35),
+        "gender": patient.get("gender", "Unknown"),
+        "location": "PHC Center",
+        "submittedBy": (c.get("submittedBy") or {}).get("name", "Health Worker"),
+        "symptoms": c.get("symptoms", []),
+        "primaryDiagnosis": ml.get("disease", "Pending"),
+        "confidence": ml.get("confidence", 0.0),
+        "severityScore": ml.get("severityScore", 2.0),
+        "needsEscalation": ml.get("needsEscalation", True),
+        "uncertaintyReason": c.get("escalationReason") or ml.get("uncertaintyReason", "ESCALATED"),
+        "notes": c.get("notes") or c.get("escalationReason") or "",
+        "shap": ml.get("shapExplanation") or [
+            {"symptom": s, "impact": 0.3, "direction": "Supports Diagnosis"}
+            for s in c.get("symptoms", [])[:4]
+        ],
+        "topPredictions": ml.get("topPredictions") or [
+            {"disease": ml.get("disease", "Primary"), "confidence": ml.get("confidence", 0.8)}
+        ],
+        "llmSummary": llm.get("summary") or llm.get("diagnosis_summary", "Review required"),
+        "status": c.get("status", "escalated"),
+    })
+
+cases_to_display = formatted
 
 # ── Sidebar: Case Selector ───────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### 📥 Triage Review Queue")
-    if is_live_backend:
-        st.success("🟢 Connected to live Express consultation queue")
-    else:
-        st.caption("ℹ️ Demonstration review queue active")
-
+    st.success("🟢 Connected to live Express consultation queue")
     case_options = [f"{c['id'][:8]} — {c['patientName']} ({c['primaryDiagnosis']})" for c in cases_to_display]
     selected_idx = st.selectbox("Select Case to Review:", range(len(case_options)), format_func=lambda i: case_options[i])
     st.caption(f"Total Pending Reviews: **{len(cases_to_display)} cases**")
@@ -174,9 +124,9 @@ with h3:
     st.markdown(f"**AI Confidence:** `{conf}%`")
 with h4:
     sev = selected_case["severityScore"]
-    st.markdown(f"**Severity Index:** `{sev} / 5.0`")
+    st.markdown(f"**Severity Index:** `{sev} / 7.0`")
 
-st.markdown(f"**Worker Clinical Notes:** *\"{selected_case['notes']}\"*")
+st.markdown(f"**Escalation Reason / Notes:** *\"{selected_case['notes']}\"*")
 
 st.markdown("---")
 
@@ -203,13 +153,18 @@ st.markdown("---")
 # ── Doctor Second Opinion Submission Form ────────────────────────────────────
 st.markdown("### ✍️ Medical Officer Clinical Response & Second Opinion")
 
+is_already_reviewed = selected_case.get("status") in ("reviewed", "closed")
+
+if is_already_reviewed:
+    st.info("ℹ️ This consultation has already been reviewed and closed.")
+
 with st.form("doctor_opinion_form"):
     confirmed_diagnosis = st.text_input(
         t("doctor_diagnosis", lang),
         value=f"Confirmed {selected_case['primaryDiagnosis']} with clinical correlation.",
     )
     treatment_plan = st.text_area(
-        t("doctor_prescription", lang),
+        "Prescription / advice",
         value="Prescribed standard oral regimen. Advised hydration and complete rest. Revisit PHC if fever persists past 48 hours.",
         height=100,
     )
@@ -218,24 +173,22 @@ with st.form("doctor_opinion_form"):
     submitted = st.form_submit_button(
         f"📋 {t('submit_opinion', lang)}",
         type="primary",
+        disabled=is_already_reviewed,
         use_container_width=True,
     )
 
-    if submitted:
-        if token and is_live_backend:
-            with st.spinner("Submitting second opinion to backend with OCC verification..."):
-                resp = submit_doctor_second_opinion(
-                    selected_case["id"],
-                    confirmed_diagnosis,
-                    treatment_plan,
-                    token,
-                )
-                if resp.get("success"):
-                    st.success(f"✅ {t('case_closed', lang)} Second opinion recorded in database.")
-                elif resp.get("statusCode") == 409:
-                    st.error("⚠️ Conflict (409): Case was modified concurrently by another provider. Please refresh.")
-                else:
-                    st.error(f"Failed to submit opinion: {resp.get('error')}")
-        else:
-            st.success(f"✅ {t('case_closed', lang)} Second opinion issued for #{selected_case['id']}.")
-            st.info("Treatment recommendation has been transmitted back to the health worker tablet.")
+    if submitted and not is_already_reviewed:
+        with st.spinner("Submitting second opinion to backend with OCC verification..."):
+            resp = submit_doctor_second_opinion(
+                selected_case["id"],
+                confirmed_diagnosis,
+                treatment_plan,
+                token,
+            )
+            if resp.get("success"):
+                st.session_state["doctor_review_msg"] = "Case reviewed successfully. Second opinion recorded in database."
+                st.rerun()
+            elif resp.get("statusCode") == 409:
+                st.error("⚠️ Conflict (409): Case was already reviewed or updated concurrently. Please refresh.")
+            else:
+                st.error(f"Failed to submit opinion: {resp.get('error')}")

@@ -85,9 +85,23 @@ export const withdrawConsentSchema = z.object({
 
 // ── Consultation Schemas ─────────────────────────────────────────────────────
 export const submitConsultationSchema = z.object({
-  patientId: objectIdSchema,
+  patientId: objectIdSchema.optional(),
+  patientName: z.string().optional(),
+  patientAge: z.union([z.number(), z.string()]).optional(),
+  patientGender: z.string().optional(),
   symptoms: z.union([z.array(z.string()), z.string()]),
   notes: z.string().optional(),
+  status: z.enum(["pending", "analyzed", "escalated", "reviewed", "closed"]).optional(),
+  workerDecision: z.enum(["accepted", "escalated", "referred_to_hospital"]).optional(),
+  decisionOutcome: z.enum(["accepted", "escalated", "referred_to_hospital"]).optional(),
+  escalationReason: z.string().optional(),
+  doctorId: objectIdSchema.optional(),
+  assignedDoctor: objectIdSchema.optional(),
+  mlAnalysis: z.any().optional(),
+  llmAnalysis: z.any().optional(),
+  overrideReason: z.string().optional(),
+  overrideDetails: z.any().optional(),
+  overrideNote: z.string().optional(),
 }).strict();
 
 export const acceptConsultationSchema = z.object({

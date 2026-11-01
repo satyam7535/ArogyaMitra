@@ -9,7 +9,7 @@ D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\admin.control
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\consultation.controller.js
    17:3   warning  'getJobStatus' is defined but never used             no-unused-vars
-  295:11  warning  'idempotencyKey' is assigned a value but never used  no-unused-vars
+  392:11  warning  'idempotencyKey' is assigned a value but never used  no-unused-vars
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\doctor.controller.js
   258:12  warning  'err' is defined but never used  no-unused-vars
@@ -39,12 +39,11 @@ D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\testWorkerKill.j
   10:7  warning  '__dirname' is assigned a value but never used  no-unused-vars
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\consultation.service.js
-  332:45  warning  'prescription' is defined but never used. Allowed unused args must match /^_/u        no-unused-vars
-  332:59  warning  'diagnosisConfirmed' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+  364:59  warning  'diagnosisConfirmed' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
 
 D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\patient.service.js
   4:8  warning  'crypto' is defined but never used        no-unused-vars
   5:8  warning  'serverConfig' is defined but never used  no-unused-vars
 
-✖ 18 problems (0 errors, 18 warnings)
+✖ 17 problems (0 errors, 17 warnings)
 

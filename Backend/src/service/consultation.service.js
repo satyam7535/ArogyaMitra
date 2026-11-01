@@ -33,7 +33,22 @@ const uploadToCloudinary = (buffer, folder, resourceType = "auto") => {
 
 // Worker submits a new consultation
 const createConsultation = async (
-  { patientId, symptoms, notes, attachmentFiles, aiReportFile },
+  {
+    patientId,
+    symptoms,
+    notes,
+    attachmentFiles,
+    aiReportFile,
+    mlAnalysis,
+    llmAnalysis,
+    status,
+    workerDecision,
+    decisionOutcome,
+    escalationReason,
+    assignedDoctor,
+    overrideReason,
+    overrideDetails,
+  },
   workerId,
   organization
 ) => {
@@ -51,7 +66,7 @@ const createConsultation = async (
     aiReportUrl = await uploadToCloudinary(aiReportFile.buffer, "consultations/ai-reports");
   }
 
-  const consultation = await Consultation.create({
+  const consultData = {
     patient: patientId,
     submittedBy: workerId,
     organization,
@@ -59,9 +74,22 @@ const createConsultation = async (
     notes,
     attachments: attachmentUrls,
     aiReport: aiReportUrl,
-    status: "pending",
-  });
+    status: status || "pending",
+  };
 
+  if (mlAnalysis) consultData.mlAnalysis = mlAnalysis;
+  if (llmAnalysis) consultData.llmAnalysis = llmAnalysis;
+  if (workerDecision) consultData.workerDecision = workerDecision;
+  if (decisionOutcome) consultData.decisionOutcome = decisionOutcome;
+  if (escalationReason) {
+    consultData.escalationReason = escalationReason;
+    consultData.escalatedAt = new Date();
+  }
+  if (assignedDoctor) consultData.assignedDoctor = assignedDoctor;
+  if (overrideReason) consultData.overrideReason = overrideReason;
+  if (overrideDetails) consultData.overrideDetails = overrideDetails;
+
+  const consultation = await Consultation.create(consultData);
   return consultation;
 };
 
@@ -79,7 +107,7 @@ const getConsultationsByWorker = async (workerId, organization, options = {}) =>
   const [consultations, total] = await Promise.all([
     Consultation.find(query)
       .select(
-        "patient assignedDoctor symptoms status decisionOutcome notes mlAnalysis.disease mlAnalysis.confidence mlAnalysis.needsEscalation mlAnalysis.redFlag createdAt updatedAt"
+        "patient assignedDoctor symptoms status workerDecision escalationReason decisionOutcome notes mlAnalysis secondOpinion createdAt updatedAt"
       )
       .populate("patient", "name age gender")
       .populate("assignedDoctor", "name specialization")
@@ -169,12 +197,12 @@ const escalateToDoctor = async (consultationId, organization, doctorId, reason =
     throw { status: 400, message: "Consultation is already escalated to a doctor" };
   }
 
-  consultation.assignedDoctor = doctorId;
+  consultation.assignedDoctor = doctorId || null;
   consultation.escalationReason = reason.trim();
   consultation.workerDecision = "escalated";
   consultation.decisionOutcome = "escalated";
   consultation.escalatedAt = new Date();
-  consultation.status = "pending";
+  consultation.status = "escalated";
 
   // Append in-app notification for the assigned doctor
   if (doctorId) {
@@ -296,10 +324,14 @@ const acceptAiResult = async (
 // Doctor gets pending consultations assigned to them within their organization, with overdue badge calculation
 const getPendingConsultationsForDoctor = async (doctorId, organization, overdueHours = 24) => {
   const query = Consultation.find({
-    assignedDoctor: doctorId,
     organization,
     workerDecision: "escalated",
-    status: "pending",
+    status: { $in: ["pending", "escalated"] },
+    $or: [
+      { assignedDoctor: doctorId },
+      { assignedDoctor: { $exists: false } },
+      { assignedDoctor: null },
+    ],
   })
     .populate("patient", "name age gender medicalHistory")
     .populate("submittedBy", "name email")
@@ -331,11 +363,22 @@ const submitSecondOpinion = async (
   doctorId,
   { diagnosis, recommendation, doctorNotes, prescription, diagnosisConfirmed }
 ) => {
-  const consultation = await Consultation.findOne({
+  let consultation = await Consultation.findOne({
     _id: consultationId,
     organization,
     assignedDoctor: doctorId,
   });
+
+  if (!consultation) {
+    consultation = await Consultation.findOne({
+      _id: consultationId,
+      organization,
+      $or: [
+        { assignedDoctor: { $exists: false } },
+        { assignedDoctor: null },
+      ],
+    });
+  }
 
   if (!consultation) {
     return null;
@@ -343,6 +386,17 @@ const submitSecondOpinion = async (
 
   if (consultation.status === "closed") {
     throw { status: 400, message: "Cannot respond to a closed consultation" };
+  }
+
+  if (consultation.status === "reviewed") {
+    const error = new Error("ALREADY_REVIEWED: Consultation has already been reviewed or closed.");
+    error.status = 409;
+    error.code = "ALREADY_REVIEWED";
+    throw error;
+  }
+
+  if (!consultation.assignedDoctor) {
+    consultation.assignedDoctor = doctorId;
   }
 
   const doctorDiagnosis = diagnosis || recommendation || "";
@@ -358,9 +412,13 @@ const submitSecondOpinion = async (
     agreement = normAi === normDoc || normDoc.includes(normAi) || normAi.includes(normDoc);
   }
 
+  const recText = recommendation || doctorNotes || (typeof prescription === "string" ? prescription : "") || "";
+  const prescText = typeof prescription === "string" ? prescription : recText;
+
   consultation.secondOpinion = {
     diagnosis: doctorDiagnosis,
-    recommendation: recommendation || doctorNotes || "",
+    recommendation: recText,
+    prescription: prescText,
     respondedAt: new Date(),
     respondedBy: doctorId,
   };

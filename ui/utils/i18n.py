@@ -52,6 +52,7 @@ MESSAGES = {
         "pending_queue": "Pending Escalations & Second Opinion Queue",
         "patient_case": "Patient Case File",
         "doctor_diagnosis": "Physician Final Diagnosis",
+        "doctor_prescription": "Prescription / advice",
         "prescription_notes": "Clinical Prescription & Referral Orders",
         "submit_opinion": "Sign & Submit Second Opinion",
         # Admin Dashboard
@@ -111,6 +112,7 @@ MESSAGES = {
         "pending_queue": "समीक्षा के लिए लंबित मरीज",
         "patient_case": "मरीज केस विवरण",
         "doctor_diagnosis": "डॉक्टर का अंतिम निदान",
+        "doctor_prescription": "दवाएं और नैदानिक निर्देश",
         "prescription_notes": "दवाएं और नैदानिक निर्देश",
         "submit_opinion": "समीक्षा सहेजें और सबमिट करें",
         # Admin Dashboard
@@ -170,6 +172,7 @@ MESSAGES = {
         "pending_queue": "तपासणीसाठी प्रलंबित प्रकरणे",
         "patient_case": "रुग्ण केस माहिती",
         "doctor_diagnosis": "डॉक्टरांचे अंतिम निदान",
+        "doctor_prescription": "औषधोपचार आणि सूचना",
         "prescription_notes": "औषधोपचार आणि सूचना",
         "submit_opinion": "निदान नोंदवा आणि सबमिट करा",
         # Admin Dashboard

@@ -4,6 +4,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
@@ -209,6 +211,14 @@ async function runSuite() {
     await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
     await page.waitForTimeout(1000);
 
+    // If session was revoked during Scenario 5, reload so clean auto-provision acquires fresh active token
+    const bodyBefore7 = await page.textContent("body");
+    if (bodyBefore7.includes("Session Expired")) {
+      await page.reload({ waitUntil: "networkidle" });
+      await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
+      await page.waitForTimeout(1000);
+    }
+
     const malariaBtnHi = page.getByRole("button", { name: /Malaria \/ Fever Case|Malaria/i });
     await malariaBtnHi.click();
     await page.waitForTimeout(1000);
@@ -327,6 +337,45 @@ async function runSuite() {
 
     // ── SCENARIO 11: Worker Consultation List Server-Side Pagination (Next / Previous)
     log("=== SCENARIO 11: Worker Consultation List Pagination (Next / Previous) ===");
+
+    // Ensure at least 6 records exist in the database so pagination has >= 2 pages
+    try {
+      const loginRes = await fetch("https://localhost/api/v1/worker/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "worker@arogyamitra.gov.in", password: "Worker@Arogya2026!" }),
+      });
+      if (loginRes.ok) {
+        const loginData = await loginRes.json();
+        const token = loginData.accessToken;
+        const myRes = await fetch("https://localhost/api/v1/consultation/my?page=1&limit=5", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const myData = await myRes.json();
+        const total = myData.total || 0;
+        if (total < 6) {
+          const needed = 6 - total;
+          log(`Seeding ${needed} additional consultation(s) to guarantee multi-page test data...`);
+          for (let i = 0; i < needed; i++) {
+            await fetch("https://localhost/api/v1/consultation", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                patientName: `Pagination Patient ${i + 1}`,
+                patientAge: 30 + i,
+                patientGender: "Other",
+                symptoms: ["vomiting", "headache"],
+                workerDecision: "accepted",
+                notes: "Pagination test record"
+              })
+            });
+          }
+        }
+      }
+    } catch (err) {
+      log(`Warning during pagination seed: ${err.message}`);
+    }
+
     await page.goto("https://localhost/Worker_Triage", { waitUntil: "networkidle", timeout: 45000 });
     await page.waitForSelector("[data-testid='stAppViewContainer']", { timeout: 30000 });
     await page.waitForTimeout(1500);

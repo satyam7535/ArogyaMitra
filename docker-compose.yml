@@ -83,9 +83,9 @@ services:
       - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
       - LLM_API_KEY=${LLM_API_KEY}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
-      - LLM_MODEL=${LLM_MODEL:-gemini-2.5-flash}
+      - LLM_MODEL=${LLM_MODEL:-gemini-3.8-flash}
       - LLM_MODEL_NAME=
-      - LLM_MODELS=${LLM_MODEL_NAME:-gemini-2.5-flash}
+      - LLM_MODELS=${LLM_MODELS:-gemini-3.8-flash,gemini-3-flash-preview,gemini-2.5-flash}
     networks:
       - arogya-network
     depends_on:

@@ -36,10 +36,22 @@ def test_worker_triage_page_initialization():
     assert len(at.multiselect) >= 1
 
 
-def test_doctor_review_page_initialization():
+def test_doctor_review_page_initialization(monkeypatch):
     """Verify that the Doctor Review page loads the triage queue and review form."""
+    import utils.api_client as ac
+    monkeypatch.setattr(ac, "get_pending_consultations_for_doctor", lambda token: [{
+        "_id": "660000000000000000000001",
+        "patient": {"name": "Test Case", "age": 45, "gender": "Female"},
+        "mlAnalysis": {"disease": "Malaria", "confidence": 0.92, "severityScore": 3.0, "needsEscalation": True},
+        "symptoms": ["chills", "high_fever"],
+        "status": "escalated",
+        "notes": "Spiking fever",
+    }])
     doctor_file = os.path.join(ui_dir, "pages", "2_Doctor_Review.py")
-    at = AppTest.from_file(doctor_file, default_timeout=15.0).run()
+    at = AppTest.from_file(doctor_file, default_timeout=15.0)
+    at.session_state["token"] = "mock_doctor_token"
+    at.session_state["role"] = "Doctor"
+    at.run()
     assert not at.exception
     assert len(at.title) >= 1
     assert "Medical Officer" in at.title[0].value or "Doctor" in at.title[0].value
@@ -139,3 +151,29 @@ def test_triage_analysis_with_bayesian_evidence_and_red_flags():
     assert res2["mlResult"]["redFlag"] is True
     assert res2["mlResult"]["needsEscalation"] is True
     assert res2["mlResult"]["risk"] == "High"
+
+
+def test_ui_401_expired_session_handling(monkeypatch):
+    """Verify that a 401 response results in sessionExpired and not 'AI Prediction Service Unavailable'."""
+    import httpx
+    from utils.api_client import run_triage_analysis
+
+    class Mock401Response:
+        status_code = 401
+        text = '{"message": "Access token has expired"}'
+
+        def json(self):
+            return {"message": "Access token has expired"}
+
+    monkeypatch.setattr(httpx, "post", lambda *args, **kwargs: Mock401Response())
+
+    res = run_triage_analysis(
+        ["itching"],
+        {"name": "Expired Test", "age": 40, "gender": "Female"},
+        token="expired_token_xyz"
+    )
+    assert res.get("success") is False
+    assert res.get("sessionExpired") is True
+    assert res.get("modelUnavailable") is False
+    assert "Your session expired" in res.get("error", "")
+    assert "AI Prediction Service Unavailable" not in res.get("error", "")

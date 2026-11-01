@@ -20,6 +20,8 @@ import {
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
 import Consultation from "../models/consultation/consultationSchema.js";
 import AnalysisJob from "../models/job/jobSchema.js";
+import Patient from "../models/patient/patientSchema.js";
+import Doctor from "../models/doctor/doctorSchema.js";
 import { getJobStatusFromDb } from "../service/jobQueue.service.js";
 import jwt from "jsonwebtoken";
 import serverConfig from "../config/serverConfig.js";
@@ -29,7 +31,43 @@ import { validatePredictionBoundary } from "../validators/diseaseClasses.js";
 // Worker submits a new consultation
 const submitConsultation = async (req, res) => {
   try {
-    const { patientId, symptoms, notes } = req.body;
+    let {
+      patientId,
+      patientName,
+      patientAge,
+      patientGender,
+      symptoms,
+      notes,
+      status,
+      workerDecision,
+      decisionOutcome,
+      escalationReason,
+      doctorId,
+      assignedDoctor,
+      mlAnalysis,
+      llmAnalysis,
+      overrideReason,
+      overrideDetails,
+      overrideNote,
+    } = req.body;
+
+    if (!patientId && patientName) {
+      let patient = await Patient.findOne({
+        name: patientName.trim(),
+        organization: req.user.organization,
+      });
+      if (!patient) {
+        patient = await Patient.create({
+          name: patientName.trim(),
+          age: patientAge ? Number(patientAge) : 30,
+          gender: patientGender || "Other",
+          organization: req.user.organization,
+          registeredBy: req.user.id,
+          consentGiven: true,
+        });
+      }
+      patientId = patient._id;
+    }
 
     if (!patientId || !symptoms) {
       return res.status(400).json({ message: "patientId and symptoms are required" });
@@ -58,23 +96,76 @@ const submitConsultation = async (req, res) => {
       }
     }
 
+    // Red-flag direct accept block
+    if (mlAnalysis?.redFlag && workerDecision === "accepted") {
+      return res.status(409).json({
+        message: "RED_FLAG_ACCEPT_BLOCKED: Clinical red flag detected. Direct acceptance is blocked. Worker must escalate or refer to hospital.",
+        code: "RED_FLAG_ACCEPT_BLOCKED",
+      });
+    }
+
+    // Clinical override check when needsEscalation=true
+    if (mlAnalysis?.needsEscalation && workerDecision === "accepted") {
+      const ALLOWED = ["patient_improved", "referred_in_person", "doctor_unreachable", "patient_declined_referral", "other"];
+      if (!overrideReason || !ALLOWED.includes(overrideReason)) {
+        return res.status(400).json({
+          message: `Clinical override reason is required when needsEscalation=true. Must be one of: ${ALLOWED.join(", ")}`,
+        });
+      }
+      const note = overrideNote || (overrideDetails && overrideDetails.note) || notes || "";
+      if (!note || note.trim().length < 10) {
+        return res.status(400).json({
+          message: "Clinical override note of at least 10 characters is required when overriding an escalation recommendation.",
+        });
+      }
+      overrideDetails = {
+        reason: overrideReason,
+        note: note.trim(),
+        byUser: req.user.id,
+        at: new Date(),
+      };
+    }
+
+    let targetDoctor = assignedDoctor || doctorId;
+    if (!targetDoctor && workerDecision === "escalated") {
+      const defaultDoc = await Doctor.findOne({ organization: req.user.organization });
+      if (defaultDoc) targetDoctor = defaultDoc._id;
+    }
+
     const consultation = await createConsultation(
-      { patientId, symptoms: symptomsArray, notes, attachmentFiles, aiReportFile },
+      {
+        patientId,
+        symptoms: symptomsArray,
+        notes,
+        attachmentFiles,
+        aiReportFile,
+        mlAnalysis,
+        llmAnalysis,
+        status: status || (workerDecision === "escalated" ? "escalated" : (workerDecision === "accepted" ? "closed" : "pending")),
+        workerDecision,
+        decisionOutcome: decisionOutcome || workerDecision,
+        escalationReason,
+        assignedDoctor: targetDoctor,
+        overrideReason,
+        overrideDetails,
+      },
       req.user.id,
       req.user.organization
     );
 
+    const auditAction = workerDecision === "escalated" ? "CONSULTATION_ESCALATED" : "CONSULTATION_SUBMITTED";
     await logAuditEvent({
       req,
-      action: "CONSULTATION_SUBMITTED",
+      action: auditAction,
       resourceType: "Consultation",
       resourceId: consultation._id,
-      metadata: { patientId },
+      metadata: { patientId, workerDecision, escalationReason },
     });
 
     return res.status(201).json({ message: "Consultation submitted successfully", consultation });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    console.error("submitConsultation error:", error);
+    return res.status(error.status || 500).json({ message: error.message });
   }
 };
 
@@ -185,10 +276,13 @@ const acceptAI = async (req, res) => {
 // Worker escalates to doctor for second opinion
 const escalate = async (req, res) => {
   try {
-    const doctorId = req.body.doctorId || req.body.targetDoctorId;
+    let doctorId = req.body.doctorId || req.body.targetDoctorId;
     const reason = req.body.reason || "";
     const version = req.body.version !== undefined ? req.body.version : (req.headers["if-match"] ? parseInt(req.headers["if-match"], 10) : undefined);
-    if (!doctorId) return res.status(400).json({ message: "doctorId is required" });
+    if (!doctorId) {
+      const defaultDoc = await Doctor.findOne({ organization: req.user.organization });
+      if (defaultDoc) doctorId = defaultDoc._id;
+    }
 
     const consultation = await escalateToDoctor(
       req.params.id,
@@ -280,6 +374,9 @@ const respondWithSecondOpinion = async (req, res) => {
 
     return res.status(200).json({ message: "Second opinion submitted successfully", consultation });
   } catch (error) {
+    if (error.code === "ALREADY_REVIEWED" || error.status === 409) {
+      return res.status(409).json({ message: error.message || "Consultation has already been reviewed or closed.", code: "ALREADY_REVIEWED" });
+    }
     if (error.name === "VersionError") {
       return res.status(409).json({ message: "Conflict: consultation was updated concurrently. Please refresh and try again." });
     }

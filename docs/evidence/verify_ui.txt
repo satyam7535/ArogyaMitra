@@ -5,16 +5,17 @@ hypothesis profile 'default'
 rootdir: D:\Document\Projects\Internship\Arogyamitra
 configfile: pyproject.toml
 plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
-collecting ... collected 9 items
+collecting ... collected 10 items
 
-ui/tests/test_streamlit.py::test_home_page_initialization PASSED         [ 11%]
-ui/tests/test_streamlit.py::test_worker_triage_page_initialization PASSED [ 22%]
-ui/tests/test_streamlit.py::test_doctor_review_page_initialization PASSED [ 33%]
-ui/tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 44%]
-ui/tests/test_streamlit.py::test_i18n_localization_integrity PASSED      [ 55%]
-ui/tests/test_streamlit.py::test_viz_module_robustness PASSED            [ 66%]
-ui/tests/test_streamlit.py::test_api_client_thin_client_auth_helpers PASSED [ 77%]
-ui/tests/test_streamlit.py::test_api_client_no_service_secret_or_bypass PASSED [ 88%]
-ui/tests/test_streamlit.py::test_triage_analysis_with_bayesian_evidence_and_red_flags PASSED [100%]
+ui/tests/test_streamlit.py::test_home_page_initialization PASSED         [ 10%]
+ui/tests/test_streamlit.py::test_worker_triage_page_initialization PASSED [ 20%]
+ui/tests/test_streamlit.py::test_doctor_review_page_initialization PASSED [ 30%]
+ui/tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 40%]
+ui/tests/test_streamlit.py::test_i18n_localization_integrity PASSED      [ 50%]
+ui/tests/test_streamlit.py::test_viz_module_robustness PASSED            [ 60%]
+ui/tests/test_streamlit.py::test_api_client_thin_client_auth_helpers PASSED [ 70%]
+ui/tests/test_streamlit.py::test_api_client_no_service_secret_or_bypass PASSED [ 80%]
+ui/tests/test_streamlit.py::test_triage_analysis_with_bayesian_evidence_and_red_flags PASSED [ 90%]
+ui/tests/test_streamlit.py::test_ui_401_expired_session_handling PASSED  [100%]
 
-============================= 9 passed in 53.70s ==============================
+============================= 10 passed in 30.61s =============================

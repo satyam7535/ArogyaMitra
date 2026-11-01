@@ -128,6 +128,78 @@ def get_auth_headers(token: str | None = None) -> dict[str, str]:
 
 # ── Worker Consultation History & Pagination ───────────────────────────────
 
+
+def refresh_session_token(role: str, refresh_token: str) -> dict[str, Any]:
+    """Rotates refresh token and returns new tokens."""
+    endpoint_role = role.strip().lower()
+    if endpoint_role not in ("worker", "doctor", "admin"):
+        return {"success": False, "error": f"Invalid role: {role}"}
+    url = f"{BACKEND_URL}/{endpoint_role}/refresh-token"
+    try:
+        res = httpx.post(url, json={"refreshToken": refresh_token}, timeout=5.0)
+        if res.status_code == 200:
+            data = res.json()
+            return {
+                "success": True,
+                "accessToken": data.get("accessToken"),
+                "refreshToken": data.get("refreshToken"),
+            }
+        return {
+            "success": False,
+            "error": res.json().get("message", "Token refresh failed"),
+            "statusCode": res.status_code,
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "statusCode": 500}
+
+
+def submit_consultation(
+    patient_info: dict[str, Any],
+    symptoms: list[str],
+    token: str,
+    worker_decision: str = "accepted",
+    escalation_reason: str = "",
+    override_reason: str = "",
+    override_note: str = "",
+    ml_analysis: dict[str, Any] | None = None,
+    llm_analysis: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Frontline worker persists consultation with decision outcome."""
+    url = f"{BACKEND_URL}/consultation"
+    payload = {
+        "patientName": patient_info.get("name", "Patient"),
+        "patientAge": patient_info.get("age", 35),
+        "patientGender": patient_info.get("gender", "Other"),
+        "symptoms": symptoms,
+        "workerDecision": worker_decision,
+        "status": "escalated" if worker_decision == "escalated" else "closed",
+        "notes": patient_info.get("notes", ""),
+    }
+    if escalation_reason:
+        payload["escalationReason"] = escalation_reason
+    if override_reason:
+        payload["overrideReason"] = override_reason
+    if override_note:
+        payload["overrideNote"] = override_note
+    if ml_analysis:
+        payload["mlAnalysis"] = ml_analysis
+    if llm_analysis:
+        payload["llmAnalysis"] = llm_analysis
+
+    try:
+        res = httpx.post(url, json=payload, headers=get_auth_headers(token), timeout=10.0)
+        if res.status_code in (200, 201):
+            return {"success": True, "data": res.json()}
+        err_data = {}
+        try:
+            err_data = res.json()
+        except Exception:
+            pass
+        err_msg = err_data.get("message", res.text or "Submission failed")
+        return {"success": False, "error": err_msg, "statusCode": res.status_code}
+    except Exception as e:
+        return {"success": False, "error": str(e), "statusCode": 500}
+
 def get_worker_consultations(token: str, page: int = 1, limit: int = 10) -> dict[str, Any]:
     """Retrieves paginated consultations for frontline worker."""
     try:
@@ -303,6 +375,14 @@ def run_triage_analysis(
                 "llmResult": data.get("llmResult", {}),
                 "pdfBase64": data.get("pdfBase64", ""),
                 "filename": data.get("filename", "ArogyaMitra_Report.pdf"),
+            }
+        elif response.status_code == 401:
+            return {
+                "success": False,
+                "sessionExpired": True,
+                "modelUnavailable": False,
+                "statusCode": 401,
+                "error": "Your session expired. Please sign in again.",
             }
         else:
             err_msg = response.text

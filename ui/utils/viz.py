@@ -21,9 +21,14 @@ def create_shap_waterfall_or_bar(shap_explanations: list[dict[str, Any]], primar
         fig.add_annotation(
             text="No Bayesian Evidence feature attributions available for this prediction",
             showarrow=False,
-            font={"size": 14, "color": "#718096"},
+            font={"size": 14, "color": "#94A3B8"},
         )
-        fig.update_layout(height=200, margin={"l": 20, "r": 20, "t": 20, "b": 20})
+        fig.update_layout(
+            height=200,
+            margin={"l": 20, "r": 20, "t": 20, "b": 20},
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+        )
         return fig
 
     # Take top 10 features
@@ -31,7 +36,13 @@ def create_shap_waterfall_or_bar(shap_explanations: list[dict[str, Any]], primar
     # Reverse so top feature appears at the top of horizontal chart
     features = features[::-1]
 
-    names = [f.get("symptom", "").replace("_", " ").title() for f in features]
+    names = [
+        str(f.get("symptom") or f.get("feature") or "Symptom")
+        .replace(" present", "")
+        .replace("_", " ")
+        .title()
+        for f in features
+    ]
     impacts = [float(f.get("impact", 0.0)) for f in features]
     directions = [f.get("direction", "Supports Diagnosis") for f in features]
 
@@ -45,10 +56,10 @@ def create_shap_waterfall_or_bar(shap_explanations: list[dict[str, Any]], primar
             x=impacts,
             y=names,
             orientation="h",
-            marker={"color": colors, "line": {"color": "#1F2937", "width": 1}},
+            marker={"color": colors, "line": {"color": "#0F172A", "width": 1}},
             hovertemplate=(
                 "<b>%{y}</b><br>"
-                "SHAP Value: %{x:.4f}<br>"
+                "Bayesian log-odds contribution: %{x:.4f}<br>"
                 "<extra></extra>"
             ),
         )
@@ -56,22 +67,25 @@ def create_shap_waterfall_or_bar(shap_explanations: list[dict[str, Any]], primar
 
     fig.update_layout(
         title={
-            "text": f"<b>Bayesian Evidence Weight Feature Attributions — {primary_disease}</b>",
-            "font": {"size": 16, "color": "#0F172A"},
+            "text": f"<b>Bayesian Evidence Contributions — {primary_disease}</b>",
+            "font": {"size": 15, "color": "#E2E8F0"},
         },
         xaxis={
-            "title": "Marginal Contribution to Log-Odds (SHAP Value)",
+            "title": "Bayesian log-odds contribution",
             "zeroline": True,
-            "zerolinecolor": "#94A3B8",
+            "zerolinecolor": "#64748B",
             "zerolinewidth": 1.5,
-            "gridcolor": "#E2E8F0",
+            "gridcolor": "#334155",
+            "tickfont": {"color": "#CBD5E1"},
+            "title_font": {"color": "#CBD5E1"},
         },
         yaxis={
             "title": "",
-            "gridcolor": "#F1F5F9",
+            "gridcolor": "#1E293B",
+            "tickfont": {"color": "#CBD5E1"},
         },
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
         height=340,
         margin={"l": 150, "r": 30, "t": 50, "b": 50},
     )
@@ -87,7 +101,21 @@ def create_top_predictions_chart(top_predictions: list[dict[str, Any]]) -> go.Fi
         return go.Figure()
 
     diseases = [p.get("disease", "") for p in top_predictions][::-1]
-    probs = [round(float(p.get("probability", 0.0)) * 100, 1) for p in top_predictions][::-1]
+    raw_vals = [
+        p.get("confidence") if p.get("confidence") is not None else p.get("probability", 0.0)
+        for p in top_predictions
+    ][::-1]
+
+    probs = []
+    for val in raw_vals:
+        try:
+            num = float(val)
+            if num <= 1.0:
+                probs.append(round(num * 100, 1))
+            else:
+                probs.append(round(num, 1))
+        except (ValueError, TypeError):
+            probs.append(0.0)
 
     fig = go.Figure(
         go.Bar(
@@ -105,11 +133,17 @@ def create_top_predictions_chart(top_predictions: list[dict[str, Any]]) -> go.Fi
     )
 
     fig.update_layout(
-        title={"text": "<b>Differential Disease Predictions</b>", "font": {"size": 14, "color": "#0F172A"}},
-        xaxis={"title": "Prediction Probability (%)", "range": [0, 105], "gridcolor": "#E2E8F0"},
-        yaxis={"title": ""},
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
+        title={"text": "<b>Differential Diagnoses</b>", "font": {"size": 14, "color": "#E2E8F0"}},
+        xaxis={
+            "title": "Confidence Estimate (%)",
+            "range": [0, 105],
+            "gridcolor": "#334155",
+            "tickfont": {"color": "#CBD5E1"},
+            "title_font": {"color": "#CBD5E1"},
+        },
+        yaxis={"title": "", "tickfont": {"color": "#CBD5E1"}},
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
         height=220,
         margin={"l": 160, "r": 20, "t": 40, "b": 40},
     )
@@ -130,15 +164,17 @@ def create_admin_epidemiology_chart(disease_counts: dict[str, int]) -> go.Figure
     fig = px.pie(
         names=labels,
         values=values,
-        hole=0.45,
+        hole=0.4,
         color_discrete_sequence=px.colors.qualitative.Prism,
     )
 
     fig.update_layout(
-        title={"text": "<b>Regional Disease Incidence Breakdown</b>", "font": {"size": 16}},
-        height=350,
-        margin={"l": 20, "r": 20, "t": 50, "b": 20},
-        legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5},
+        title={"text": "<b>Diagnostic Case Distribution</b>", "font": {"size": 16, "color": "#E2E8F0"}},
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        legend={"font": {"color": "#CBD5E1"}},
+        height=320,
+        margin={"l": 20, "r": 20, "t": 40, "b": 20},
     )
 
     return fig

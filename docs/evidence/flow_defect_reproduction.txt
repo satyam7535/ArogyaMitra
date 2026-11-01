@@ -1,0 +1,207 @@
+AROGYAMITRA CLINICAL FLOW DEFECT REPRODUCTION REPORT
+Generated: 2026-10-31T23:09:33Z
+Test Patient: ZZTest-1793488168
+
+================================================================================
+1. REPRODUCTION SEQUENCE & RAW API RESPONSES
+================================================================================
+
+[Step 1] Worker Login (worker@arogyamitra.gov.in):
+HTTP 200
+Worker ID: 6ae673852406379e020d1405
+Organization: 6ae673842406379e020d1401
+
+[Step 2] Doctor Login (doctor@arogyamitra.gov.in):
+HTTP 200
+Doctor ID: 6ae673862406379e020d1407
+Organization: 6ae673842406379e020d1401
+
+[Step 3] Run AI Triage (POST /consultation/triage):
+HTTP 200
+Payload: {"symptoms": ["itching", "skin_rash", "nodal_skin_eruptions"], "patientName": "ZZTest-1793488168", "patientAge": 32, "patientGender": "Female", "workerName": "Sunita Patil", "location": "Pali PHC", "language": "en"}
+Triage Result:
+  Success: True
+  Top Disease: Fungal infection
+  Needs Escalation: False
+
+[Step 4] UI Escalate Button Behavior:
+Source: ui/pages/1_Worker_Triage.py (lines 298-299):
+```python
+with act_col2:
+    if st.button(f"Escalate", type="primary", use_container_width=True):
+        st.warning("Case successfully escalated to Medical Officer for second opinion.")
+```
+DEFECT IDENTIFIED: The Streamlit UI button displays a warning notification but NEVER dispatches an HTTP request to create or escalate a consultation document in the backend database.
+Similarly, line 294-295 for Accept:
+```python
+if st.button(f"Accept", use_container_width=True):
+    st.success("Triage consultation finalized and saved to patient record.")
+```
+Accept also never called the backend API!
+
+[Step 5] MongoDB Consultations State:
+{"count":2,"newest":[{"_id":{"$oid":"6ae673862406379e020d140d"},"patient":{"$oid":"6ae673862406379e020d140a"},"organization":{"$oid":"6ae673842406379e020d1401"},"mlAnalysis":{"disease":"Malaria"},"status":"reviewed","workerDecision":"escalated","createdAt":{"$date":"2026-10-31T23:02:30.960Z"}},{"_id":{"$oid":"6ae673862406379e020d140c"},"patient":{"$oid":"6ae673862406379e020d1409"},"organization":{"$oid":"6ae673842406379e020d1401"},"mlAnalysis":{"disease":"Fungal infection"},"status":"analyzed","workerDecision":"accepted","createdAt":{"$date":"2026-10-31T23:02:30.951Z"}}]}
+
+[Step 6] Worker Consultation List (GET /consultation/my):
+HTTP 200
+Response Body:
+{
+  "consultations": [
+    {
+      "mlAnalysis": {
+        "disease": "Malaria",
+        "confidence": 0.885,
+        "redFlag": false
+      },
+      "_id": "6ae673862406379e020d140d",
+      "patient": {
+        "_id": "6ae673862406379e020d140a",
+        "name": "Ramesh Shinde",
+        "age": 48,
+        "gender": "male"
+      },
+      "assignedDoctor": {
+        "_id": "6ae673862406379e020d1407",
+        "name": "Dr. Anand Joshi (Medical Officer)",
+        "specialization": "General Medicine"
+      },
+      "symptoms": [
+        "chills",
+        "vomiting",
+        "high_fever",
+        "sweating",
+        "headache"
+      ],
+      "notes": "High spiking fever with severe rigors. Patient is very weak and dehydrated.",
+      "status": "reviewed",
+      "createdAt": "2026-10-31T23:02:30.960Z",
+      "updatedAt": "2026-10-31T23:02:30.960Z"
+    },
+    {
+      "mlAnalysis": {
+        "disease": "Fungal infection",
+        "confidence": 0.924,
+        "redFlag": false
+      },
+      "_id": "6ae673862406379e020d140c",
+      "patient": {
+        "_id": "6ae673862406379e020d1409",
+        "name": "Kavita Devi",
+        "age": 42,
+        "gender": "female"
+      },
+      "assignedDoctor": {
+        "_id": "6ae673862406379e020d1407",
+        "name": "Dr. Anand Joshi (Medical Officer)",
+        "specialization": "General Medicine"
+      },
+      "symptoms": [
+        "itching",
+        "skin_rash",
+        "nodal_skin_eruptions"
+      ],
+      "notes": "Patient reports intense pruritus and localized rash on arms.",
+      "status": "analyzed",
+      "createdAt": "2026-10-31T23:02:30.951Z",
+      "updatedAt": "2026-10-31T23:02:30.951Z"
+    }
+  ],
+  "page": 1,
+  "limit": 5,
+  "total": 2,
+  "totalPages": 1
+}
+
+Observation: The test patient ZZTest-1793488168 DOES NOT APPEAR because no consultation document was saved.
+
+[Step 7] Doctor Queue (GET /consultation/pending):
+HTTP 200
+Response Body:
+{
+  "consultations": []
+}
+
+Observation: Doctor queue contains 0 pending cases for this new patient. In ui/pages/2_Doctor_Review.py, because live_cases was empty, lines 55-112 fell back to displaying hardcoded SAMPLE_PENDING_CASES (CASE-9021 Ramesh Shinde, CASE-9022 Anandi Bai).
+
+[Step 8] Backend Access Logs (tail 60):
+arogya-backend  | {"timestamp":"2026-10-31T23:03:33.075Z","requestId":"4e83a163-9c19-4e26-bdee-02a225b4232a","method":"GET","path":"/health","statusCode":200,"durationMs":15,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:03:43.222Z","requestId":"58e2bbd7-c8ae-436d-80f4-851c6184ca7d","method":"GET","path":"/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:03:53.307Z","requestId":"20039436-8fd8-4b32-998a-65db4adff893","method":"GET","path":"/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:04:03.423Z","requestId":"1941f6ef-f485-4773-8519-c8b532a801da","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:04:13.548Z","requestId":"e07b97ed-0f9b-42c4-8d72-7c5f39f8f5b9","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:04:23.634Z","requestId":"abf9df13-36c2-4b65-837b-a6105166322e","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:04:33.730Z","requestId":"ae21bc68-4213-46da-af75-dbb6ce645465","method":"GET","path":"/health","statusCode":200,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:04:43.808Z","requestId":"ef04bf2a-4410-4cc5-b2e4-989c2a37b617","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:04:53.885Z","requestId":"7bf46723-57c9-4ce1-a037-96ce02ae0bc5","method":"GET","path":"/health","statusCode":200,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:05:03.980Z","requestId":"a1813c44-27fa-47fd-8f1c-31d5b1b98334","method":"GET","path":"/health","statusCode":200,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:05:14.074Z","requestId":"cead78e6-44e7-4865-b7e6-2b6d944c66ce","method":"GET","path":"/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:05:24.209Z","requestId":"77961dac-b73d-4dc8-abcb-84c4ad459192","method":"GET","path":"/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:05:34.405Z","requestId":"faf3122b-d4e2-45ed-97a9-fcc39f32514d","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:05:44.492Z","requestId":"cd312b74-f293-4c4d-a8be-8f7d2b340077","method":"GET","path":"/health","statusCode":200,"durationMs":4,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:05:54.558Z","requestId":"57af4a99-aa33-44d1-9809-90909e824af6","method":"GET","path":"/health","statusCode":200,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:06:04.630Z","requestId":"d03f80b2-07ea-486e-9a09-37faf2132062","method":"GET","path":"/health","statusCode":200,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:06:14.710Z","requestId":"ae0196c7-4ad4-4b09-9610-76cdda2397db","method":"GET","path":"/health","statusCode":200,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:06:24.801Z","requestId":"f0005cd7-fe2d-451a-b436-b85830f6573e","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:06:32.628Z","requestId":"e486e95c-97a7-44b1-8255-96fccd1d662f","method":"GET","path":"/api/v1/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:06:34.961Z","requestId":"09a97866-4b32-42f6-a47b-036659bfe05c","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:06:45.048Z","requestId":"14615b4c-b08c-46ba-932a-142a4cbc7e4b","method":"GET","path":"/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:06:55.152Z","requestId":"d8256473-b272-49e8-ae0e-b9fe3eda36d7","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:05.482Z","requestId":"fa5b715e-a35e-4084-84e2-ac854ee49bd5","method":"GET","path":"/health","statusCode":200,"durationMs":14,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:07.602Z","requestId":"e44bcb84-9b9f-4d5e-92fb-656389229963","method":"POST","path":"/api/v1/worker/login","statusCode":200,"durationMs":595,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:07.654Z","requestId":"94eaebdd-29b1-4de2-96ce-00572db060f4","method":"POST","path":"/api/v1/doctor/login","statusCode":403,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:08.646Z","requestId":"f6e4fd40-26dc-40ed-9e23-3b3063663c30","method":"POST","path":"/api/v1/consultation/triage","statusCode":200,"durationMs":946,"role":"Worker","organization":"6ae673842406379e020d1401"}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:15.717Z","requestId":"02f156b8-b41b-45f7-81f0-8cf0c82e0204","method":"GET","path":"/health","statusCode":200,"durationMs":6,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:15.961Z","requestId":"486bc270-5e46-40cb-98f8-3e4a227e1120","method":"POST","path":"/api/v1/doctor/login","statusCode":200,"durationMs":453,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:25.841Z","requestId":"779391c0-c361-4af5-a39a-283cdce7a66c","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:35.979Z","requestId":"599e6d53-3aa5-4b26-a781-5274ad112b0c","method":"GET","path":"/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:41.657Z","requestId":"7b55fc14-0077-421d-a048-68f0edd92233","method":"POST","path":"/api/v1/worker/login","statusCode":200,"durationMs":537,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:41.665Z","requestId":"c1fecfd1-b8ac-47a7-b8e9-3579db3b7bf4","method":"POST","path":"/api/v1/doctor/login","statusCode":403,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:45.666Z","requestId":"a72f8214-47cc-4bef-b8b1-f2edd53b0333","method":"POST","path":"/api/v1/consultation/triage","statusCode":200,"durationMs":3945,"role":"Worker","organization":"6ae673842406379e020d1401"}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:46.162Z","requestId":"866696bf-7247-4de2-9926-878a63f5476f","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:47.711Z","requestId":"075ec819-7e00-4b05-a86a-cd5eb4d089f7","method":"GET","path":"/api/v1/consultation/my?page=1&limit=5","statusCode":200,"durationMs":46,"role":"Worker","organization":"6ae673842406379e020d1401","query":{"page":"1","limit":"5"}}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:47.725Z","requestId":"43b5038f-a967-4108-96dc-18bba8afe16c","method":"GET","path":"/api/v1/consultation/pending","statusCode":401,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:07:56.286Z","requestId":"bb8544c6-e2b6-43f9-86e6-701cad89fbbf","method":"GET","path":"/health","statusCode":200,"durationMs":4,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:06.425Z","requestId":"10a4e1a1-5218-4311-af44-e73f2c9da96d","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:16.520Z","requestId":"a5c86949-5ed7-4005-b7d9-0c1bb9f5853d","method":"GET","path":"/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:26.649Z","requestId":"458c33ab-e57f-4a73-b736-292f4113e2ad","method":"GET","path":"/health","statusCode":200,"durationMs":3,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:34.151Z","requestId":"90e7fb2f-49ed-411d-9b7f-5981ec98b343","method":"POST","path":"/api/v1/worker/login","statusCode":200,"durationMs":342,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:34.159Z","requestId":"10c80de7-fd43-412c-8849-c52a8cc6daf4","method":"POST","path":"/api/v1/doctor/login","statusCode":403,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:36.816Z","requestId":"161c9799-9c85-47c7-9bc8-b4b3891d9423","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:42.435Z","requestId":"1ff0ed0e-2d98-45ce-8116-2094c061afa3","method":"POST","path":"/api/v1/worker/login","statusCode":200,"durationMs":552,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:42.939Z","requestId":"c6a7edd5-3ac7-48f7-a165-21d4b50b972c","method":"POST","path":"/api/v1/doctor/login","statusCode":200,"durationMs":478,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:47.036Z","requestId":"53a7d880-6e26-4668-84d7-b0db6063eb95","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:08:57.145Z","requestId":"59175a44-ce7c-4008-9e2d-8aa51035250a","method":"GET","path":"/health","statusCode":200,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:07.259Z","requestId":"28d03c30-8757-439f-8b08-20b2afef7d1c","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:13.311Z","requestId":"6f80cc2f-3d60-4f67-bfe4-287470115b14","method":"POST","path":"/api/v1/worker/login","statusCode":200,"durationMs":431,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:13.772Z","requestId":"3a046d0b-3650-400a-bd92-0075ce70356e","method":"POST","path":"/api/v1/doctor/login","statusCode":200,"durationMs":446,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:14.387Z","requestId":"7607d276-30a5-4a85-812d-14c89134c3de","method":"POST","path":"/api/v1/consultation/triage","statusCode":200,"durationMs":610,"role":"Worker","organization":"6ae673842406379e020d1401"}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:16.456Z","requestId":"9d00de47-649d-44f2-bdde-86dbd59617a0","method":"GET","path":"/api/v1/consultation/my?page=1&limit=5","statusCode":200,"durationMs":24,"role":"Worker","organization":"6ae673842406379e020d1401","query":{"page":"1","limit":"5"}}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:16.472Z","requestId":"2872716a-31fd-42e7-b79e-748dc2b4c3a2","method":"GET","path":"/api/v1/consultation/pending","statusCode":200,"durationMs":11,"role":"Doctor","organization":"6ae673842406379e020d1401"}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:17.384Z","requestId":"b7b860c5-fcdf-4ca5-8dae-877abe397eda","method":"GET","path":"/health","statusCode":200,"durationMs":1,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:27.629Z","requestId":"30d7c587-08df-4c3b-b307-d3a7523bbb9a","method":"GET","path":"/health","statusCode":200,"durationMs":2,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:29.680Z","requestId":"a822bbc8-5651-4b92-a35e-7268c2a8ae19","method":"POST","path":"/api/v1/worker/login","statusCode":200,"durationMs":900,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:30.331Z","requestId":"d7387dd7-68c3-47e3-a854-7f2af04ad2b1","method":"POST","path":"/api/v1/doctor/login","statusCode":200,"durationMs":619,"role":"Anonymous","organization":null}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:30.886Z","requestId":"5775b129-e5c5-4807-ba17-0b98f5d1efcf","method":"POST","path":"/api/v1/consultation/triage","statusCode":200,"durationMs":550,"role":"Worker","organization":"6ae673842406379e020d1401"}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:33.207Z","requestId":"cfae456f-3f99-4c8f-aa70-b4e0e284317a","method":"GET","path":"/api/v1/consultation/my?page=1&limit=5","statusCode":200,"durationMs":35,"role":"Worker","organization":"6ae673842406379e020d1401","query":{"page":"1","limit":"5"}}
+arogya-backend  | {"timestamp":"2026-10-31T23:09:33.236Z","requestId":"ee0b6e50-64fa-419a-8185-42db2b23d15f","method":"GET","path":"/api/v1/consultation/pending","statusCode":200,"durationMs":22,"role":"Doctor","organization":"6ae673842406379e020d1401"}
+
+================================================================================
+2. EXACT FAILURE CHAIN DIAGNOSIS
+================================================================================
+The workflow broke at multiple points across the chain:
+
+1. UI Call Not Made (Worker Triage):
+   - In `ui/pages/1_Worker_Triage.py`, clicking 'Escalate' or 'Accept' only printed an in-memory Streamlit banner (st.warning / st.success).
+   - Neither `POST /consultation` nor `PATCH /consultation/:id/escalate` was ever called by the UI.
+
+2. Consultation Persistence & Top Condition Missing:
+   - When a consultation is submitted or escalated, `POST /consultation` only saved basic symptoms and notes without persisting the `mlAnalysis` object (disease, confidence, etc.).
+   - In `consultation.service.js`, `getConsultationsByWorker` projected `mlAnalysis.disease`, but because `mlAnalysis` was not populated during creation/triage save, the Primary Diagnosis column showed 'Pending'.
+
+3. Doctor Review UI Fallback to Hardcoded Demo Data:
+   - In `ui/pages/2_Doctor_Review.py`, `SAMPLE_PENDING_CASES` contained hardcoded mock cases CASE-9021 (Ramesh Shinde) and CASE-9022 (Anandi Bai) with 88.5%.
+   - When `get_pending_consultations_for_doctor()` returned an empty list `[]`, the UI reverted to `SAMPLE_PENDING_CASES` and showed "Demonstration review queue active".
+
+4. Doctor Assignment & Pending Queue Query:
+   - In `Backend/src/service/consultation.service.js`, `getPendingConsultationsForDoctor` queried `{ assignedDoctor: doctorId, organization, workerDecision: "escalated", status: "pending" }`.
+   - If a consultation is escalated without assigning a specific doctor or if the doctor checks unassigned consultations for their organization, it must match consultations escalated within that organization.

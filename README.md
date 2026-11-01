@@ -178,7 +178,7 @@ The database seed initializes three role-segregated accounts within organization
 
 ## 🧪 Testing & Verification Suites
 
-### 1. Complete Unit & Integration Suite (321 Tests)
+### 1. Complete Unit & Integration Suite (322 Tests)
 Runs linting, ML property tests, Backend security tests, LangGraph guardrails, and Streamlit AppTests:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify_all.ps1
@@ -187,8 +187,8 @@ powershell -ExecutionPolicy Bypass -File scripts/verify_all.ps1
 - **ML_Model Tests**: 55 passed (`verify_ml.txt`)
 - **Backend Tests**: 231 passed (`verify_backend.txt`) — includes `consultation_pagination.test.js` (page, limit, total, bad page/limit clamping, and worker isolation)
 - **Graph Tests**: 26 passed (`verify_graph.txt`) — includes `test_llm_timeouts_and_429.py` (wall-clock timeouts, 429 cascades, regeneration timeouts, and `max_retries=0`)
-- **UI Tests**: 9 passed (`verify_ui.txt`)
-- **Total**: 321 passed, 0 failed.
+- **UI Tests**: 10 passed (`verify_ui.txt`) — includes `test_ui_401_expired_session_handling`
+- **Total**: 322 passed, 0 failed.
 
 ### 2. End-to-End Browser Automation (Playwright)
 Executes all 11 clinical workflow scenarios against the live Docker stack at `https://localhost`:

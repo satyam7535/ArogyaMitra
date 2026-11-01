@@ -70,7 +70,7 @@ const consultationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "analyzed", "reviewed", "closed"],
+      enum: ["pending", "analyzed", "escalated", "reviewed", "closed"],
       default: "pending",
     },
     workerDecision: {
@@ -111,6 +111,9 @@ const consultationSchema = new mongoose.Schema(
         type: String,
       },
       recommendation: {
+        type: String,
+      },
+      prescription: {
         type: String,
       },
       respondedAt: {
