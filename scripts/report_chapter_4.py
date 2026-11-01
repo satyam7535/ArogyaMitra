@@ -12,6 +12,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from report_styles import (
     add_p, add_h1, add_h2, add_h3, add_table_caption, add_callout, insert_image,
     set_cell_margins, set_cell_shading, set_table_borders,
+    make_row_cant_split, make_row_header,
     NAVY_BLUE, MUTED_GREY, DARK_GREY
 )
 
@@ -26,11 +27,11 @@ def add_chapter_4(doc):
     
     add_p(doc, "Automated data provenance analysis (docs/evidence/data_provenance.txt:12-14) revealed that 4,616 of the 4,920 rows were exact duplicates, representing a 93.8% synthetic duplication rate. When random train-test splits (such as 80/20) are applied to this raw dataset, identical symptom vectors leak across partitions, producing artificial test accuracies of 100.0%.")
 
-    # Insert Figure 4.2
+    # Insert Figure 4.1
     fig2_path = os.path.join(FIG_DIR, "fig2_dataset_provenance.png")
-    insert_image(doc, fig2_path, "Figure 4.2: Dataset Provenance: Raw 4,920 Rows vs. 304 Deduplicated Unique Rows", width_in=4.4)
+    insert_image(doc, fig2_path, "Figure 4.1: Dataset Provenance: Raw 4,920 Rows vs. 304 Deduplicated Unique Rows", width_in=4.4)
 
-    add_p(doc, "Figure 4.2 illustrates the dataset composition. After deduplication, exactly 304 unique clinical symptom vectors remain across the 41 classes (approximately 7.4 unique presentations per disease). All empirical machine learning evaluations in ArogyaMitra were conducted strictly on this deduplicated 304-row benchmark.")
+    add_p(doc, "Figure 4.1 illustrates the dataset composition. After deduplication, exactly 304 unique clinical symptom vectors remain across the 41 classes (approximately 7.4 unique presentations per disease). All empirical machine learning evaluations in ArogyaMitra were conducted strictly on this deduplicated 304-row benchmark.")
     
     add_callout(doc, "Dataset Scope: All machine learning models were evaluated on synthetic tabular data (304 unique rows across 41 classes and 131 symptoms). The dataset contains no real-patient records, lacks continuous clinical covariates (such as blood pressure or lab markers), and does not represent complex multi-morbid clinical populations.", "Synthetic Data Disclosure")
 
@@ -50,19 +51,22 @@ def add_chapter_4(doc):
     t41 = doc.add_table(rows=len(m_data)+1, cols=5)
     t41.alignment = WD_TABLE_ALIGNMENT.CENTER
     set_table_borders(t41)
+    make_row_header(t41.rows[0])
+    make_row_cant_split(t41.rows[0])
     cw41 = [Inches(1.8), Inches(1.2), Inches(1.2), Inches(1.2), Inches(1.9)]
     
     h41 = ["Model Architecture", "0% Dropout Acc", "30% Dropout Acc", "50% Dropout Acc", "Evidence Citation"]
     for j, h in enumerate(h41):
         cell = t41.cell(0, j); cell.width = cw41[j]
-        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=70, bottom=70, left=60, right=60)
+        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=60, bottom=60, left=55, right=55)
         p = cell.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.font.name = 'Times New Roman'; r.font.size = Pt(8.5); r.bold = True; r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
         
     for i, (mname, a0, a30, a50, mevid) in enumerate(m_data):
         row_cells = t41.rows[i+1].cells
+        make_row_cant_split(t41.rows[i+1])
         for j, w in enumerate(cw41):
-            row_cells[j].width = w; set_cell_margins(row_cells[j], top=50, bottom=50, left=60, right=60)
+            row_cells[j].width = w; set_cell_margins(row_cells[j], top=40, bottom=40, left=50, right=50)
             if i % 2 == 1: set_cell_shading(row_cells[j], "F4F6F7")
         
         p0 = row_cells[0].paragraphs[0]; r = p0.add_run(mname); r.font.name = 'Times New Roman'; r.font.size = Pt(8); r.bold = True
@@ -82,19 +86,22 @@ def add_chapter_4(doc):
     t42 = doc.add_table(rows=len(cal_data)+1, cols=5)
     t42.alignment = WD_TABLE_ALIGNMENT.CENTER
     set_table_borders(t42)
+    make_row_header(t42.rows[0])
+    make_row_cant_split(t42.rows[0])
     cw42 = [Inches(1.8), Inches(1.2), Inches(1.2), Inches(1.2), Inches(1.9)]
     
     h42 = ["Model Architecture", "0% Dropout ECE", "30% Dropout ECE", "50% Dropout ECE", "Evidence Citation"]
     for j, h in enumerate(h42):
         cell = t42.cell(0, j); cell.width = cw42[j]
-        set_cell_shading(cell, "1B4F72"); set_cell_margins(cell, top=70, bottom=70, left=60, right=60)
+        set_cell_shading(cell, "1B4F72"); set_cell_margins(cell, top=60, bottom=60, left=55, right=55)
         p = cell.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.font.name = 'Times New Roman'; r.font.size = Pt(8.5); r.bold = True; r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
         
     for i, (mname, e0, e30, e50, mevid) in enumerate(cal_data):
         row_cells = t42.rows[i+1].cells
+        make_row_cant_split(t42.rows[i+1])
         for j, w in enumerate(cw42):
-            row_cells[j].width = w; set_cell_margins(row_cells[j], top=50, bottom=50, left=60, right=60)
+            row_cells[j].width = w; set_cell_margins(row_cells[j], top=40, bottom=40, left=50, right=50)
             if i % 2 == 1: set_cell_shading(row_cells[j], "F4F6F7")
         
         p0 = row_cells[0].paragraphs[0]; r = p0.add_run(mname); r.font.name = 'Times New Roman'; r.font.size = Pt(8); r.bold = True
@@ -103,11 +110,11 @@ def add_chapter_4(doc):
         p3 = row_cells[3].paragraphs[0]; r = p3.add_run(e50); r.font.name = 'Times New Roman'; r.font.size = Pt(8); r.bold = (i == 0)
         p4 = row_cells[4].paragraphs[0]; r = p4.add_run(mevid); r.font.name = 'Times New Roman'; r.font.size = Pt(7); r.font.color.rgb = MUTED_GREY
 
-    # Insert Merged Figure 4.1 (Two Panels, Item 18)
+    # Insert Merged Figure 4.2 (Two Panels, Item 18)
     fig1_path = os.path.join(FIG_DIR, "fig1_accuracy_and_ece.png")
-    insert_image(doc, fig1_path, "Figure 4.1: Top-1 Accuracy and Expected Calibration Error (ECE) vs. Dropout", width_in=5.4)
+    insert_image(doc, fig1_path, "Figure 4.2: Top-1 Accuracy and Expected Calibration Error (ECE) vs. Dropout", width_in=5.4)
 
-    add_p(doc, "As shown in Figure 4.1, Bernoulli Naive Bayes maintains 0.919 accuracy at 50% symptom dropout, whereas LightGBM decreases to 0.683 and XGBoost to 0.720. In tree models, missing an early split feature routes samples down incorrect subtrees, whereas BernoulliNB accumulates independent symptom log-odds. Note that an earlier reported Brier score of 0.2483 was produced by in-sample evaluation on 304 unique rows at 0% masking with a legacy model (docs/evidence/classification_report.md:6).")
+    add_p(doc, "As shown in Figure 4.2, Bernoulli Naive Bayes maintains 0.919 accuracy at 50% symptom dropout, whereas LightGBM decreases to 0.683 and XGBoost to 0.720. In tree models, missing an early split feature routes samples down incorrect subtrees, whereas BernoulliNB accumulates independent symptom log-odds. Note that an earlier reported Brier score of 0.2483 was produced by in-sample evaluation on 304 unique rows at 0% masking with a legacy model (docs/evidence/classification_report.md:6).")
 
     add_h2(doc, "4.3 Load Testing, Concurrency & System Throughput")
     add_p(doc, "To evaluate gateway stability, a load test was executed using a test-mode compose override (docker-compose.test.yml) with relaxed rate limits (ALLOW_LOAD_TEST=true) and generative LLM calls disabled (LLM_ENABLED=false). Crucially, the production configuration rejects relaxed limits by design.")
@@ -125,19 +132,22 @@ def add_chapter_4(doc):
     t43 = doc.add_table(rows=len(lt_data)+1, cols=9)
     t43.alignment = WD_TABLE_ALIGNMENT.CENTER
     set_table_borders(t43)
+    make_row_header(t43.rows[0])
+    make_row_cant_split(t43.rows[0])
     cw43 = [Inches(1.3), Inches(0.5), Inches(0.7), Inches(0.9), Inches(0.7), Inches(0.8), Inches(0.8), Inches(0.8), Inches(0.8)]
     
     h43 = ["Concurrency", "Reqs", "Duration", "Throughput", "p50", "p90", "p95", "p99", "Status"]
     for j, h in enumerate(h43):
         cell = t43.cell(0, j); cell.width = cw43[j]
-        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=70, bottom=70, left=50, right=50)
+        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=60, bottom=60, left=45, right=45)
         p = cell.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.font.name = 'Times New Roman'; r.font.size = Pt(8); r.bold = True; r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
         
     for i, (clev, creq, cdur, ctput, cp50, cp90, cp95, cp99, cstat) in enumerate(lt_data):
         row_cells = t43.rows[i+1].cells
+        make_row_cant_split(t43.rows[i+1])
         for j, w in enumerate(cw43):
-            row_cells[j].width = w; set_cell_margins(row_cells[j], top=50, bottom=50, left=50, right=50)
+            row_cells[j].width = w; set_cell_margins(row_cells[j], top=35, bottom=35, left=45, right=45)
             if i % 2 == 1: set_cell_shading(row_cells[j], "F4F6F7")
         
         row_cells[0].paragraphs[0].add_run(clev).font.size = Pt(7.5)
@@ -167,19 +177,22 @@ def add_chapter_4(doc):
     t44 = doc.add_table(rows=len(opt_data)+1, cols=6)
     t44.alignment = WD_TABLE_ALIGNMENT.CENTER
     set_table_borders(t44)
+    make_row_header(t44.rows[0])
+    make_row_cant_split(t44.rows[0])
     cw44 = [Inches(1.8), Inches(1.0), Inches(1.0), Inches(1.0), Inches(1.0), Inches(1.5)]
     
     h44 = ["Profiling State", "p50 Latency", "p90 Latency", "p95 Latency", "p99 Latency", "Evidence Citation"]
     for j, h in enumerate(h44):
         cell = t44.cell(0, j); cell.width = cw44[j]
-        set_cell_shading(cell, "1B4F72"); set_cell_margins(cell, top=70, bottom=70, left=50, right=50)
+        set_cell_shading(cell, "1B4F72"); set_cell_margins(cell, top=60, bottom=60, left=50, right=50)
         p = cell.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.font.name = 'Times New Roman'; r.font.size = Pt(8.5); r.bold = True; r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
         
     for i, (pstate, p50, p90, p95, p99, pcit) in enumerate(opt_data):
         row_cells = t44.rows[i+1].cells
+        make_row_cant_split(t44.rows[i+1])
         for j, w in enumerate(cw44):
-            row_cells[j].width = w; set_cell_margins(row_cells[j], top=50, bottom=50, left=50, right=50)
+            row_cells[j].width = w; set_cell_margins(row_cells[j], top=35, bottom=35, left=50, right=50)
             if i % 2 == 1: set_cell_shading(row_cells[j], "F4F6F7")
         
         p0 = row_cells[0].paragraphs[0]; r = p0.add_run(pstate); r.font.name = 'Times New Roman'; r.font.size = Pt(8); r.bold = True
@@ -211,19 +224,22 @@ def add_chapter_4(doc):
     t45 = doc.add_table(rows=len(test_summary)+1, cols=6)
     t45.alignment = WD_TABLE_ALIGNMENT.CENTER
     set_table_borders(t45)
+    make_row_header(t45.rows[0])
+    make_row_cant_split(t45.rows[0])
     cw45 = [Inches(1.6), Inches(0.8), Inches(0.9), Inches(1.3), Inches(0.9), Inches(1.8)]
     
     h45 = ["Microservice", "Test Files", "Test Count", "Testing Harness", "Pass Rate", "Evidence Citation"]
     for j, h in enumerate(h45):
         cell = t45.cell(0, j); cell.width = cw45[j]
-        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=70, bottom=70, left=50, right=50)
+        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=60, bottom=60, left=50, right=50)
         p = cell.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.font.name = 'Times New Roman'; r.font.size = Pt(8.5); r.bold = True; r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
         
     for i, (sname, sfiles, tcount, tharn, prate, tevid) in enumerate(test_summary):
         row_cells = t45.rows[i+1].cells
+        make_row_cant_split(t45.rows[i+1])
         for j, w in enumerate(cw45):
-            row_cells[j].width = w; set_cell_margins(row_cells[j], top=50, bottom=50, left=50, right=50)
+            row_cells[j].width = w; set_cell_margins(row_cells[j], top=35, bottom=35, left=50, right=50)
             if i % 2 == 1: set_cell_shading(row_cells[j], "F4F6F7")
         
         row_cells[0].paragraphs[0].add_run(sname).font.size = Pt(8)
@@ -233,14 +249,10 @@ def add_chapter_4(doc):
         r = row_cells[4].paragraphs[0].add_run(prate); r.font.size = Pt(8); r.bold = True; r.font.color.rgb = RGBColor(0x2E, 0x7D, 0x32)
         row_cells[5].paragraphs[0].add_run(tevid).font.size = Pt(7)
 
-    add_p(doc, "In addition, two verification suites run against the Docker cluster: (1) Golden Clinical Set: 20/20 cases passing (docs/evidence/p0_docker_tests.txt); (2) Playwright Suite: 11/11 browser journeys passing (docs/evidence/p4_playwright_suite.txt:72). Figure 4.5 presents a composite panel of four representative UI workflows.")
-
-    # Insert Figure 4.5 (Combined UI Composite, Item 18)
-    fig5_path = os.path.join(FIG_DIR, "fig5_ui_panels_combined.png")
-    insert_image(doc, fig5_path, "Figure 4.5: User Interface Journeys: Worker Intake, Red-Flag Block, Pagination, Outage", width_in=5.4)
+    add_p(doc, "In addition, two end-to-end verification suites execute against the running Docker cluster: (1) Golden Clinical Test Set: 20/20 cases passing (docs/evidence/p0_docker_tests.txt); and (2) Playwright Browser Suite: 11/11 journeys passing (docs/evidence/p4_playwright_suite.txt:72). The multi-role clinical workflow across frontline worker, physician, and admin interfaces is documented in Figure 3.4.", space_after=6)
 
     add_h2(doc, "4.5 Security Vulnerability & Dependency Auditing")
-    add_p(doc, "Container vulnerability scanning with Trivy (trivy image --ignore-unfixed) verified zero fixable Critical/High (Trivy --ignore-unfixed) vulnerabilities across backend, ml, and graph Python runtime images (docs/evidence/trivy_all_images_scan.txt). Dependency auditing with pip-audit confirmed pinned dependencies in the LangGraph service.")
+    add_p(doc, "Container vulnerability scanning verified zero fixable Critical/High vulnerabilities (trivy image --ignore-unfixed) across backend, ml, and graph Python runtime images (docs/evidence/trivy_all_images_scan.txt). Dependency auditing with pip-audit confirmed pinned dependencies in the LangGraph service.")
     
     add_p(doc, "Dynamic scanning was conducted using an unauthenticated OWASP ZAP baseline scan against https://localhost, producing 6 warnings (docs/evidence/zap_baseline_report.txt:88-93). Table 4.6 documents the alerts and dispositions.")
 
@@ -258,19 +270,22 @@ def add_chapter_4(doc):
     t46 = doc.add_table(rows=len(zap_data)+1, cols=4)
     t46.alignment = WD_TABLE_ALIGNMENT.CENTER
     set_table_borders(t46)
+    make_row_header(t46.rows[0])
+    make_row_cant_split(t46.rows[0])
     cw46 = [Inches(0.9), Inches(2.3), Inches(0.8), Inches(3.3)]
     
     h46 = ["Alert ID", "ZAP Alert Title", "Risk", "Architectural Disposition"]
     for j, h in enumerate(h46):
         cell = t46.cell(0, j); cell.width = cw46[j]
-        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=70, bottom=70, left=50, right=50)
+        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=60, bottom=60, left=50, right=50)
         p = cell.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.font.name = 'Times New Roman'; r.font.size = Pt(8.5); r.bold = True; r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
         
     for i, (pid, ptitle, prisk, pdisp) in enumerate(zap_data):
         row_cells = t46.rows[i+1].cells
+        make_row_cant_split(t46.rows[i+1])
         for j, w in enumerate(cw46):
-            row_cells[j].width = w; set_cell_margins(row_cells[j], top=50, bottom=50, left=50, right=50)
+            row_cells[j].width = w; set_cell_margins(row_cells[j], top=35, bottom=35, left=50, right=50)
             if i % 2 == 1: set_cell_shading(row_cells[j], "F4F6F7")
         
         row_cells[0].paragraphs[0].add_run(pid).font.size = Pt(8)
@@ -289,7 +304,7 @@ def add_chapter_4(doc):
     add_p(doc, "1. Synthetic Source Data: The model was trained on synthetic data (304 unique rows across 41 classes). It has not been validated on real clinical EHR cohorts. No symptom severity grades exist in the dataset; symptoms are modeled as binary indicators.", space_after=2)
     add_p(doc, "2. Conditional Independence Assumption: Correlated symptoms (e.g., cough and breathlessness) double-count statistical evidence, causing confidence scores to saturate near 100%.", space_after=2)
     add_p(doc, "3. Frontline Decision Support Only: The model outputs distributions across 41 predefined classes. It is an assistive screening aid and cannot replace clinical examinations or laboratory testing.", space_after=2)
-    add_p(doc, "4. Safe Mode as an Automated Resilience Mechanism: Due to external Gemini API rate limits (HTTP 429) and upstream model lifecycle changes, Safe Mode serves as an automated, verified rule-based resilience mechanism rather than an ad-hoc fallback. It deterministically renders pre-compiled clinical templates, ensuring zero service disruption and bounding latency during network or cloud provider outages.", space_after=2)
+    add_p(doc, "4. Safe Mode as an Automated Resilience Mechanism: Safe Mode is a rule-based fallback designed to protect availability when external LLM calls fail or exceed the 20-second hard cap, but does not substitute for the higher-level narrative reasoning of the primary model.", space_after=2)
     add_p(doc, "5. Draft Fallback Templates: Clinical fallback templates remain labeled DRAFT pending review by a licensed medical board.", space_after=2)
     add_p(doc, "6. Self-Signed TLS Certificate: The gateway uses a self-signed certificate for arogyamitra.local, requiring explicit trust in test environments.", space_after=2)
     add_p(doc, "7. Single-Replica Stack: Runs as single-replica containers on a single host node without multi-region clustering or Kubernetes autoscaling.", space_after=2)

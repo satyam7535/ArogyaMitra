@@ -35,7 +35,7 @@ def add_cover_page(doc):
     p_title.paragraph_format.space_before = Pt(16)
     p_title.paragraph_format.space_after = Pt(14)
     p_title.paragraph_format.line_spacing = 1.2
-    r = p_title.add_run("ArogyaMitra: A Secure, Explainable, Fail-Closed AI-Assisted Primary-Healthcare Decision Support System")
+    r = p_title.add_run("ArogyaMitra: A Secure, Explainable, Fail-Closed\nAI-Assisted Primary-Healthcare Decision Support System")
     r.font.name = 'Times New Roman'; r.font.size = Pt(16); r.bold = True; r.font.color.rgb = NAVY_BLUE
     
     p_sub = doc.add_paragraph()
@@ -121,7 +121,7 @@ def add_bonafide_certificate(doc):
     # Col 0: Guide
     c0 = table.cell(0, 0)
     p0 = c0.paragraphs[0]; p0.alignment = WD_ALIGN_PARAGRAPH.CENTER; p0.paragraph_format.line_spacing = 1.15
-    r = p0.add_run("_____________________\n[CONFIRM TITLE] Ashish Singh\nProject Supervisor\nAdjunct Assistant Professor, ECE\nIIIT Pune")
+    r = p0.add_run("_____________________\nDr. Ashish Singh\nProject Supervisor\nAdjunct Assistant Professor, ECE\nIIIT Pune")
     r.font.name = 'Times New Roman'; r.font.size = Pt(9.5)
     
     # Col 1: HoD
@@ -146,9 +146,9 @@ def add_declaration_and_conflict_page(doc):
     r = p_cert.add_run("DECLARATION & PLAGIARISM UNDERTAKING")
     r.font.name = 'Times New Roman'; r.font.size = Pt(12.5); r.bold = True; r.underline = True; r.font.color.rgb = NAVY_BLUE
     
-    add_p(doc, "I, Satyam Keshari (MIS: 112315168), student of Bachelor of Technology in Computer Science and Engineering, Semester VII, IIIT Pune, hereby declare that the work presented in this project report entitled \"ArogyaMitra: A Secure, Explainable, Fail-Closed AI-Assisted Primary-Healthcare Decision Support System\" is my original engineering implementation.", space_before=4, space_after=6)
+    add_p(doc, "I, Satyam Keshari (MIS: 112315168), student of Bachelor of Technology in Computer Science and Engineering, Semester VII, IIIT Pune, hereby declare that the work presented in this project report entitled \"ArogyaMitra: A Secure, Explainable, Fail-Closed AI-Assisted Primary-Healthcare Decision Support System\" is my own project work.", space_before=4, space_after=6)
     
-    add_p(doc, "I affirm that: (1) All components, pipelines, container definitions, and test suites were engineered directly within the repository; (2) All reported empirical metrics (cross-validation accuracies, ECE, throughput, test counts, vulnerability scans) correspond to verifiable logs in docs/evidence/ and are cited with file:line; (3) Generative AI tools (LLM assistants) were used for code refactoring, test script scaffolding, and document formatting; all architectural decisions, mathematical derivations, bug discoveries, and empirical verifications were performed directly by the student.", space_before=2, space_after=10)
+    add_p(doc, "I affirm that: (1) All components were built in the project repository; (2) All reported empirical metrics (cross-validation accuracies, ECE, throughput, test counts, vulnerability scans) correspond to verifiable logs in docs/evidence/ and are cited with file:line; (3) AI assistants (Claude, Gemini, Antigravity) were used to write and refactor code, test and evidence scripts, and to draft report text. I reviewed, ran and verified the outputs, took the design decisions, and take full responsibility for the content.", space_before=2, space_after=10)
     
     p_coi = doc.add_paragraph()
     p_coi.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -176,7 +176,7 @@ def add_acknowledgements(doc):
     r = p_cert.add_run("ACKNOWLEDGEMENTS")
     r.font.name = 'Times New Roman'; r.font.size = Pt(13); r.bold = True; r.underline = True; r.font.color.rgb = NAVY_BLUE
     
-    add_p(doc, "I express my sincere gratitude to my project supervisor, [CONFIRM TITLE] Ashish Singh, Adjunct Assistant Professor, Department of Electronics and Communication Engineering, IIIT Pune, for his guidance, periodic review, and valuable feedback throughout the course of this project. His reviews helped ensure that the engineering milestones and project goals remained on track.", space_before=10, space_after=10)
+    add_p(doc, "I express my sincere gratitude to my project supervisor, Dr. Ashish Singh, Adjunct Assistant Professor, Department of Electronics and Communication Engineering, IIIT Pune, for his guidance, periodic review, and valuable feedback throughout the course of this project. His reviews helped ensure that the engineering milestones and project goals remained on track.", space_before=10, space_after=10)
     
     add_p(doc, "I extend my appreciation to the Head of Department, [CONFIRM HOD NAME], Department of Computer Science and Engineering, and [CONFIRM DIRECTOR NAME], Director, IIIT Pune, for providing the institutional computing facilities and academic environment essential for completing this B.Tech capstone project.", space_before=4, space_after=10)
     
@@ -187,7 +187,7 @@ def add_acknowledgements(doc):
     p_sign = doc.add_paragraph()
     p_sign.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     r = p_sign.add_run("Satyam Keshari\nMIS: 112315168")
-    r.font.name = 'Times New Roman'; r.font.size = Pt(10.5)
+    r.font.name = 'Times New Roman'; r.font.size = Pt(11)
 
 def add_abstract(doc):
     """Abstract with 'zero fixable Critical/High (Trivy --ignore-unfixed)' and neutral tone (Item 2, 14)."""
@@ -252,24 +252,25 @@ def add_table_of_contents_pages(doc):
         ("    3.3 Rule-Based Clinical Red-Flag Override System", "12"),
         ("    3.4 Multi-Tier LLM Explanation & Resilient Fallback Layer", "13"),
         ("    3.5 End-to-End Clinical Consultation Workflow", "14"),
-        ("    3.6 Security Architecture & Cryptographic Implementation", "14"),
-        ("    3.7 Database Design, Concurrency & Data Integrity", "15"),
-        ("    3.8 Logging and Audit System", "15"),
-        ("Chapter 4: Empirical Evaluation & Experimental Results", "16"),
-        ("    4.1 Dataset Profile & Methodological Integrity", "16"),
-        ("    4.2 Machine Learning Performance & Robustness", "16"),
-        ("    4.3 Load Testing, Concurrency & System Throughput", "17"),
-        ("    4.4 Automated Testing & Verification Suite", "19"),
-        ("    4.5 Security Vulnerability & Dependency Auditing", "20"),
-        ("    4.6 Literature-Linked Discussion & Analysis", "21"),
-        ("    4.7 Limitations & Threats to Validity", "21"),
-        ("Chapter 5: Conclusion & Future Scope", "23"),
-        ("    5.1 Project Summary & Achievements", "23"),
-        ("    5.2 Lessons Learned & Engineering Insights", "23"),
-        ("    5.3 Future Work & Roadmap", "23"),
-        ("References", "25"),
-        ("Appendix A: Engineering Challenges, Root Causes, and Architectural Fixes", "26"),
-        ("Appendix B: Reproduction Commands Playbook", "28"),
+        ("        3.5.1 Verified Clinical Workflow Demonstration", "15"),
+        ("    3.6 Security Architecture & Cryptographic Implementation", "16"),
+        ("    3.7 Database Design, Concurrency & Data Integrity", "17"),
+        ("    3.8 Logging and Audit System", "17"),
+        ("Chapter 4: Empirical Evaluation & Experimental Results", "18"),
+        ("    4.1 Dataset Profile & Methodological Integrity", "18"),
+        ("    4.2 Machine Learning Performance & Robustness", "18"),
+        ("    4.3 Load Testing, Concurrency & System Throughput", "20"),
+        ("    4.4 Automated Testing & Verification Suite", "21"),
+        ("    4.5 Security Vulnerability & Dependency Auditing", "21"),
+        ("    4.6 Literature-Linked Discussion & Analysis", "22"),
+        ("    4.7 Limitations & Threats to Validity", "22"),
+        ("Chapter 5: Conclusion & Future Scope", "24"),
+        ("    5.1 Project Summary & Achievements", "24"),
+        ("    5.2 Lessons Learned & Engineering Insights", "24"),
+        ("    5.3 Future Work & Roadmap", "24"),
+        ("References", "26"),
+        ("Appendix A: Engineering Challenges, Root Causes, and Architectural Fixes", "27"),
+        ("Appendix B: Reproduction Commands Playbook", "29"),
     ]
     
     for title, page in toc_items:
@@ -309,11 +310,11 @@ def add_merged_list_of_figures_and_tables(doc):
         ("Figure 3.1", "Container Topology, Network Boundaries, and Data Tiers", "9"),
         ("Figure 3.2", "Consultation Lifecycle State Machine and Decision Gates", "14"),
         ("Figure 3.3", "Hierarchical Request Timeout Budgets and Guardrail Cascade", "14"),
-        ("Figure 4.1", "Top-1 Accuracy and Expected Calibration Error (ECE) vs. Dropout", "17"),
-        ("Figure 4.2", "Dataset Provenance: Raw 4,920 Rows vs. 304 Deduplicated Unique Rows", "16"),
-        ("Figure 4.3", "Gateway Throughput and Percentile Latencies Across Concurrency", "18"),
-        ("Figure 4.4", "Worker List Latency Before vs. After Pagination and Projection", "18"),
-        ("Figure 4.5", "User Interface Journeys: Worker Intake, Red-Flag Block, Pagination, Outage", "19"),
+        ("Figure 3.4", "Clinical Workflow Verification: Intake, Red-Flag Block, Doctor Triage, and Audit", "16"),
+        ("Figure 4.1", "Dataset Provenance: Raw 4,920 Rows vs. 304 Deduplicated Unique Rows", "18"),
+        ("Figure 4.2", "Top-1 Accuracy and Expected Calibration Error (ECE) vs. Dropout", "19"),
+        ("Figure 4.3", "Gateway Throughput and Percentile Latencies Across Concurrency", "20"),
+        ("Figure 4.4", "Worker List Latency Before vs. After Pagination and Projection", "21"),
     ]
     
     for f_id, f_desc, f_page in figures:
@@ -341,15 +342,15 @@ def add_merged_list_of_figures_and_tables(doc):
         ("Table 2.1", "System Functional Requirements Specification (FR-1 to FR-10)", "6"),
         ("Table 2.2", "System Non-Functional Requirements: Targets vs. Measured Results", "6"),
         ("Table 2.3", "STRIDE Threat Model and Architectural Security Controls", "7"),
-        ("Table 3.1", "Emergency Red-Flag Trigger Symptoms (config/red_flags.yaml)", "12"),
-        ("Table 3.2", "Container Technology Stack and Component Allocation", "9"),
-        ("Table 4.1", "Repeated Stratified 5x3 Cross-Validation Accuracy Across Dropout", "17"),
-        ("Table 4.2", "Expected Calibration Error (ECE) Across Dropout Rates", "17"),
-        ("Table 4.3", "Load Test Benchmark Results Across Concurrency Levels (2,400 Requests)", "18"),
-        ("Table 4.4", "Worker List Latency Before vs. After Pagination and Projection", "18"),
-        ("Table 4.5", "Automated Test Suite Summary from Actual Test Runners (322 Tests)", "19"),
-        ("Table 4.6", "OWASP ZAP Dynamic Security Baseline Scan Dispositions (6 Alerts)", "20"),
-        ("Table A.1", "Engineering Challenges, Root Causes, and Architectural Remediation Fixes", "26"),
+        ("Table 3.1", "Container Technology Stack and Component Allocation", "10"),
+        ("Table 3.2", "Emergency Red-Flag Trigger Symptoms (config/red_flags.yaml)", "12"),
+        ("Table 4.1", "Repeated Stratified 5x3 Cross-Validation Accuracy Across Dropout", "19"),
+        ("Table 4.2", "Expected Calibration Error (ECE) Across Dropout Rates", "19"),
+        ("Table 4.3", "Load Test Benchmark Results Across Concurrency Levels (2,400 Requests)", "20"),
+        ("Table 4.4", "Worker List Latency Before vs. After Pagination and Projection", "20"),
+        ("Table 4.5", "Automated Test Suite Summary from Actual Test Runners (322 Tests)", "21"),
+        ("Table 4.6", "OWASP ZAP Dynamic Security Baseline Scan Dispositions (6 Alerts)", "22"),
+        ("Table A.1", "Engineering Challenges, Root Causes, and Architectural Remediation Fixes", "27"),
     ]
     
     for t_id, t_desc, t_page in tables:

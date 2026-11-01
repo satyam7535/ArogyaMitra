@@ -45,7 +45,7 @@ def setup_frontmatter_geometry(section):
     hp = header.paragraphs[0]
     hp.text = ""
     hp.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    hr = hp.add_run("ArogyaMitra: Decision Support Prototype")
+    hr = hp.add_run("ArogyaMitra: A Secure, Explainable, Fail-Closed Decision Support System")
     hr.font.name = 'Times New Roman'
     hr.font.size = Pt(8.5)
     hr.font.italic = True
@@ -88,7 +88,7 @@ def setup_main_geometry(section):
     hp = header.paragraphs[0]
     hp.text = ""
     hp.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    hr = hp.add_run("ArogyaMitra: AI-Assisted Healthcare Decision Support Prototype")
+    hr = hp.add_run("ArogyaMitra: A Secure, Explainable, Fail-Closed Decision Support System")
     hr.font.name = 'Times New Roman'
     hr.font.size = Pt(8.5)
     hr.font.italic = True
@@ -112,6 +112,16 @@ def set_cell_margins(cell, top=80, bottom=80, left=100, right=100):
         node.set(qn('w:type'), 'dxa')
         tcMar.append(node)
     tcPr.append(tcMar)
+
+def make_row_cant_split(row):
+    """Prevents a table row from breaking across pages."""
+    trPr = row._tr.get_or_add_trPr()
+    trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
+
+def make_row_header(row):
+    """Marks a table row as a repeating header."""
+    trPr = row._tr.get_or_add_trPr()
+    trPr.append(parse_xml(f'<w:tblHeader {nsdecls("w")}/>'))
 
 def set_cell_shading(cell, color_hex):
     shading_xml = f'<w:shd {nsdecls("w")} w:fill="{color_hex}"/>'
@@ -154,6 +164,7 @@ def add_h1(doc, text, page_break=True):
     p.paragraph_format.space_before = Pt(14)
     p.paragraph_format.space_after = Pt(8)
     p.paragraph_format.line_spacing = 1.15
+    p.paragraph_format.keep_with_next = True
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(14)
@@ -167,6 +178,7 @@ def add_h2(doc, text):
     p.paragraph_format.space_before = Pt(10)
     p.paragraph_format.space_after = Pt(4)
     p.paragraph_format.line_spacing = 1.15
+    p.paragraph_format.keep_with_next = True
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(12)
@@ -180,6 +192,7 @@ def add_h3(doc, text):
     p.paragraph_format.space_before = Pt(8)
     p.paragraph_format.space_after = Pt(2)
     p.paragraph_format.line_spacing = 1.15
+    p.paragraph_format.keep_with_next = True
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(11)
@@ -193,6 +206,7 @@ def add_table_caption(doc, text):
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     p.paragraph_format.space_before = Pt(8)
     p.paragraph_format.space_after = Pt(3)
+    p.paragraph_format.keep_with_next = True
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(9.5)
@@ -221,7 +235,7 @@ def add_callout(doc, text, title=""):
     set_cell_shading(cell, "F2F4F4")
     set_cell_margins(cell, top=100, bottom=100, left=140, right=140)
     p = cell.paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     p.paragraph_format.line_spacing = 1.15
     p.paragraph_format.space_after = Pt(0)
     if title:
@@ -244,12 +258,14 @@ def insert_image(doc, img_path, caption, width_in=5.4):
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(6)
         p.paragraph_format.space_after = Pt(2)
+        p.paragraph_format.keep_with_next = True
         run = p.add_run()
         run.add_picture(img_path, width=Inches(width_in))
         add_figure_caption(doc, caption)
     else:
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.keep_with_next = True
         run = p.add_run(f"[FIGURE NOT FOUND: {os.path.basename(img_path)}]")
         run.bold = True
         run.font.color.rgb = RGBColor(0xC6, 0x28, 0x28)

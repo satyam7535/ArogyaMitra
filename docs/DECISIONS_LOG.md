@@ -55,3 +55,15 @@ This document records the architectural and engineering decisions made during th
 - **Context**: Report Section 3.5 previously contained `[PENDING FIX ROUND]` markers for clinician escalation and review persistence.
 - **Decision**: Generated a publication-quality 6-panel composite figure (`fig_clinical_workflow_panels.png`, Figure 3.4) incorporating the real screenshots captured during end-to-end testing, removed all `[PENDING FIX ROUND]` markers, and documented the completed operational sequence.
 - **Reason**: Provides visual, incontrovertible evidence of verified system capabilities directly within the academic report.
+
+### 2026-11-01 - Final Report Pass 24 (Report-Only Polish)
+- **Context**: Final academic formatting requirements for B.Tech project report submission (title styling, Bonafide supervisor name, Declaration AI usage statement, LaTeX equation rendering, clean UI screenshots without synthetic test identifiers, exact Table of Contents / List of Figures / List of Tables pagination, and strict empirical citation fidelity).
+- **Decision**: 
+  1. Updated cover title to balanced two-line layout; updated Bonafide to "Dr. Ashish Singh"; inserted explicit AI attribution statement in Declaration; cleaned acknowledgements typography.
+  2. Rendered mathematical formulations (likelihood, Laplace smoothing, log posterior, additive feature attributions) to high-resolution LaTeX equation figures.
+  3. Redrew architectural and timeout figures removing redundant titles and enlarging labels.
+  4. Recaptured clean UI demonstration screenshots on fresh seeded database with zero `ZZTest`/`TEST-` artifacts.
+  5. Mapped and locked exact TOC, List of Figures, and List of Tables page references to the compiled 37-page document.
+  6. Generated both standard and `_24` suffixed deliverables (`.docx` and `.pdf`) in `docs/REPORT_FINAL/` and `docs/REPORT/`.
+- **Reason**: Guarantees institutional submission readiness, 100% verifiable consistency with `docs/evidence/`, and complete alignment with academic report guidelines while keeping application code completely untouched.
+

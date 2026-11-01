@@ -120,13 +120,23 @@ def build_report():
         pdf_pages = len(pdf_doc)
         print(f"PDF Verified Page Count: {pdf_pages} pages")
         
-        # Copy to docs/REPORT/ as well
+        # Copy to docs/REPORT/ and create _24 variants
         alt_pdf_path = os.path.join(BASE_DIR, "docs", "REPORT", "ArogyaMitra_BTech_Project_Report.pdf")
         alt_docx_path = os.path.join(BASE_DIR, "docs", "REPORT", "ArogyaMitra_BTech_Project_Report.docx")
+        final_pdf_24 = os.path.join(OUTPUT_DIR, "ArogyaMitra_BTech_Project_Report_24.pdf")
+        final_docx_24 = os.path.join(OUTPUT_DIR, "ArogyaMitra_BTech_Project_Report_24.docx")
+        alt_pdf_24 = os.path.join(BASE_DIR, "docs", "REPORT", "ArogyaMitra_BTech_Project_Report_24.pdf")
+        alt_docx_24 = os.path.join(BASE_DIR, "docs", "REPORT", "ArogyaMitra_BTech_Project_Report_24.docx")
+        
         import shutil
+        os.makedirs(os.path.join(BASE_DIR, "docs", "REPORT"), exist_ok=True)
         shutil.copy2(PDF_PATH, alt_pdf_path)
         shutil.copy2(DOCX_PATH, alt_docx_path)
-        print(f"Copied report to: {alt_pdf_path}")
+        shutil.copy2(PDF_PATH, final_pdf_24)
+        shutil.copy2(DOCX_PATH, final_docx_24)
+        shutil.copy2(PDF_PATH, alt_pdf_24)
+        shutil.copy2(DOCX_PATH, alt_docx_24)
+        print(f"Copied report variants to: {alt_pdf_path} and {final_pdf_24}")
 
         # Rasterize all pages for inspection
         print(f"Rasterizing {pdf_pages} pages to {PAGES_DIR}...")

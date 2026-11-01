@@ -11,6 +11,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from report_styles import (
     add_p, add_h1, add_h2, add_table_caption,
     set_cell_margins, set_cell_shading, set_table_borders,
+    make_row_cant_split, make_row_header,
     NAVY_BLUE, MUTED_GREY, DARK_GREY
 )
 from report_data import APPENDIX_A_CHALLENGES
@@ -78,19 +79,22 @@ def add_appendix_a(doc):
     t_a1 = doc.add_table(rows=len(APPENDIX_A_CHALLENGES)+1, cols=4)
     t_a1.alignment = WD_TABLE_ALIGNMENT.CENTER
     set_table_borders(t_a1)
+    make_row_header(t_a1.rows[0])
+    make_row_cant_split(t_a1.rows[0])
     cwa1 = [Inches(1.6), Inches(2.3), Inches(2.3), Inches(1.0)]
     
     ha1 = ["Challenge", "Diagnosed Root Cause", "Architectural Remediation Implemented", "Evidence"]
     for j, h in enumerate(ha1):
         cell = t_a1.cell(0, j); cell.width = cwa1[j]
-        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=70, bottom=70, left=50, right=50)
+        set_cell_shading(cell, "154360"); set_cell_margins(cell, top=60, bottom=60, left=50, right=50)
         p = cell.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.font.name = 'Times New Roman'; r.font.size = Pt(8.5); r.bold = True; r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
         
     for i, row in enumerate(APPENDIX_A_CHALLENGES):
         row_cells = t_a1.rows[i+1].cells
+        make_row_cant_split(t_a1.rows[i+1])
         for j, w in enumerate(cwa1):
-            row_cells[j].width = w; set_cell_margins(row_cells[j], top=50, bottom=50, left=50, right=50)
+            row_cells[j].width = w; set_cell_margins(row_cells[j], top=35, bottom=35, left=50, right=50)
             if i % 2 == 1: set_cell_shading(row_cells[j], "F4F6F7")
         
         p0 = row_cells[0].paragraphs[0]; r = p0.add_run(row["problem"]); r.font.name = 'Times New Roman'; r.font.size = Pt(8); r.bold = True
@@ -100,30 +104,34 @@ def add_appendix_a(doc):
 
 def add_appendix_b(doc):
     add_h1(doc, "Appendix B: Reproduction Commands Playbook")
-    add_p(doc, "Listing B.1 provides the sequence of 10 command-line instructions to launch the cluster, execute all 322 automated test suites, run golden test cases, run Playwright journeys, execute load testing, and run security scans.")
+    add_p(doc, "Listing B.1 provides the sequence of command-line instructions to launch the cluster, reset demo data, execute all 322 automated test suites, run golden test cases, run Playwright journeys, execute load testing, and run security scans.")
 
     cmds = (
-        "# 1. Clone repository and start Docker cluster\n"
+        "# 1. Clone repository and start Docker cluster (proxy, mongo, ml, graph, backend, frontend)\n"
         "docker compose -f docker-compose.yml up -d\n"
         "powershell -File scripts/health_check.ps1\n\n"
-        "# 2. Seed clean test data\n"
+        "# 2. Seed clean initial test data\n"
         "powershell -File scripts/seed_docker.ps1\n\n"
-        "# 3. Execute Backend API test suite (231 tests)\n"
+        "# 3. Reset demo database to pristine state (0 consultations, clean tables)\n"
+        "powershell -File scripts/reset_demo.ps1\n\n"
+        "# 4. Run master verification suite across all microservices (322 tests)\n"
+        "powershell -File scripts/verify_all.ps1\n\n"
+        "# 5. Execute Backend API test suite (231 tests)\n"
         "docker compose exec -T backend npm test -- --coverage\n\n"
-        "# 4. Execute ML Engine test suite (55 tests)\n"
+        "# 6. Execute ML Engine test suite (55 tests)\n"
         "docker compose exec -T ml pytest -v\n\n"
-        "# 5. Execute Guarded LLM Graph test suite (26 tests)\n"
+        "# 7. Execute Guarded LLM Graph test suite (26 tests)\n"
         "docker compose exec -T graph pytest -v\n\n"
-        "# 6. Execute Frontend UI test suite (10 tests)\n"
+        "# 8. Execute Frontend UI test suite (10 tests)\n"
         "docker compose exec -T frontend pytest -v\n\n"
-        "# 7. Run Golden Clinical Test Set (20 cases)\n"
+        "# 9. Run Golden Clinical Test Set (20 cases)\n"
         "python scripts/test_p0_golden_set.py\n\n"
-        "# 8. Run Playwright End-to-End Suite (11 journeys)\n"
+        "# 10. Run Playwright End-to-End Suite (11 browser journeys)\n"
         "node scripts/test_p4_playwright_suite.mjs\n\n"
-        "# 9. Execute Load Test Suite in test mode (2,400 requests)\n"
+        "# 11. Execute Load Test Suite in test mode (2,400 benchmark requests)\n"
         "docker compose -f docker-compose.test.yml up -d\n"
         "python scripts/run_p5_load_test_testmode.py\n\n"
-        "# 10. Run Container Security Scan with Trivy\n"
+        "# 12. Run Container Security Scan with Trivy\n"
         "powershell -File scripts/run_trivy_scan_all.ps1"
     )
 

@@ -150,7 +150,7 @@ APPENDIX_A_CHALLENGES = [
     {
         "problem": "Gemini Model Deprecation & API Quota Exhaustion",
         "found": "Gemini 1.5 Flash returned 404 model not found; free-tier API quota exhausted after 20 daily calls returning HTTP 429.",
-        "fix": "Implemented dynamic ordered cascade `LLM_MODELS = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3-flash-preview']`; added 10s per-attempt timeout and 20s overall cap; engaged deterministic safe template on exhaustion.",
+        "fix": "Implemented dynamic ordered cascade `LLM_MODELS = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash']`; added 10s per-attempt timeout and 20s overall cap; engaged deterministic safe template on exhaustion.",
         "evidence": "docs/evidence/gemini_live_run.txt, scripts/test_llm_timeouts_and_429.py"
     },
     {
@@ -168,7 +168,7 @@ APPENDIX_A_CHALLENGES = [
     {
         "problem": "Session Expiry & Second-Opinion Escalation Lifecycle",
         "found": "Frontline workers experienced silent token expiration, while clinician escalation saving and review workflows required dedicated integration.",
-        "fix": "Implemented explicit 401 session expiry banners and token refresh handling in the UI client, and established end-to-end multi-role consultation persistence connecting worker escalation, physician review queue with OCC updates, and worker reviewed status inspection.",
-        "evidence": "ui/utils/api_client.py, backend/src/controllers/consultation/consultationController.js, docs/evidence/playwright_report.txt"
+        "fix": "Implemented explicit 401 session expiry banners and `refresh_session_token` handling in `ui/utils/api_client.py`, and established end-to-end multi-role consultation persistence in `Backend/src/controller/consultation.controller.js` connecting worker escalation, physician review queue with OCC updates, and worker reviewed status inspection.",
+        "evidence": "ui/utils/api_client.py, Backend/src/controller/consultation.controller.js, docs/evidence/playwright_report.txt"
     }
 ]
