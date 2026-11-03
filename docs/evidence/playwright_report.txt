@@ -1,14 +1,14 @@
 ================================================================================
 AROGYAMITRA EVIDENCE — PHASE P4 COMPLETE PLAYWRIGHT 11-SCENARIO E2E REPORT
-Date: 2026-11-01T08:52:30.511Z
-Git Commit: 748256a5ff2086dd4d0e3e241a00b3b37658da51 (working tree: dirty)
+Date: 2026-11-03T18:51:05.446Z
+Git Commit: bd5248fd239a1ae6edfcb9029e1fcc136c1ab4ac (working tree: dirty)
 Command: node scripts/test_p4_playwright_suite.mjs
 ================================================================================
 
 ================================================================================
 AROGYAMITRA — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E SUITE
 Target URL: https://localhost
-Date: 2026-11-01T08:50:47.178Z
+Date: 2026-11-03T18:48:59.202Z
 ================================================================================
 
 === SCENARIO 1: Worker End-to-End Triage & Normal Accept ===
@@ -35,7 +35,7 @@ PASS: Admin dashboard metrics and telemetry loaded.
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s5_admin_dashboard_revoke.png
 
 === SCENARIO 6: Administrative CSV Export ===
-PASS: CSV downloaded successfully (4060 bytes).
+PASS: CSV downloaded successfully (620 bytes).
 CSV Header Preview: ConsultationID,CreatedAt,Status,PrimaryDiagnosis,ConfidenceScore,Risk,RedFlag,NeedsEscalation,WorkerDecision,OverrideReason,OverrideNote,PatientName,PatientAge,PatientGender,WorkerName
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s6_admin_csv_export.png
 
@@ -60,6 +60,7 @@ PASS: All role portal entry points present and accessible through secure ingress
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s10_role_navigation.png
 
 === SCENARIO 11: Worker Consultation List Pagination (Next / Previous) ===
+Seeding 3 additional consultation(s) to guarantee multi-page test data...
 PASS: Initial consultation page 1 loaded with server-side count.
 PASS: Successfully navigated to Page 2 with updated paginated records.
 [+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s11_ui_pagination.png

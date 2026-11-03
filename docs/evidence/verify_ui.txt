@@ -22,4 +22,4 @@ ui/tests/test_streamlit.py::test_worker_triage_red_flag_rationale_no_none PASSED
 ui/tests/test_streamlit.py::test_worker_triage_http_409_friendly_message PASSED [ 92%]
 ui/tests/test_streamlit.py::test_worker_triage_honest_confidence_label PASSED [100%]
 
-======================= 14 passed in 111.86s (0:01:51) ========================
+======================== 14 passed in 65.12s (0:01:05) ========================
