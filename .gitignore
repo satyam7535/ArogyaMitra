@@ -5,6 +5,10 @@
 .env.*
 *.env
 !.env.example
+deploy/certs/*.key
+deploy/certs/*.crt
+deploy/certs/*.pem
+!deploy/certs/.gitkeep
 
 # =========================
 # Model Artifacts (Binaries Ignored)
@@ -84,6 +88,9 @@ Thumbs.db
 Desktop.ini
 
 # =========================
+# Uploads & Private Storage
+storage/
+
 # Reports & Temporary Files
 # =========================
 *.pdf
@@ -96,3 +103,9 @@ generated_reports/
 logs/
 *.log
 example.md
+.pids
+# References (PDFs never committed)
+docs/references/
+!docs/REPORT_FINAL/*.pdf
+
+!docs/REPORT/*.pdf

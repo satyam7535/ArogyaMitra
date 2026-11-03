@@ -1,0 +1,65 @@
+﻿Command: python ML_Model/scripts/verify_data_provenance.py
+================================================================================
+AROGYAMITRA � DATASET PROVENANCE & DATA HYGIENE AUDIT
+================================================================================
+
+1. TRAINING SET AUDIT (Training.csv):
+   - Total rows: 4,920
+   - Unique rows: 304
+   - Duplicate rows dropped: 4,616 (93.8% duplication rate)
+   - Number of binary symptom features: 132
+   - Number of disease classes: 41
+   - Average unique presentations per disease: 7.4
+
+2. TESTING SET LEAKAGE AUDIT (Testing.csv):
+   - Total testing rows: 42
+   - Test rows already present in Training.csv: 41 of 42 (97.6% overlap)
+   - Novel test samples: 1 (Only 1 row is truly unseen)
+   - CONCLUSION: Testing.csv cannot serve as an honest test set. Repeated Stratified K-Fold CV on the 304 unique ground-truth rows is mathematically required for honest evaluation.
+
+3. COMPLETE LIST OF 41 DISEASE TARGET CLASSES:
+    1. (vertigo) Paroymsal  Positional Vertigo (7 unique presentation(s))
+    2. AIDS                                (5 unique presentation(s))
+    3. Acne                                (5 unique presentation(s))
+    4. Alcoholic hepatitis                 (8 unique presentation(s))
+    5. Allergy                             (5 unique presentation(s))
+    6. Arthritis                           (6 unique presentation(s))
+    7. Bronchial Asthma                    (7 unique presentation(s))
+    8. Cervical spondylosis                (6 unique presentation(s))
+    9. Chicken pox                         (10 unique presentation(s))
+   10. Chronic cholestasis                 (8 unique presentation(s))
+   11. Common Cold                         (9 unique presentation(s))
+   12. Dengue                              (10 unique presentation(s))
+   13. Diabetes                            (9 unique presentation(s))
+   14. Dimorphic hemmorhoids(piles)        (6 unique presentation(s))
+   15. Drug Reaction                       (6 unique presentation(s))
+   16. Fungal infection                    (5 unique presentation(s))
+   17. GERD                                (7 unique presentation(s))
+   18. Gastroenteritis                     (5 unique presentation(s))
+   19. Heart attack                        (5 unique presentation(s))
+   20. Hepatitis B                         (9 unique presentation(s))
+   21. Hepatitis C                         (7 unique presentation(s))
+   22. Hepatitis D                         (10 unique presentation(s))
+   23. Hepatitis E                         (9 unique presentation(s))
+   24. Hypertension                        (6 unique presentation(s))
+   25. Hyperthyroidism                     (9 unique presentation(s))
+   26. Hypoglycemia                        (9 unique presentation(s))
+   27. Hypothyroidism                      (8 unique presentation(s))
+   28. Impetigo                            (6 unique presentation(s))
+   29. Jaundice                            (9 unique presentation(s))
+   30. Malaria                             (8 unique presentation(s))
+   31. Migraine                            (10 unique presentation(s))
+   32. Osteoarthristis                     (7 unique presentation(s))
+   33. Paralysis (brain hemorrhage)        (5 unique presentation(s))
+   34. Peptic ulcer diseae                 (7 unique presentation(s))
+   35. Pneumonia                           (9 unique presentation(s))
+   36. Psoriasis                           (7 unique presentation(s))
+   37. Tuberculosis                        (9 unique presentation(s))
+   38. Typhoid                             (9 unique presentation(s))
+   39. Urinary tract infection             (5 unique presentation(s))
+   40. Varicose veins                      (8 unique presentation(s))
+   41. hepatitis A                         (9 unique presentation(s))
+
+================================================================================
+DATA PROVENANCE VERIFICATION: ALL RULE 6 DATA FACTS CONFIRMED WITH EMPIRICAL PROOF
+================================================================================

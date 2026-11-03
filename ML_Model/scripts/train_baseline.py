@@ -3,12 +3,13 @@ Baseline Training Script for ArogyaMitra (Phase 0)
 Trains a baseline Random Forest model from Kaggle CSVs and exports artifacts to ML_Model/model/.
 """
 
+import json
 import os
 import sys
-import json
+
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     try:
@@ -17,8 +18,9 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
         pass
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
 
 def train_and_export():
     script_dir = os.path.dirname(os.path.abspath(__file__))

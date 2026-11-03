@@ -1,0 +1,52 @@
+﻿# Command: Docker stack trace for triage analysis click
+# Date: 2026-10-30 16:52:49 +05:30
+# Git Commit: 201dc9c
+# Stack: arogya-frontend (8501) -> arogya-backend (5000) -> arogya-graph (8001) -> arogya-ml (8000)
+
+=============================================================================
+1. FRONTEND TRACE (ui/pages/1_Worker_Triage.py -> ui/utils/api_client.py)
+=============================================================================
+Line 103 of ui/pages/1_Worker_Triage.py invoked:
+  run_triage_analysis(selected_symptoms, patient_info, language=lang, token=token)
+
+Inside ui/utils/api_client.py lines 272-286:
+  The function attempted in-process Python imports:
+    from app import PredictRequest, run_prediction
+    from graph.llm import call_llm
+    from graph.utils.pdf_generator import generate_pdf
+
+Divergence Point:
+  Inside the container rogya-frontend, only ui/ is mounted in /app.
+  Neither ML_Model nor graph exists in the frontend container filesystem.
+  Python immediately raised: ModuleNotFoundError: No module named 'app'
+  Lines 331-367 caught except Exception: and silently returned the hardcoded mock:
+    "disease": "Infectious Gastroenteritis"
+    "confidence": 0.885
+    "severityScore": 3.2
+    "recommended_next_steps": "Administer ORS and avoid solid food for 12 hours."
+    "pdfBase64": "" (caused download PDF button to be greyed out)
+  Zero network calls were dispatched to Express backend, ML, or Graph.
+
+=============================================================================
+2. BACKEND & DOCKER-COMPOSE CONFIGURATION CHECK
+=============================================================================
+In docker-compose.yml under ackend:
+  - AI_SERVICE_URL=http://graph:8001 was configured, but GRAPH_API_URL was missing.
+  - Backend/src/config/serverConfig.js: GRAPH_API_URL: z.string().default("http://localhost:8001")
+  - In container, GRAPH_API_URL defaulted to localhost:8001 rather than http://graph:8001.
+
+=============================================================================
+3. MICROSERVICES DIRECT INVOCATION VERIFICATION
+=============================================================================
+Direct test from arogya-graph to arogya-ml:
+  POST http://ml:8000/predict with ['chills', 'vomiting', 'high_fever', 'sweating', 'headache']
+  Response: HTTP 200 OK -> Disease: "Malaria", Confidence: 99.4%
+
+Direct test from arogya-backend to arogya-graph:
+  POST http://graph:8001/analyze/json with service token
+  Response: HTTP 200 OK -> Disease: "Malaria", PDF_LEN: 9900 bytes
+
+CONCLUSION:
+  ML model and Graph services work correctly inside the Docker network.
+  The bug was caused by ui/utils/api_client.py attempting an in-process Python import
+  instead of issuing an authenticated HTTP request to the Express backend API.

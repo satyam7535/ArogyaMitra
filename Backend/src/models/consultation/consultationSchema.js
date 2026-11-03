@@ -49,6 +49,8 @@ const consultationSchema = new mongoose.Schema(
       shapExplanation: Array,
       needsEscalation: Boolean,
       uncertaintyReason: String,
+      redFlag: { type: Boolean, default: false },
+      redFlagDetails: mongoose.Schema.Types.Mixed,
       analyzedAt: Date,
     },
     llmAnalysis: {
@@ -68,15 +70,41 @@ const consultationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "analyzed", "reviewed", "closed"],
+      enum: ["pending", "analyzed", "escalated", "reviewed", "closed"],
       default: "pending",
     },
     workerDecision: {
       type: String,
-      enum: ["accepted", "escalated"],
+      enum: ["accepted", "escalated", "referred_to_hospital"],
+    },
+    decisionOutcome: {
+      type: String,
+      enum: ["accepted", "escalated", "referred_to_hospital"],
+    },
+    decisionNote: {
+      type: String,
+    },
+    overrideReason: {
+      type: String,
+      enum: [
+        "patient_improved",
+        "referred_in_person",
+        "doctor_unreachable",
+        "patient_declined_referral",
+        "other",
+      ],
+    },
+    overrideDetails: {
+      reason: String,
+      note: String,
+      byUser: { type: mongoose.Schema.Types.ObjectId, ref: "Worker" },
+      at: Date,
     },
     escalationReason: {
       type: String,
+    },
+    escalatedAt: {
+      type: Date,
     },
     secondOpinion: {
       diagnosis: {
@@ -85,10 +113,33 @@ const consultationSchema = new mongoose.Schema(
       recommendation: {
         type: String,
       },
+      prescription: {
+        type: String,
+      },
       respondedAt: {
         type: Date,
       },
+      respondedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Doctor",
+      },
     },
+    aiDoctorAgreement: {
+      agreement: { type: Boolean, default: null },
+      normalizedAiDiagnosis: String,
+      normalizedDoctorDiagnosis: String,
+      computedAt: Date,
+    },
+    notifications: [
+      {
+        recipientRole: { type: String, enum: ["worker", "doctor", "admin"] },
+        recipientId: mongoose.Schema.Types.ObjectId,
+        type: { type: String, enum: ["ESCALATED_CASE", "REVIEWED_CASE", "RED_FLAG_ALERT"] },
+        message: String,
+        read: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true, optimisticConcurrency: true }
 );

@@ -16,7 +16,8 @@ With the emergence of statistical learning, researchers turned to probabilistic 
 
 The "black-box" nature of modern machine learning creates critical adoption barriers among healthcare professionals (Amann et al., 2020). 
 - **LIME (Local Interpretable Model-agnostic Explanations)** (Ribeiro et al., 2016): Fits local surrogate linear models by sampling perturbations around an instance. However, LIME lacks mathematical consistency and produces non-deterministic attributions that vary between identical runs on the same input vector.
-- **SHAP (SHapley Additive exPlanations)** (Lundberg & Lee, 2017): Based on cooperative game theory, Shapley values provide the unique attribution formulation satisfying four fundamental axioms: *Efficiency*, *Symmetry*, *Dummy Player*, and *Additivity*. The **TreeSHAP** algorithm optimizes calculation time from exponential $O(2^M)$ to polynomial $O(TLD^2)$, making real-time, deterministic feature attribution feasible for tree ensembles.
+- **SHAP (SHapley Additive exPlanations)** (Lundberg & Lee, 2017): Based on cooperative game theory, Shapley values provide the unique attribution formulation satisfying four fundamental axioms: *Efficiency*, *Symmetry*, *Dummy Player*, and *Additivity*.
+- **Exact Additive Bayesian Evidence Weights**: For probabilistic linear and Bayesian models, exact log-odds attributions satisfy the efficiency axiom to machine precision ($< 10^{-10}$), providing deterministic, closed-form explanations without sampling variance.
 
 ## 2.4 Cryptographic Privacy & Healthcare Regulations
 
@@ -30,8 +31,8 @@ Healthcare data is subject to stringent legal protections globally (HIPAA, GDPR)
 | Feature / Dimension | Standard Academic Prototypes | Commercial Telehealth Tools | ArogyaMitra (This Work) |
 | :--- | :--- | :--- | :--- |
 | **Dataset Hygiene** | Raw 4,920 rows (Unchecked Leakage) | Proprietary / Closed | Deduplicated 304 rows, 5x3 Repeated Stratified CV |
-| **Probability Calibration** | Raw Softmax / Leaf Purity | Heuristic scores | Post-hoc Sigmoid/Platt Scaling (ECE 0.0384) |
-| **Explainability** | None or Noisy LIME | Static decision trees | Axiomatic TreeSHAP Attribution Charts |
+| **Probability Calibration** | Raw Softmax / Leaf Purity | Heuristic scores | Uncalibrated Bayesian posterior estimates on synthetic benchmark (ECE ~0.03–0.07) |
+| **Explainability** | None or Noisy LIME | Static decision trees | Exact Additive Bayesian Log-Odds Evidence Weights |
 | **Data Protection** | Cleartext MongoDB | Cloud TDE | Field-Level AES-256-GCM + Argon2id |
 | **Multi-Tenancy** | Single database / Single tenant | Centralized SaaS | Scoped Multi-Tenant with Anti-Enumeration 404s |
 | **Clinical Fallback** | Hard fail on API error | Degraded UI | Deterministic Clinical Rule-Based Fallback |

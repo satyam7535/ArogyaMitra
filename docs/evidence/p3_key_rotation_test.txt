@@ -1,0 +1,33 @@
+# P3.6: Cryptographic Key Rotation & Dual-Keyring Verification
+# Command: npx --prefix Backend vitest run tests/key_rotation.test.js
+# Date: 2026-10-31T13:03:35+05:30
+# Git Commit: 540e05f (dirty)
+# Status: VERIFIED
+
+ RUN  v5.0.5 D:/Document/Projects/Internship/Arogyamitra
+
+stdout | Backend/tests/key_rotation.test.js
+[dotenv@17.3.1] injecting env (15) from Backend\.env
+[dotenv@17.3.1] injecting env (5) from .env
+
+stderr | Backend/tests/key_rotation.test.js > P3.6: Cryptographic Key Rotation & Dual-Keyring Verification > should fail gracefully when attempting decryption with wrong key or invalid tag
+Failed to decrypt field: Unsupported state or unable to authenticate data
+
+ ✓ Backend/tests/key_rotation.test.js (4 tests) 40ms
+   ✓ P3.6: Cryptographic Key Rotation & Dual-Keyring Verification (4)
+     ✓ should encrypt with versioned key ID prefix and decrypt correctly
+     ✓ should support dual-key decryption simultaneously across k1 and k2 records
+     ✓ should rotate ciphertext from k1 to k2 without plaintext exposure
+     ✓ should fail gracefully when attempting decryption with wrong key or invalid tag
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  13:03:32
+   Duration  2.02s (import 70%, transform 24%, tests 4%, worker 2%)
+
+Conclusion:
+Key rotation procedure verified. Encrypted fields embed the active key ID prefix (e.g. k1:iv:tag:ct).
+Dual keyring allows existing records encrypted under k1 and new records encrypted under k2 to be
+decrypted concurrently without downtime. In-place rotation (rotateFieldEncryption) migrates ciphertexts
+from k1 to k2 while preserving authentication tag integrity.
+

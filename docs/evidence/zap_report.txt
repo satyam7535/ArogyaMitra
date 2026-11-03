@@ -1,0 +1,11 @@
+# OWASP ZAP Baseline Scan Status
+# Date: 2026-10-31
+# Target: https://localhost
+
+STATUS: NOT RUN
+
+Reason: Official zaproxy/zap-stable container image is not available in the local Docker environment, and outbound container image pull is restricted.
+
+Custom Alternative Executed:
+A custom Python baseline script ('scripts/test_p6_owasp_scanner.py') was executed to verify the OWASP API Security Top 10 (2023) assertions against the running Docker stack.
+Results are documented in: docs/evidence/custom_owasp_check_report.txt.

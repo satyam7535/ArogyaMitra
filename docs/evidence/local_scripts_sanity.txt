@@ -1,0 +1,20 @@
+﻿================================================================================
+AROGYAMITRA LOCAL SCRIPTS SANITY VERIFICATION (start_local / stop_local / health_check)
+Timestamp: 2026-10-28T02:17:15Z
+================================================================================
+
+--- STEP 1: Running initial health check on currently active services ---
+Exit code: 1
+
+--- STEP 2: Running stop_local.ps1 to cleanly stop all services and free ports ---
+Exit code: 1
+
+--- STEP 3: Running health_check.ps1 after stop (ALL SERVICES MUST BE DOWN) ---
+Exit code: 1 (Expected non-zero)
+
+--- STEP 4: Running start_local.ps1 to launch all services and verify health convergence ---
+Exit code: 0
+
+--- STEP 5: Final health_check.ps1 (ALL 4 SERVICES MUST BE HEALTHY) ---
+Exit code: 0 (Expected 0)
+

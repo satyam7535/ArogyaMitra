@@ -2,7 +2,7 @@ name: ArogyaMitra Continuous Integration
 
 on:
   push:
-    branches: [ main, phase-* ]
+    branches: [ main, remediation, phase-* ]
   pull_request:
     branches: [ main ]
 
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
@@ -28,14 +28,14 @@ jobs:
           echo "Passed: Only .env.example files found in version control."
 
   backend-tests:
-    name: Backend Security & Concurrency Tests (Node.js)
+    name: Backend Security, Lint & Concurrency Tests (Node.js)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: 22
           cache: 'npm'
@@ -44,6 +44,12 @@ jobs:
       - name: Install Backend Dependencies
         working-directory: ./Backend
         run: npm ci
+
+      - name: Run ESLint & Dependency Audit
+        working-directory: ./Backend
+        run: |
+          npm run lint
+          npm audit --audit-level=high
 
       - name: Run Security & Concurrency Vitest Suites
         working-directory: ./Backend
@@ -59,29 +65,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@0b93645e9dc2c79245ac605c97076d36e4b8e042 # v5.3.0
         with:
           python-version: "3.11"
           cache: 'pip'
 
-      - name: Install ML & Graph Dependencies
+      - name: Install ML, Graph & UI Dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install ruff pytest
           pip install -r ML_Model/requirements.txt
           pip install -r graph/requirements.txt
-          pip install -r ui/requirements.txt pytest
+          pip install -r ui/requirements.txt
 
-      - name: Run ML Contract & Phase 1 Tests
+      - name: Run Python Ruff Linter
+        run: |
+          ruff check ML_Model graph ui
+
+      - name: Run ML Contract & Hypothesis Property Tests
         run: |
           pytest ML_Model/tests/ -v
 
-      - name: Run Graph AI Pipeline & Safe LLM Tests (Phase 3)
+      - name: Run Graph AI Pipeline & Safe LLM Tests
         run: |
           pytest graph/tests/ -v
 
-      - name: Run Streamlit UI AppTest Suite (Phase 6)
+      - name: Run Streamlit UI AppTest Suite
         run: |
           pytest ui/tests/ -v

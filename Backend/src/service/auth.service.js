@@ -7,10 +7,16 @@ import { generateSecureToken, hashToken, verifyPassword } from "../utils/crypto.
  * Generate Access Token & Refresh Token pair with family tracking
  */
 export const generateTokenPair = async (user, userModel, existingFamilyId = null) => {
+  const orgId = user.organization?._id
+    ? user.organization._id.toString()
+    : user.organization
+    ? user.organization.toString()
+    : null;
+
   const payload = {
     id: user._id.toString(),
     role: user.role,
-    organization: user.organization ? user.organization.toString() : null,
+    organization: orgId,
   };
 
   const accessToken = jwt.sign(payload, serverConfig.JWT_SECRET, {
@@ -28,7 +34,7 @@ export const generateTokenPair = async (user, userModel, existingFamilyId = null
     tokenHash,
     userId: user._id,
     userModel,
-    organization: user.organization,
+    organization: orgId,
     familyId,
     expiresAt,
     isRevoked: false,
@@ -80,6 +86,10 @@ export const rotateRefreshToken = async (rawRefreshToken) => {
   const user = await Model.findById(tokenRecord.userId);
   if (!user) {
     throw { status: 401, message: "User not found" };
+  }
+
+  if (user.isActive === false) {
+    throw { status: 403, message: "Forbidden: Account has been deactivated", code: "ACCOUNT_DEACTIVATED" };
   }
 
   // Issue new token pair within the SAME family

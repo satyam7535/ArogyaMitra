@@ -1,0 +1,7 @@
+# EVIDENCE RECORD: P6.6 actionlint GitHub Actions Workflow Static Analysis
+# COMMAND: docker run --rm -v D:\Document\Projects\Internship\Arogyamitra:/repo --workdir /repo rhysd/actionlint:latest
+# DATE: 2026-10-31T08:48:15.552806+00:00
+# COMMIT: addf510d4959e64414ccb8a27917654b32a45b14
+# STATUS: DIRTY
+# -------------------------------------------------------------
+actionlint scanned all .github/workflows/*.yml files: 0 errors found (Clean).

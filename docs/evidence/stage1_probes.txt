@@ -1,0 +1,1361 @@
+================================================================================
+AROGYAMITRA STAGE 1 — FLOW STEPS 1-2 & WRITE AUTHORIZATION MATRIX EVIDENCE
+Timestamp: 2026-10-28T13:50:54.710Z
+Database: MongoDB Atlas arogyamitra_dev
+================================================================================
+
+[FIXTURES IN DATABASE]
+Org 1 (Pune):   6ae1070ef57007c12dfe5bee (PUNE-RHM)
+Org 2 (Nashik): 6ae10765d7265b845af2b8af (NASHIK-RHM)
+Admin 1 (Org 1):  6ae10765d7265b845af2b8b6 (admin@arogyamitra.gov.in)
+Admin 2 (Org 2):  6ae10766d7265b845af2b8b9 (admin2@arogyamitra.gov.in)
+Worker 1 (Org 1): 6ae10766d7265b845af2b8bc (worker@arogyamitra.gov.in)
+Worker 2 (Org 2): 6ae10767d7265b845af2b8bf (worker2@arogyamitra.gov.in)
+Doctor 1 (Org 1): 6ae10767d7265b845af2b8c2 (doctor@arogyamitra.gov.in)
+Doctor 2 (Org 2): 6ae10768d7265b845af2b8c5 (doctor2@arogyamitra.gov.in)
+Patient 1 (Org 1): 6ae10768d7265b845af2b8c8 (Kavita Devi)
+Patient 2 (Org 2): 6ae10768d7265b845af2b8ce (Sanjay More)
+
+
+>>> SECTION 1: AUTHENTICATION BASELINE FOR ADMINS, WORKERS, DOCTORS <<<
+
+--------------------------------------------------------------------------------
+[PROBE] Flow Step 1: Admin 1 Login (Org 1)
+Request: POST http://127.0.0.1:5000/api/v1/admin/login
+Payload: {
+  "email": "admin@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "admin": {
+    "id": "6ae10765d7265b845af2b8b6",
+    "name": "Dr. Vikram Kulkarni (Chief Medical Officer)",
+    "email": "admin@arogyamitra.gov.in",
+    "location": "Pune PHC Central",
+    "phoneNumber": "+91 98200 11111",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "role": "Admin"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] Flow Step 1: Admin 2 Login (Org 2)
+Request: POST http://127.0.0.1:5000/api/v1/admin/login
+Payload: {
+  "email": "admin2@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "admin": {
+    "id": "6ae10766d7265b845af2b8b9",
+    "name": "Dr. Rajesh Shinde (Nashik CMO)",
+    "email": "admin2@arogyamitra.gov.in",
+    "location": "Nashik Sub-center",
+    "phoneNumber": "+91 98200 11112",
+    "organization": "6ae10765d7265b845af2b8af",
+    "role": "Admin"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] Flow Step 2: Worker 1 Login (Org 1)
+Request: POST http://127.0.0.1:5000/api/v1/worker/login
+Payload: {
+  "email": "worker@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "worker": {
+    "id": "6ae10766d7265b845af2b8bc",
+    "name": "Sunita Patil (ASHA Lead)",
+    "email": "worker@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 22221",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "role": "Worker"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] Flow Step 2: Worker 2 Login (Org 2)
+Request: POST http://127.0.0.1:5000/api/v1/worker/login
+Payload: {
+  "email": "worker2@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "worker": {
+    "id": "6ae10767d7265b845af2b8bf",
+    "name": "Anita Deshmukh (ASHA Lead Nashik)",
+    "email": "worker2@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 22222",
+    "organization": "6ae10765d7265b845af2b8af",
+    "role": "Worker"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] Doctor 1 Login (Org 1)
+Request: POST http://127.0.0.1:5000/api/v1/doctor/login
+Payload: {
+  "email": "doctor@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "doctor": {
+    "id": "6ae10767d7265b845af2b8c2",
+    "name": "Dr. Anand Joshi (Medical Officer)",
+    "email": "doctor@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 33331",
+    "specialization": "General Medicine",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "role": "Doctor"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] Doctor 2 Login (Org 2)
+Request: POST http://127.0.0.1:5000/api/v1/doctor/login
+Payload: {
+  "email": "doctor2@arogyamitra.gov.in",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Login successful",
+  "accessToken": "[REDACTED_JWT]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "doctor": {
+    "id": "6ae10768d7265b845af2b8c5",
+    "name": "Dr. Sneha Rao (Medical Officer Nashik)",
+    "email": "doctor2@arogyamitra.gov.in",
+    "phoneNumber": "+91 98200 33332",
+    "specialization": "Pediatrics",
+    "organization": "6ae10765d7265b845af2b8af",
+    "role": "Doctor"
+  }
+}
+
+>>> SECTION 2: FLOW STEP 1 — ADMIN MANAGEMENT OF WORKERS & DOCTORS <<<
+
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 1 (Control): Admin 1 creates Worker in Org 1 (POST /api/v1/worker)
+Request: POST http://127.0.0.1:5000/api/v1/worker
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "name": "Asha Devi (Stage 1 Temp)",
+  "email": "stage1_temp_worker_1793195457872@pune-rhm.gov.in",
+  "phoneNumber": "+91 91000 62743",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 201
+Response Body: {
+  "message": "Worker added successfully",
+  "worker": {
+    "id": "6ae1fdc18a49528c945b8f0a",
+    "name": "Asha Devi (Stage 1 Temp)",
+    "email": "stage1_temp_worker_1793195457872@pune-rhm.gov.in",
+    "phoneNumber": "+91 91000 62743",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "addedBy": "6ae10765d7265b845af2b8b6"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 1 (Probe): Worker 1 attempts to create Worker (POST /api/v1/worker) -> 403
+Request: POST http://127.0.0.1:5000/api/v1/worker
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "name": "Illegitimate Worker",
+  "email": "illegal_1793195458199@pune-rhm.gov.in",
+  "phoneNumber": "+91 99999 11111",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 2 (Control): Admin 1 creates Doctor in Org 1 (POST /api/v1/doctor)
+Request: POST http://127.0.0.1:5000/api/v1/doctor
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "name": "Dr. Sanjay Verma (Stage 1 Temp)",
+  "email": "stage1_temp_doctor_1793195457878@pune-rhm.gov.in",
+  "phoneNumber": "+91 92000 55084",
+  "password": "[REDACTED_PASSWORD]",
+  "specialization": "General Medicine"
+}
+Response Status: HTTP 201
+Response Body: {
+  "message": "Doctor added successfully",
+  "doctor": {
+    "id": "6ae1fdc28a49528c945b8f0f",
+    "name": "Dr. Sanjay Verma (Stage 1 Temp)",
+    "email": "stage1_temp_doctor_1793195457878@pune-rhm.gov.in",
+    "phoneNumber": "+91 92000 55084",
+    "specialization": "General Medicine",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "isAvailable": true,
+    "addedBy": "6ae10765d7265b845af2b8b6"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 2 (Probe): Worker 1 attempts to create Doctor (POST /api/v1/doctor) -> 403
+Request: POST http://127.0.0.1:5000/api/v1/doctor
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "name": "Illegitimate Doctor",
+  "email": "illegal_doc_1793195458691@pune-rhm.gov.in",
+  "phoneNumber": "+91 99999 22222",
+  "password": "[REDACTED_PASSWORD]",
+  "specialization": "Quackery"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] READ ROUTE (Control): Admin 1 gets workers in Org 1 (GET /api/v1/worker)
+Request: GET http://127.0.0.1:5000/api/v1/worker
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "workers": [
+    {
+      "_id": "6ae1fdc18a49528c945b8f0a",
+      "name": "Asha Devi (Stage 1 Temp)",
+      "email": "stage1_temp_worker_1793195457872@pune-rhm.gov.in",
+      "phoneNumber": "+91 91000 62743",
+      "role": "Worker",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "addedBy": "6ae10765d7265b845af2b8b6",
+      "failedLoginAttempts": 0,
+      "lockUntil": null,
+      "isActive": true,
+      "deactivatedAt": null,
+      "deactivatedBy": null,
+      "resetPasswordToken": null,
+      "resetPasswordExpires": null,
+      "createdAt": "2026-10-28T13:50:57.898Z",
+      "updatedAt": "2026-10-28T13:50:57.898Z",
+      "__v": 0
+    },
+    {
+      "isActive": true,
+      "deactivatedAt": null,
+      "deactivatedBy": null,
+      "_id": "6ae10766d7265b845af2b8bc",
+      "name": "Sunita Patil (ASHA Lead)",
+      "email": "worker@arogyamitra.gov.in",
+      "phoneNumber": "+91 98200 22221",
+      "role": "Worker",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "addedBy": "6ae10765d7265b845af2b8b6",
+      "failedLoginAttempts": 0,
+      "lockUntil": null,
+      "resetPasswordToken": null,
+      "resetPasswordExpires": null,
+      "createdAt": "2026-10-27T20:19:50.579Z",
+      "updatedAt": "2026-10-27T20:24:21.360Z",
+      "__v": 0
+    }
+  ]
+}
+--------------------------------------------------------------------------------
+[PROBE] READ ROUTE (Control): Admin 1 gets doctors in Org 1 (GET /api/v1/doctor)
+Request: GET http://127.0.0.1:5000/api/v1/doctor
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "doctors": [
+    {
+      "isActive": true,
+      "deactivatedAt": null,
+      "deactivatedBy": null,
+      "_id": "6ae10767d7265b845af2b8c2",
+      "name": "Dr. Anand Joshi (Medical Officer)",
+      "email": "doctor@arogyamitra.gov.in",
+      "phoneNumber": "+91 98200 33331",
+      "role": "Doctor",
+      "specialization": "General Medicine",
+      "isAvailable": true,
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "addedBy": "6ae10765d7265b845af2b8b6",
+      "failedLoginAttempts": 0,
+      "lockUntil": null,
+      "resetPasswordToken": null,
+      "resetPasswordExpires": null,
+      "createdAt": "2026-10-27T20:19:51.579Z",
+      "updatedAt": "2026-10-27T20:24:22.073Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae1fdc28a49528c945b8f0f",
+      "name": "Dr. Sanjay Verma (Stage 1 Temp)",
+      "email": "stage1_temp_doctor_1793195457878@pune-rhm.gov.in",
+      "phoneNumber": "+91 92000 55084",
+      "role": "Doctor",
+      "specialization": "General Medicine",
+      "isAvailable": true,
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "addedBy": "6ae10765d7265b845af2b8b6",
+      "failedLoginAttempts": 0,
+      "lockUntil": null,
+      "isActive": true,
+      "deactivatedAt": null,
+      "deactivatedBy": null,
+      "resetPasswordToken": null,
+      "resetPasswordExpires": null,
+      "createdAt": "2026-10-28T13:50:58.228Z",
+      "updatedAt": "2026-10-28T13:50:58.228Z",
+      "__v": 0
+    }
+  ]
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 3 (Probe): Admin 2 attempts cross-org delete of Admin 1 Worker (DELETE /api/v1/worker/:id) -> 404
+Request: DELETE http://127.0.0.1:5000/api/v1/worker/6ae1fdc18a49528c945b8f0a
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 404
+Response Body: {
+  "message": "Worker not found"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 3 (Control): Admin 1 deletes own Worker (DELETE /api/v1/worker/:id) -> 200
+Request: DELETE http://127.0.0.1:5000/api/v1/worker/6ae1fdc18a49528c945b8f0a
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Worker deactivated successfully",
+  "worker": {
+    "_id": "6ae1fdc18a49528c945b8f0a",
+    "name": "Asha Devi (Stage 1 Temp)",
+    "email": "stage1_temp_worker_1793195457872@pune-rhm.gov.in",
+    "phoneNumber": "+91 91000 62743",
+    "password": "[REDACTED_PASSWORD]",
+    "role": "Worker",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "addedBy": "6ae10765d7265b845af2b8b6",
+    "failedLoginAttempts": 0,
+    "lockUntil": null,
+    "isActive": false,
+    "deactivatedAt": "2026-10-28T13:50:58.792Z",
+    "deactivatedBy": "6ae10765d7265b845af2b8b6",
+    "resetPasswordToken": null,
+    "resetPasswordExpires": null,
+    "createdAt": "2026-10-28T13:50:57.898Z",
+    "updatedAt": "2026-10-28T13:50:58.792Z",
+    "__v": 0
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 4 (Probe): Admin 2 attempts cross-org delete of Admin 1 Doctor (DELETE /api/v1/doctor/:id) -> 404
+Request: DELETE http://127.0.0.1:5000/api/v1/doctor/6ae1fdc28a49528c945b8f0f
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 404
+Response Body: {
+  "message": "Doctor not found"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 4 (Control): Admin 1 deletes own Doctor (DELETE /api/v1/doctor/:id) -> 200
+Request: DELETE http://127.0.0.1:5000/api/v1/doctor/6ae1fdc28a49528c945b8f0f
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Doctor deactivated successfully",
+  "doctor": {
+    "_id": "6ae1fdc28a49528c945b8f0f",
+    "name": "Dr. Sanjay Verma (Stage 1 Temp)",
+    "email": "stage1_temp_doctor_1793195457878@pune-rhm.gov.in",
+    "phoneNumber": "+91 92000 55084",
+    "password": "[REDACTED_PASSWORD]",
+    "role": "Doctor",
+    "specialization": "General Medicine",
+    "isAvailable": true,
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "addedBy": "6ae10765d7265b845af2b8b6",
+    "failedLoginAttempts": 0,
+    "lockUntil": null,
+    "isActive": false,
+    "deactivatedAt": "2026-10-28T13:50:58.847Z",
+    "deactivatedBy": "6ae10765d7265b845af2b8b6",
+    "resetPasswordToken": null,
+    "resetPasswordExpires": null,
+    "createdAt": "2026-10-28T13:50:58.228Z",
+    "updatedAt": "2026-10-28T13:50:58.847Z",
+    "__v": 0
+  }
+}
+
+>>> SECTION 3: FLOW STEP 2 — WORKER DASHBOARD & CONSULTATION SCOPING <<<
+
+--------------------------------------------------------------------------------
+[PROBE] Flow Step 2 (Control): Worker 1 gets consultations (GET /api/v1/consultation/my)
+Request: GET http://127.0.0.1:5000/api/v1/consultation/my
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "consultations": [
+    {
+      "mlAnalysis": {
+        "topPredictions": [],
+        "matchedSymptoms": [],
+        "precautions": [],
+        "shapExplanation": []
+      },
+      "llmAnalysis": {
+        "llmFallback": false
+      },
+      "_id": "6ae1c4ec3ecd84ca7944dea2",
+      "patient": {
+        "_id": "6ae1c4ec3ecd84ca7944de90",
+        "name": "Sunita Bai (Stage 1 Test)",
+        "age": 38,
+        "gender": "female"
+      },
+      "submittedBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "symptoms": [
+        "headache",
+        "mild_fever"
+      ],
+      "notes": "Open for acceptance",
+      "attachments": [],
+      "aiReport": null,
+      "status": "closed",
+      "createdAt": "2026-10-28T09:48:28.527Z",
+      "updatedAt": "2026-10-28T09:48:28.614Z",
+      "__v": 1,
+      "workerDecision": "accepted"
+    },
+    {
+      "mlAnalysis": {
+        "topPredictions": [],
+        "matchedSymptoms": [],
+        "precautions": [],
+        "shapExplanation": []
+      },
+      "llmAnalysis": {
+        "llmFallback": false
+      },
+      "secondOpinion": {
+        "diagnosis": "Fungal Infection (Tinea Corporis)",
+        "recommendation": "Topical antifungal ointment (Clotrimazole 1%) twice daily for 14 days.",
+        "respondedAt": "2026-10-28T09:48:28.493Z"
+      },
+      "_id": "6ae1c4ec3ecd84ca7944de94",
+      "patient": {
+        "_id": "6ae1c4ec3ecd84ca7944de90",
+        "name": "Sunita Bai (Stage 1 Test)",
+        "age": 38,
+        "gender": "female"
+      },
+      "submittedBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "symptoms": [
+        "itching",
+        "skin_rash",
+        "nodal_skin_eruptions"
+      ],
+      "notes": "Stage 1 verified consultation submission",
+      "attachments": [],
+      "aiReport": null,
+      "status": "reviewed",
+      "createdAt": "2026-10-28T09:48:28.307Z",
+      "updatedAt": "2026-10-28T09:48:28.495Z",
+      "__v": 2,
+      "assignedDoctor": {
+        "_id": "6ae10767d7265b845af2b8c2",
+        "name": "Dr. Anand Joshi (Medical Officer)",
+        "specialization": "General Medicine"
+      },
+      "escalationReason": "Severe skin rash requires specialist second opinion",
+      "workerDecision": "escalated"
+    },
+    {
+      "mlAnalysis": {
+        "topPredictions": [],
+        "matchedSymptoms": [],
+        "precautions": [],
+        "shapExplanation": []
+      },
+      "llmAnalysis": {
+        "llmFallback": false
+      },
+      "_id": "6ae1c4783e21456ac5067a13",
+      "patient": {
+        "_id": "6ae1c4783e21456ac5067a07",
+        "name": "Sunita Bai (Stage 1 Test)",
+        "age": 38,
+        "gender": "female"
+      },
+      "submittedBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "symptoms": [
+        "headache",
+        "mild_fever"
+      ],
+      "notes": "Open for acceptance",
+      "attachments": [],
+      "aiReport": null,
+      "status": "closed",
+      "createdAt": "2026-10-28T09:46:32.799Z",
+      "updatedAt": "2026-10-28T09:46:32.849Z",
+      "__v": 1,
+      "workerDecision": "accepted"
+    },
+    {
+      "mlAnalysis": {
+        "topPredictions": [],
+        "matchedSymptoms": [],
+        "precautions": [],
+        "shapExplanation": []
+      },
+      "llmAnalysis": {
+        "llmFallback": false
+      },
+      "_id": "6ae1c4783e21456ac5067a0b",
+      "patient": {
+        "_id": "6ae1c4783e21456ac5067a07",
+        "name": "Sunita Bai (Stage 1 Test)",
+        "age": 38,
+        "gender": "female"
+      },
+      "submittedBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "symptoms": [
+        "itching",
+        "skin_rash",
+        "nodal_skin_eruptions"
+      ],
+      "notes": "Stage 1 verified consultation submission",
+      "attachments": [],
+      "aiReport": null,
+      "status": "pending",
+      "createdAt": "2026-10-28T09:46:32.675Z",
+      "updatedAt": "2026-10-28T09:46:32.732Z",
+      "__v": 1,
+      "assignedDoctor": {
+        "_id": "6ae10767d7265b845af2b8c2",
+        "name": "Dr. Anand Joshi (Medical Officer)",
+        "specialization": "General Medicine"
+      },
+      "escalationReason": "Severe skin rash requires specialist second opinion",
+      "workerDecision": "escalated"
+    },
+    {
+      "mlAnalysis": {
+        "topPredictions": [],
+        "matchedSymptoms": [],
+        "precautions": [],
+        "shapExplanation": []
+      },
+      "llmAnalysis": {
+        "llmFallback": false
+      },
+      "_id": "6ae1c4483e21456ac50679d6",
+      "patient": {
+        "_id": "6ae1c4483e21456ac50679c4",
+        "name": "Sunita Bai (Stage 1 Test)",
+        "age": 38,
+        "gender": "female"
+      },
+      "submittedBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "symptoms": [
+        "headache",
+        "mild_fever"
+      ],
+      "notes": "Open for acceptance",
+      "attachments": [],
+      "aiReport": null,
+      "status": "closed",
+      "createdAt": "2026-10-28T09:45:44.843Z",
+      "updatedAt": "2026-10-28T09:45:44.904Z",
+      "__v": 1,
+      "workerDecision": "accepted"
+    },
+    {
+      "mlAnalysis": {
+        "topPredictions": [],
+        "matchedSymptoms": [],
+        "precautions": [],
+        "shapExplanation": []
+      },
+      "llmAnalysis": {
+        "llmFallback": false
+      },
+      "secondOpinion": {
+        "diagnosis": "Fungal Infection (Tinea Corporis)",
+        "recommendation": "Topical antifungal ointment (Clotrimazole 1%) twice daily for 14 days.",
+        "respondedAt": "2026-10-28T09:45:44.812Z"
+      },
+      "_id": "6ae1c4483e21456ac50679c8",
+      "patient": {
+        "_id": "6ae1c4483e21456ac50679c4",
+        "name": "Sunita Bai (Stage 1 Test)",
+        "age": 38,
+        "gender": "female"
+      },
+      "submittedBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "symptoms": [
+        "itching",
+        "skin_rash",
+        "nodal_skin_eruptions"
+      ],
+      "notes": "Stage 1 verified consultation submission",
+      "attachments": [],
+      "aiReport": null,
+      "status": "reviewed",
+      "createdAt": "2026-10-28T09:45:44.684Z",
+      "updatedAt": "2026-10-28T09:45:44.813Z",
+      "__v": 2,
+      "assignedDoctor": {
+        "_id": "6ae10767d7265b845af2b8c2",
+        "name": "Dr. Anand Joshi (Medical Officer)",
+        "specialization": "General Medicine"
+      },
+      "escalationReason": "Severe skin rash requires specialist second opinion",
+      "workerDecision": "escalated"
+    },
+    {
+      "mlAnalysis": {
+        "disease": "Malaria",
+        "confidence": 0.885,
+        "severityScore": 3.8,
+        "precautions": [
+          "use mosquito net",
+          "drink boiled water",
+          "take anti-malarials"
+        ],
+        "description": "Plasmodium parasite infection transmitted via Anopheles mosquito bite.",
+        "analyzedAt": "2026-10-27T20:19:52.472Z",
+        "topPredictions": [],
+        "matchedSymptoms": [],
+        "shapExplanation": []
+      },
+      "llmAnalysis": {
+        "summary": "Acute febrile illness consistent with Plasmodium vivax / falciparum malaria.",
+        "recommendations": "Immediate RDT / Peripheral smear for MP. Rehydrate orally.",
+        "referral": "Medical Officer review within 24 hours.",
+        "riskLevel": "high",
+        "llmFallback": false,
+        "analyzedAt": "2026-10-27T20:19:52.472Z"
+      },
+      "secondOpinion": {
+        "diagnosis": "Confirmed Acute Uncomplicated Vivax Malaria",
+        "recommendation": "Prescribed Tab Paracetamol 650mg TDS x 3 days, Tab Chloroquine 600mg base stat, followed by 300mg at 6h, 24h, 48h as per NVBDCP guidelines. CBC & MP smear ordered.",
+        "respondedAt": "2026-10-27T20:19:52.472Z"
+      },
+      "_id": "6ae10768d7265b845af2b8d4",
+      "patient": {
+        "_id": "6ae10768d7265b845af2b8cb",
+        "name": "Ramesh Shinde",
+        "age": 48,
+        "gender": "male"
+      },
+      "submittedBy": "6ae10766d7265b845af2b8bc",
+      "assignedDoctor": {
+        "_id": "6ae10767d7265b845af2b8c2",
+        "name": "Dr. Anand Joshi (Medical Officer)",
+        "specialization": "General Medicine"
+      },
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "symptoms": [
+        "chills",
+        "vomiting",
+        "high_fever",
+        "sweating",
+        "headache"
+      ],
+      "notes": "High spiking fever with severe rigors. Patient is very weak and dehydrated.",
+      "attachments": [],
+      "status": "reviewed",
+      "workerDecision": "escalated",
+      "escalationReason": "High clinical severity score (3.8) and risk of malarial complications.",
+      "createdAt": "2026-10-27T20:19:52.475Z",
+      "updatedAt": "2026-10-27T20:19:52.475Z",
+      "__v": 0
+    },
+    {
+      "mlAnalysis": {
+        "disease": "Fungal infection",
+        "confidence": 0.924,
+        "severityScore": 2.5,
+        "precautions": [
+          "bath twice",
+          "use clean clothes",
+          "avoid sharing towels"
+        ],
+        "description": "Common superficial dermatomycosis.",
+        "analyzedAt": "2026-10-27T20:19:52.439Z",
+        "topPredictions": [],
+        "matchedSymptoms": [],
+        "shapExplanation": []
+      },
+      "llmAnalysis": {
+        "summary": "Patient displays classic presentation of cutaneous fungal infection.",
+        "recommendations": "Apply topical antifungal cream twice daily for 14 days.",
+        "referral": "Routine outpatient follow-up if rash does not resolve within 2 weeks.",
+        "riskLevel": "low",
+        "llmFallback": false,
+        "analyzedAt": "2026-10-27T20:19:52.439Z"
+      },
+      "_id": "6ae10768d7265b845af2b8d1",
+      "patient": {
+        "_id": "6ae10768d7265b845af2b8c8",
+        "name": "Kavita Devi",
+        "age": 42,
+        "gender": "female"
+      },
+      "submittedBy": "6ae10766d7265b845af2b8bc",
+      "assignedDoctor": {
+        "_id": "6ae10767d7265b845af2b8c2",
+        "name": "Dr. Anand Joshi (Medical Officer)",
+        "specialization": "General Medicine"
+      },
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "symptoms": [
+        "itching",
+        "skin_rash",
+        "nodal_skin_eruptions"
+      ],
+      "notes": "Patient reports intense pruritus and localized rash on arms.",
+      "attachments": [],
+      "status": "analyzed",
+      "workerDecision": "accepted",
+      "createdAt": "2026-10-27T20:19:52.448Z",
+      "updatedAt": "2026-10-27T20:19:52.448Z",
+      "__v": 0
+    }
+  ]
+}
+--------------------------------------------------------------------------------
+[PROBE] Flow Step 2 (Control): Worker 2 gets consultations (GET /api/v1/consultation/my)
+Request: GET http://127.0.0.1:5000/api/v1/consultation/my
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "consultations": []
+}
+
+>>> SECTION 4: REMAINING WRITE ROUTES (PATIENT, CONSULTATION, ESCALATE, RESPOND, ACCEPT) <<<
+
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 5 (Probe): Doctor 1 attempts to register Patient (POST /api/v1/patient) -> 403
+Request: POST http://127.0.0.1:5000/api/v1/patient
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "name": "Doctor Illegitimate Patient",
+  "age": 40,
+  "gender": "male",
+  "phoneNumber": "+91 93333 44444",
+  "address": "Pune"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 5 (Control): Worker 1 registers Patient in Org 1 (POST /api/v1/patient) -> 201
+Request: POST http://127.0.0.1:5000/api/v1/patient
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "name": "Sunita Bai (Stage 1 Test)",
+  "age": 38,
+  "gender": "female",
+  "phoneNumber": "+91 94000 65645",
+  "address": "Ambegaon, Pune District"
+}
+Response Status: HTTP 400
+Response Body: {
+  "message": "Request validation failed",
+  "code": "VALIDATION_ERROR",
+  "errors": [
+    {
+      "field": "gender",
+      "message": "Invalid enum value. Expected 'Male' | 'Female' | 'Other', received 'female'"
+    }
+  ]
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 6 (Probe): Doctor 1 attempts to submit consultation (POST /api/v1/consultation) -> 403
+Request: POST http://127.0.0.1:5000/api/v1/consultation
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "patientId": "6ae10768d7265b845af2b8c8",
+  "symptoms": [
+    "itching",
+    "skin_rash"
+  ],
+  "notes": "Doctor submission attempt"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 6 (Control): Worker 1 submits consultation in Org 1 (POST /api/v1/consultation) -> 201
+Request: POST http://127.0.0.1:5000/api/v1/consultation
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "patientId": "6ae10768d7265b845af2b8c8",
+  "symptoms": [
+    "itching",
+    "skin_rash",
+    "nodal_skin_eruptions"
+  ],
+  "notes": "Stage 1 verified consultation submission"
+}
+Response Status: HTTP 201
+Response Body: {
+  "message": "Consultation submitted successfully",
+  "consultation": {
+    "patient": "6ae10768d7265b845af2b8c8",
+    "submittedBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "symptoms": [
+      "itching",
+      "skin_rash",
+      "nodal_skin_eruptions"
+    ],
+    "notes": "Stage 1 verified consultation submission",
+    "attachments": [],
+    "aiReport": null,
+    "mlAnalysis": {
+      "topPredictions": [],
+      "matchedSymptoms": [],
+      "precautions": [],
+      "shapExplanation": []
+    },
+    "llmAnalysis": {
+      "llmFallback": false
+    },
+    "status": "pending",
+    "_id": "6ae1fdc28a49528c945b8f21",
+    "createdAt": "2026-10-28T13:50:58.976Z",
+    "updatedAt": "2026-10-28T13:50:58.976Z",
+    "__v": 0
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 7 (Probe): Worker 2 (Org 2) attempts cross-org escalate of Org 1 Consultation -> 404
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc28a49528c945b8f21/escalate
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "doctorId": "6ae10768d7265b845af2b8c5",
+  "reason": "Cross-tenant escalation exploit"
+}
+Response Status: HTTP 404
+Response Body: {
+  "message": "Consultation not found"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 7 (Probe): Doctor 1 attempts to escalate consultation -> 403
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc28a49528c945b8f21/escalate
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "doctorId": "6ae10767d7265b845af2b8c2",
+  "reason": "Doctor escalating"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 7 (Control): Worker 1 escalates Consultation to Doctor 1 in Org 1 -> 200
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc28a49528c945b8f21/escalate
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "doctorId": "6ae10767d7265b845af2b8c2",
+  "reason": "Severe skin rash requires specialist second opinion"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Consultation escalated to doctor",
+  "consultation": {
+    "mlAnalysis": {
+      "topPredictions": [],
+      "matchedSymptoms": [],
+      "precautions": [],
+      "shapExplanation": []
+    },
+    "llmAnalysis": {
+      "llmFallback": false
+    },
+    "_id": "6ae1fdc28a49528c945b8f21",
+    "patient": "6ae10768d7265b845af2b8c8",
+    "submittedBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "symptoms": [
+      "itching",
+      "skin_rash",
+      "nodal_skin_eruptions"
+    ],
+    "notes": "Stage 1 verified consultation submission",
+    "attachments": [],
+    "aiReport": null,
+    "status": "pending",
+    "createdAt": "2026-10-28T13:50:58.976Z",
+    "updatedAt": "2026-10-28T13:50:59.049Z",
+    "__v": 1,
+    "assignedDoctor": "6ae10767d7265b845af2b8c2",
+    "escalationReason": "Severe skin rash requires specialist second opinion",
+    "workerDecision": "escalated"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 8 (Probe): Doctor 2 (Org 2) attempts cross-org response to Org 1 Consultation -> 404
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc28a49528c945b8f21/respond
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "diagnosis": "Cross-org fake diagnosis",
+  "recommendation": "Injected"
+}
+Response Status: HTTP 404
+Response Body: {
+  "message": "Consultation not found or not assigned to you"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 8 (Probe): Worker 1 attempts to respond with second opinion -> 403
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc28a49528c945b8f21/respond
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "diagnosis": "Worker second opinion",
+  "recommendation": "Self-prescribed"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 8 (Control): Doctor 1 responds to assigned consultation in Org 1 -> 200
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc28a49528c945b8f21/respond
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "diagnosis": "Fungal Infection (Tinea Corporis)",
+  "recommendation": "Topical antifungal ointment (Clotrimazole 1%) twice daily for 14 days."
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "Second opinion submitted successfully",
+  "consultation": {
+    "mlAnalysis": {
+      "topPredictions": [],
+      "matchedSymptoms": [],
+      "precautions": [],
+      "shapExplanation": []
+    },
+    "llmAnalysis": {
+      "llmFallback": false
+    },
+    "secondOpinion": {
+      "diagnosis": "Fungal Infection (Tinea Corporis)",
+      "recommendation": "Topical antifungal ointment (Clotrimazole 1%) twice daily for 14 days.",
+      "respondedAt": "2026-10-28T13:50:59.117Z"
+    },
+    "_id": "6ae1fdc28a49528c945b8f21",
+    "patient": "6ae10768d7265b845af2b8c8",
+    "submittedBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "symptoms": [
+      "itching",
+      "skin_rash",
+      "nodal_skin_eruptions"
+    ],
+    "notes": "Stage 1 verified consultation submission",
+    "attachments": [],
+    "aiReport": null,
+    "status": "reviewed",
+    "createdAt": "2026-10-28T13:50:58.976Z",
+    "updatedAt": "2026-10-28T13:50:59.120Z",
+    "__v": 2,
+    "assignedDoctor": "6ae10767d7265b845af2b8c2",
+    "escalationReason": "Severe skin rash requires specialist second opinion",
+    "workerDecision": "escalated"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] Setup: Worker 1 creates second consultation for Accept test
+Request: POST http://127.0.0.1:5000/api/v1/consultation
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "patientId": "6ae10768d7265b845af2b8c8",
+  "symptoms": [
+    "headache",
+    "mild_fever"
+  ],
+  "notes": "Open for acceptance"
+}
+Response Status: HTTP 201
+Response Body: {
+  "message": "Consultation submitted successfully",
+  "consultation": {
+    "patient": "6ae10768d7265b845af2b8c8",
+    "submittedBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "symptoms": [
+      "headache",
+      "mild_fever"
+    ],
+    "notes": "Open for acceptance",
+    "attachments": [],
+    "aiReport": null,
+    "mlAnalysis": {
+      "topPredictions": [],
+      "matchedSymptoms": [],
+      "precautions": [],
+      "shapExplanation": []
+    },
+    "llmAnalysis": {
+      "llmFallback": false
+    },
+    "status": "pending",
+    "_id": "6ae1fdc38a49528c945b8f2f",
+    "createdAt": "2026-10-28T13:50:59.152Z",
+    "updatedAt": "2026-10-28T13:50:59.152Z",
+    "__v": 0
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 9 (Probe): Worker 2 (Org 2) attempts cross-org accept -> 404
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc38a49528c945b8f2f/accept
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 404
+Response Body: {
+  "message": "Consultation not found"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 9 (Probe): Doctor 1 attempts to accept consultation -> 403
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc38a49528c945b8f2f/accept
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 9 (Control): Worker 1 accepts consultation in Org 1 -> 200
+Request: PATCH http://127.0.0.1:5000/api/v1/consultation/6ae1fdc38a49528c945b8f2f/accept
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "message": "AI result accepted. Consultation closed.",
+  "consultation": {
+    "mlAnalysis": {
+      "topPredictions": [],
+      "matchedSymptoms": [],
+      "precautions": [],
+      "shapExplanation": []
+    },
+    "llmAnalysis": {
+      "llmFallback": false
+    },
+    "_id": "6ae1fdc38a49528c945b8f2f",
+    "patient": "6ae10768d7265b845af2b8c8",
+    "submittedBy": "6ae10766d7265b845af2b8bc",
+    "organization": "6ae1070ef57007c12dfe5bee",
+    "symptoms": [
+      "headache",
+      "mild_fever"
+    ],
+    "notes": "Open for acceptance",
+    "attachments": [],
+    "aiReport": null,
+    "status": "closed",
+    "createdAt": "2026-10-28T13:50:59.152Z",
+    "updatedAt": "2026-10-28T13:50:59.223Z",
+    "__v": 1,
+    "workerDecision": "accepted"
+  }
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 10 (Probe): Direct Analysis Mutation Attempt (POST /api/v1/consultation/:id/analysis/ml) -> 403
+Request: POST http://127.0.0.1:5000/api/v1/consultation/6ae1fdc28a49528c945b8f21/analysis/ml
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Payload: {
+  "disease": "Forged ML Result",
+  "confidence": 0.99
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Direct client analysis mutations are forbidden. Use POST /api/v1/consultation/:id/analyze for server-side orchestrated analysis.",
+  "code": "DIRECT_ANALYSIS_WRITE_FORBIDDEN"
+}
+--------------------------------------------------------------------------------
+[PROBE] WRITE ROUTE 11 (Probe): Public Admin Registration Attempt (POST /api/v1/admin/register) -> 403
+Request: POST http://127.0.0.1:5000/api/v1/admin/register
+Payload: {
+  "name": "Public Attacker",
+  "email": "hacker@evil.com",
+  "password": "[REDACTED_PASSWORD]"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Public administrator registration is disabled for security. Use the seedAdmin CLI script or invite.",
+  "code": "REGISTRATION_DISABLED"
+}
+
+>>> SECTION 5: STRICT CANONICAL ROLE CASING VERIFICATION <<<
+
+--------------------------------------------------------------------------------
+[PROBE] Role Casing Control: Canonical ROLES.WORKER ('Worker') -> 200 OK
+Request: GET http://127.0.0.1:5000/api/v1/patient
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 200
+Response Body: {
+  "patients": [
+    {
+      "_id": "6ae1c4ec3ecd84ca7944de90",
+      "name": "Sunita Bai (Stage 1 Test)",
+      "age": 38,
+      "gender": "female",
+      "phoneNumber": "+91 94000 33908",
+      "address": "Ambegaon, Pune District",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-28T09:48:28.244Z",
+      "updatedAt": "2026-10-28T09:48:28.244Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae1c4783e21456ac5067a07",
+      "name": "Sunita Bai (Stage 1 Test)",
+      "age": 38,
+      "gender": "female",
+      "phoneNumber": "+91 94000 61889",
+      "address": "Ambegaon, Pune District",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-28T09:46:32.632Z",
+      "updatedAt": "2026-10-28T09:46:32.632Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae1c4483e21456ac50679c4",
+      "name": "Sunita Bai (Stage 1 Test)",
+      "age": 38,
+      "gender": "female",
+      "phoneNumber": "+91 94000 89658",
+      "address": "Ambegaon, Pune District",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-28T09:45:44.647Z",
+      "updatedAt": "2026-10-28T09:45:44.647Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae113e0be814cbb58650fd0",
+      "name": "Pooja Deshmukh",
+      "age": 29,
+      "gender": "female",
+      "phoneNumber": "+91 98888 77777",
+      "address": "Shirur Tehsil, Pune",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-27T21:13:04.291Z",
+      "updatedAt": "2026-10-27T21:13:04.291Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae1126ebe814cbb58650fa0",
+      "name": "Pooja Deshmukh",
+      "age": 29,
+      "gender": "female",
+      "phoneNumber": "+91 98888 77777",
+      "address": "Shirur Tehsil, Pune",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-27T21:06:54.883Z",
+      "updatedAt": "2026-10-27T21:06:54.883Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae10ec9be814cbb58650f70",
+      "name": "Mass Assignment Test Subject",
+      "age": 28,
+      "gender": "other",
+      "phoneNumber": "+91 99999 88888",
+      "address": "Testing St, Pune",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-27T20:51:21.425Z",
+      "updatedAt": "2026-10-27T20:51:21.425Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae108ab1ddb9f0086c57da1",
+      "name": "Mass Assignment Test Subject",
+      "age": 28,
+      "gender": "other",
+      "phoneNumber": "+91 99999 88888",
+      "address": "Testing St, Pune",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-27T20:25:15.862Z",
+      "updatedAt": "2026-10-27T20:25:15.862Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae10768d7265b845af2b8cb",
+      "name": "Ramesh Shinde",
+      "age": 48,
+      "gender": "male",
+      "phoneNumber": "+91 91234 56789",
+      "address": "Plot 12, Pali Sub-Centre, Raigad, Maharashtra",
+      "medicalHistory": "History of seasonal malaria 2 years ago.",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-27T20:19:52.389Z",
+      "updatedAt": "2026-10-27T20:19:52.389Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ae10768d7265b845af2b8c8",
+      "name": "Kavita Devi",
+      "age": 42,
+      "gender": "female",
+      "phoneNumber": "+91 98765 43210",
+      "address": "House 42, Khed Village, Pune, Maharashtra",
+      "medicalHistory": "Mild hypertension managed by lifestyle. No known drug allergies.",
+      "registeredBy": "6ae10766d7265b845af2b8bc",
+      "organization": "6ae1070ef57007c12dfe5bee",
+      "createdAt": "2026-10-27T20:19:52.358Z",
+      "updatedAt": "2026-10-27T20:19:52.358Z",
+      "__v": 0
+    }
+  ]
+}
+--------------------------------------------------------------------------------
+[PROBE] Role Casing Probe: Lowercase 'worker' -> 403 Forbidden
+Request: GET http://127.0.0.1:5000/api/v1/patient
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] Role Casing Probe: Uppercase 'WORKER' -> 403 Forbidden
+Request: GET http://127.0.0.1:5000/api/v1/patient
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+--------------------------------------------------------------------------------
+[PROBE] Role Casing Probe: Mixed-case 'wOrKeR' -> 403 Forbidden
+Request: GET http://127.0.0.1:5000/api/v1/patient
+Headers: {
+  "Authorization": "Bearer [REDACTED_JWT]"
+}
+Response Status: HTTP 403
+Response Body: {
+  "message": "Forbidden: Insufficient role permissions"
+}
+
+>>> SECTION 6: INTERNAL SERVICE TOKEN AUTHENTICATION <<<
+
+--------------------------------------------------------------------------------
+[PROBE] Unauthenticated Call to ML Service (:8000/predict) -> 401
+Request: POST http://127.0.0.1:8000/predict
+Payload: {
+  "symptoms": [
+    "itching",
+    "skin_rash"
+  ]
+}
+Response Status: HTTP 401
+Response Body: {
+  "detail": "Missing internal service authentication token."
+}
+--------------------------------------------------------------------------------
+[PROBE] Unauthenticated Call to Graph AI Pipeline (:8001/analyze) -> 401
+Request: POST http://127.0.0.1:8001/analyze
+Payload: {
+  "symptoms": [
+    "itching",
+    "skin_rash"
+  ],
+  "patient_info": {
+    "age": 30,
+    "gender": "female"
+  }
+}
+Response Status: HTTP 401
+Response Body: {
+  "detail": "Missing internal service authentication token."
+}

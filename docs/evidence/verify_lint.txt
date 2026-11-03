@@ -1,0 +1,60 @@
+﻿All checks passed!
+
+> techathon-3.0@1.0.0 lint
+> eslint src/
+
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\admin.controller.js
+  158:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\consultation.controller.js
+   17:3   warning  'getJobStatus' is defined but never used             no-unused-vars
+  392:11  warning  'idempotencyKey' is assigned a value but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\doctor.controller.js
+  258:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\worker.controller.js
+  244:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runProbes.js
+   18:8  warning  'Admin' is defined but never used                 no-unused-vars
+  151:9  warning  'doc1Token' is assigned a value but never used    no-unused-vars
+  165:9  warning  'admin1Token' is assigned a value but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage1Probes.js
+  16:8  warning  'Consultation' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage2Probes.js
+  11:8  warning  'jwt' is defined but never used    no-unused-vars
+  13:8  warning  'ROLES' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage3Probes.js
+  49:10  warning  'redactBody' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\run_load_test.js
+  58:16  warning  '_err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\testWorkerKill.js
+  10:7  warning  '__dirname' is assigned a value but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\consultation.service.js
+  364:59  warning  'diagnosisConfirmed' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\patient.service.js
+  4:8  warning  'crypto' is defined but never used        no-unused-vars
+  5:8  warning  'serverConfig' is defined but never used  no-unused-vars
+
+✖ 17 problems (0 errors, 17 warnings)
+
+node.exe : npm notice
+At C:\Program Files\nodejs\npm.ps1:29 char:3
++   & $NODE_EXE $NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm notice New major version of npm available! 10.9.2 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

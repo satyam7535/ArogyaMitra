@@ -1,0 +1,58 @@
+================================================================================
+AROGYAMITRA EVIDENCE — PHASE P3.7 REAL WORKER-KILL MID-JOB & LEASE RECLAMATION
+Date: 2026-10-31T07:40:25.453533+00:00
+Git Commit: fa04225 (working tree: dirty)
+Command: docker exec arogya-backend node src/scripts/testWorkerKill.js
+================================================================================
+
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+================================================================================
+AROGYAMITRA — P3.7 REAL WORKER-KILL MID-JOB & LEASE EXPIRY RECLAMATION TEST
+Date: 2026-10-31T07:40:26.780Z
+Database: mongodb://mongo:27017/arogyamitra
+================================================================================
+
+[STEP 1] Enqueuing real analysis job in MongoDB...
+[+] Enqueued job: job_kill_live_1793432426869 (status: queued)
+
+[STEP 2] Spawning Worker Process 1 (PID to be killed mid-job)...
+[+] Worker 1 started with PID: 124
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[+] Worker 1 (worker-proc-alpha) atomically claimed job job_kill_live_1793432426869
+[+] Lease granted: 2000ms. Job status in DB is 'processing'.
+[AUDIT] In-database state: status='processing', lockedBy='worker-proc-alpha', attempts=1
+
+[STEP 3] Issuing SIGKILL to Worker Process 1 (PID 124) mid-job...
+[+] process.kill(124, 'SIGKILL') returned: true
+[+] Worker 1 successfully terminated by OS (signal: SIGKILL, code: null)
+
+[STEP 4] Concurrency check: Worker 2 attempts claim while lease is active...
+[+] Early claim result: NULL (Lock strictly held by active lease)
+
+[STEP 5] Waiting 2200ms for Worker 1's lease to expire...
+[+] Lease expired status: true (leaseExpiresAt: 2026-10-31T07:40:30.485Z)
+
+[STEP 6] Worker 2 claims next job: sweeping abandoned/expired processing jobs...
+[+] Worker 2 successfully reclaimed job: job_kill_live_1793432426869
+[+] New lock owner: 'worker-proc-beta' (attempts incremented to: 2)
+
+[STEP 7] Worker 2 completes processing and saves final result...
+
+================================================================================
+FINAL AUDIT & CONSISTENCY VERIFICATION
+================================================================================
+Job ID:            job_kill_live_1793432426869
+Final Status:      completed
+Final Locked By:   worker-proc-beta
+Total Attempts:    2 (1 before crash + 1 after recovery)
+Primary Diagnosis: Malaria (Confidence: 0.994)
+Total DB Records:  1 (Strictly exactly 1 result, 0 duplicates)
+
+RESULT: VERIFIED — Real worker-kill mid-job and lease expiry reclamation passed.
+(node:124) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:107) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:107) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.

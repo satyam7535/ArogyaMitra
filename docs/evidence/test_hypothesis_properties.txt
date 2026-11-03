@@ -1,0 +1,16 @@
+=== COMMAND: uv run pytest ML_Model/tests/test_hypothesis_properties.py -v ===
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
+collecting ... collected 4 items
+
+ML_Model/tests/test_hypothesis_properties.py::test_hypothesis_probability_normalization_and_bounds PASSED [ 25%]
+ML_Model/tests/test_hypothesis_properties.py::test_hypothesis_bayesian_mathematical_additivity PASSED [ 50%]
+ML_Model/tests/test_hypothesis_properties.py::test_hypothesis_empty_symptom_rejection PASSED [ 75%]
+ML_Model/tests/test_hypothesis_properties.py::test_hypothesis_unrecognized_symptoms_rejection PASSED [100%]
+
+============================== 4 passed in 6.61s ==============================

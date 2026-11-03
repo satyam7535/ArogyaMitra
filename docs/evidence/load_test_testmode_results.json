@@ -1,0 +1,215 @@
+{
+  "benchmark_metadata": {
+    "reqs_per_endpoint": 200,
+    "endpoints_tested": [
+      "health",
+      "worker_list",
+      "submit_triage",
+      "doctor_respond"
+    ],
+    "total_requests_per_level": 800
+  },
+  "benchmark_results": [
+    {
+      "concurrency": 1,
+      "reqs_per_endpoint": 200,
+      "total_requests": 800,
+      "duration_s": 78.79,
+      "throughput_rps": 10.2,
+      "latencies_ms": {
+        "p50": 79.3,
+        "p90": 148.9,
+        "p95": 190.6,
+        "p99": 317.4
+      },
+      "status_codes": {
+        "200": 800
+      },
+      "failures": {
+        "bad_request_400": 0,
+        "auth_401": 0,
+        "rate_limit_429": 0,
+        "server_5xx": 0,
+        "exceptions": 0
+      },
+      "endpoints": {
+        "doctor_respond": {
+          "p50_ms": 73.0,
+          "p90_ms": 116.8,
+          "p95_ms": 128.6,
+          "p99_ms": 244.2,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "health": {
+          "p50_ms": 61.5,
+          "p90_ms": 88.5,
+          "p95_ms": 93.9,
+          "p99_ms": 131.7,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "submit_triage": {
+          "p50_ms": 135.4,
+          "p90_ms": 256.3,
+          "p95_ms": 299.2,
+          "p99_ms": 392.4,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "worker_list": {
+          "p50_ms": 76.2,
+          "p90_ms": 117.9,
+          "p95_ms": 130.3,
+          "p99_ms": 152.0,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        }
+      }
+    },
+    {
+      "concurrency": 10,
+      "reqs_per_endpoint": 200,
+      "total_requests": 800,
+      "duration_s": 57.74,
+      "throughput_rps": 13.9,
+      "latencies_ms": {
+        "p50": 500.7,
+        "p90": 1530.1,
+        "p95": 1952.3,
+        "p99": 2548.2
+      },
+      "status_codes": {
+        "200": 800
+      },
+      "failures": {
+        "bad_request_400": 0,
+        "auth_401": 0,
+        "rate_limit_429": 0,
+        "server_5xx": 0,
+        "exceptions": 0
+      },
+      "endpoints": {
+        "doctor_respond": {
+          "p50_ms": 474.3,
+          "p90_ms": 765.0,
+          "p95_ms": 856.6,
+          "p99_ms": 1286.7,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "health": {
+          "p50_ms": 354.3,
+          "p90_ms": 637.7,
+          "p95_ms": 717.2,
+          "p99_ms": 1135.1,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "submit_triage": {
+          "p50_ms": 1349.2,
+          "p90_ms": 2274.1,
+          "p95_ms": 2443.5,
+          "p99_ms": 2863.4,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "worker_list": {
+          "p50_ms": 417.7,
+          "p90_ms": 701.2,
+          "p95_ms": 779.4,
+          "p99_ms": 1255.3,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        }
+      }
+    },
+    {
+      "concurrency": 50,
+      "reqs_per_endpoint": 200,
+      "total_requests": 800,
+      "duration_s": 54.31,
+      "throughput_rps": 14.7,
+      "latencies_ms": {
+        "p50": 2428.4,
+        "p90": 5057.2,
+        "p95": 5862.8,
+        "p99": 8087.4
+      },
+      "status_codes": {
+        "200": 800
+      },
+      "failures": {
+        "bad_request_400": 0,
+        "auth_401": 0,
+        "rate_limit_429": 0,
+        "server_5xx": 0,
+        "exceptions": 0
+      },
+      "endpoints": {
+        "doctor_respond": {
+          "p50_ms": 2183.6,
+          "p90_ms": 4462.1,
+          "p95_ms": 5269.6,
+          "p99_ms": 6676.6,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "health": {
+          "p50_ms": 2412.6,
+          "p90_ms": 4734.2,
+          "p95_ms": 5576.5,
+          "p99_ms": 8168.2,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "submit_triage": {
+          "p50_ms": 3050.5,
+          "p90_ms": 6242.4,
+          "p95_ms": 6729.9,
+          "p99_ms": 9930.8,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        },
+        "worker_list": {
+          "p50_ms": 2295.1,
+          "p90_ms": 4834.6,
+          "p95_ms": 5468.1,
+          "p99_ms": 7047.0,
+          "count": 200,
+          "status": {
+            "200": 200
+          }
+        }
+      }
+    }
+  ],
+  "latency_profiling": {
+    "avg_ml_ms": 1.8,
+    "avg_pdf_ms": 63.0,
+    "avg_e2e_ms": 125.0,
+    "overhead_ms": 60.2
+  }
+}

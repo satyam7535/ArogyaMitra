@@ -1,0 +1,13 @@
+﻿# EVIDENCE RECORD: P6.7 Python pip-audit Vulnerability Scan
+# COMMAND: uv run pip-audit (Targeting local .venv Python environment)
+# DATE: 2026-10-31T08:53:20Z
+# COMMIT: addf510d4959e64414ccb8a27917654b32a45b14
+# STATUS: DIRTY
+# -------------------------------------------------------------
+uv : No known vulnerabilities found
+At line:16 char:1
++ uv run pip-audit 2>&1 | Out-File -Append -FilePath docs/evidence/pip_ ...
++ ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (No known vulnerabilities found:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

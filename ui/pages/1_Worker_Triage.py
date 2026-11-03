@@ -1,19 +1,25 @@
 """
 ArogyaMitra — Community Health Worker Triage Interface
 Enables village health workers to register patient vitals, select presenting symptoms,
-trigger calibrated AI analysis, inspect TreeSHAP explainability, and escalate to doctors.
+trigger AI analysis, inspect Bayesian evidence weights, and escalate to doctors.
 """
 
-import streamlit as st
 import base64
 import os
 import sys
 
+import streamlit as st
+
 # Ensure ui and project root are in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from utils.api_client import (
+    get_clinical_symptoms,
+    get_worker_consultations,
+    run_triage_analysis,
+    submit_consultation,
+)
 from utils.i18n import t
-from utils.api_client import get_clinical_symptoms, run_triage_analysis
 from utils.viz import create_shap_waterfall_or_bar, create_top_predictions_chart
 
 st.set_page_config(
@@ -23,6 +29,25 @@ st.set_page_config(
 )
 
 lang = st.session_state.get("lang", "en")
+token = st.session_state.get("token")
+user = st.session_state.get("user") or {}
+
+# Auto-provision active session for frontline clinical testing if not already logged in
+if not token and not st.session_state.get("login_failed"):
+    try:
+        from utils.api_client import login_user
+        auth_res = login_user("worker@arogyamitra.gov.in", "Worker@Arogya2026!", "Worker")
+        if auth_res.get("success"):
+            st.session_state["token"] = auth_res["accessToken"]
+            st.session_state["user"] = auth_res["user"]
+            st.session_state["role"] = auth_res["role"]
+            token = auth_res["accessToken"]
+            user = auth_res["user"]
+        else:
+            st.session_state["login_failed"] = True
+    except Exception:
+        st.session_state["login_failed"] = True
+
 
 st.title(f"👩‍⚕️ {t('nav_triage', lang)}")
 st.caption("Primary Health Centre Community Outreach & Triage Workstation")
@@ -45,37 +70,74 @@ with col3:
 with col4:
     patient_location = st.text_input(t("patient_location", lang), value="Khed Sub-Centre, Pune")
 
+with st.expander("🛡️ DPDP Act (2023) Patient Consent & Rights"):
+    st.markdown("Patients retain the statutory right under India's Digital Personal Data Protection Act (DPDP 2023, Section 6) to withdraw consent at any time.")
+    c_dpdp1, c_dpdp2 = st.columns(2)
+    with c_dpdp1:
+        if st.button("🚫 Withdraw Patient Consent", type="secondary", use_container_width=True, key="btn_withdraw_consent"):
+            st.warning("⚠️ Patient consent withdrawn. AI triage and automated data processing are immediately suspended for this record.")
+            st.session_state["consent_withdrawn"] = True
+    with c_dpdp2:
+        if st.session_state.get("consent_withdrawn"):
+            st.error("Status: 🔴 Consent Withdrawn (Processing Refused)")
+        else:
+            st.success("Status: 🟢 Active DPDP Consent on File (Notice v1.0, En)")
+
 # ── 2. Symptom Selection ─────────────────────────────────────────────────────
 st.markdown(f"### 🩺 {t('symptoms_title', lang)}")
 
 # Quick presets for fast clinical demonstration
 st.markdown("**Quick Preset Clinical Cases:**")
 preset_cols = st.columns(4)
+if "preset_counter" not in st.session_state:
+    st.session_state["preset_counter"] = 0
+
+def clear_triage_banners():
+    st.session_state.pop("accept_msg", None)
+    st.session_state.pop("escalate_msg", None)
+    st.session_state.pop("submit_error", None)
+    st.session_state.pop("worker_override_note", None)
+
 selected_preset = None
 with preset_cols[0]:
     if st.button("🟡 Jaundice / Liver Case", use_container_width=True):
+        clear_triage_banners()
+        st.session_state.pop("triage_results", None)
         selected_preset = ["itching", "vomiting", "fatigue", "yellowish_skin", "dark_urine"]
+        st.session_state["preset_counter"] += 1
 with preset_cols[1]:
     if st.button("🦟 Malaria / Fever Case", use_container_width=True):
+        clear_triage_banners()
+        st.session_state.pop("triage_results", None)
         selected_preset = ["chills", "vomiting", "high_fever", "sweating", "headache"]
+        st.session_state["preset_counter"] += 1
 with preset_cols[2]:
-    if st.button("🫁 Bronchial / Respiratory", use_container_width=True):
-        selected_preset = ["cough", "high_fever", "breathlessness", "chest_pain"]
+    if st.button("🚨 Cardiac Emergency (Red Flag)", use_container_width=True):
+        clear_triage_banners()
+        st.session_state.pop("triage_results", None)
+        selected_preset = ["chest_pain", "breathlessness", "sweating"]
+        st.session_state["preset_counter"] += 1
 with preset_cols[3]:
     if st.button("🧴 Fungal Skin Case", use_container_width=True):
+        clear_triage_banners()
+        st.session_state.pop("triage_results", None)
         selected_preset = ["itching", "skin_rash", "nodal_skin_eruptions"]
+        st.session_state["preset_counter"] += 1
 
 all_symptoms_data = get_clinical_symptoms()
 symptom_ids = [s["id"] for s in all_symptoms_data]
 
-default_symptoms = selected_preset or st.session_state.get("triage_symptoms", ["itching", "skin_rash", "nodal_skin_eruptions"])
-if selected_preset:
+if selected_preset is not None:
     st.session_state["triage_symptoms"] = selected_preset
+    default_symptoms = selected_preset
+else:
+    default_symptoms = st.session_state.get("triage_symptoms", ["itching", "skin_rash", "nodal_skin_eruptions"])
 
 selected_symptoms = st.multiselect(
     t("select_symptoms", lang),
     options=symptom_ids,
     default=default_symptoms,
+    key=f"symptoms_ms_{st.session_state['preset_counter']}",
     format_func=lambda s: s.replace("_", " ").title(),
 )
 
@@ -83,6 +145,11 @@ st.divider()
 
 # ── 3. Run Analysis ──────────────────────────────────────────────────────────
 if st.button(f"🔍 {t('run_analysis', lang)}", type="primary", use_container_width=True):
+    clear_triage_banners()
+    st.session_state.pop("triage_results", None)
+    if st.session_state.get("consent_withdrawn"):
+        st.error("🚨 DPDP Act (2023) Refusal: Patient consent is inactive or has been withdrawn. Processing refused under Section 6.")
+        st.stop()
     if not selected_symptoms:
         st.error("Please select at least one clinical symptom to evaluate.")
     else:
@@ -92,15 +159,34 @@ if st.button(f"🔍 {t('run_analysis', lang)}", type="primary", use_container_wi
                 "age": patient_age,
                 "gender": patient_gender,
                 "location": patient_location,
-                "workerName": "Sunita Patil (ASHA Worker)",
+                "workerName": user.get("name", "Sunita Patil (ASHA Worker)"),
             }
-            results = run_triage_analysis(selected_symptoms, patient_info, language=lang)
+            results = run_triage_analysis(selected_symptoms, patient_info, language=lang, token=token)
             st.session_state["triage_results"] = results
             st.session_state["triage_patient"] = patient_info
+            st.session_state["triage_symptoms"] = selected_symptoms
 
 # ── 4. Render Results ────────────────────────────────────────────────────────
 if "triage_results" in st.session_state:
     results = st.session_state["triage_results"]
+    patient_info = st.session_state.get("triage_patient", {
+        "name": patient_name,
+        "age": patient_age,
+        "gender": patient_gender,
+        "location": patient_location,
+        "workerName": user.get("name", "Sunita Patil (ASHA Worker)"),
+    })
+    curr_symptoms = st.session_state.get("triage_symptoms", selected_symptoms)
+    if results.get("sessionExpired") or results.get("statusCode") == 401:
+        st.session_state["token"] = None
+        st.session_state.pop("triage_results", None)
+        st.error("🚨 **Session Expired:** Your session expired. Please sign in again.")
+        st.stop()
+    elif results.get("modelUnavailable") or not results.get("success", True):
+        st.error(f"🚨 **AI Prediction Service Unavailable (HTTP {results.get('statusCode', 503)}):** {results.get('error', 'Prediction service is currently unreachable.')}")
+        st.warning("⚠️ ArogyaMitra enforces fail-closed clinical safety: no diagnostic assessment or clinical advice will be generated while upstream services are down. Please verify connectivity or escalate directly to a Medical Officer.")
+        st.stop()
+
     ml = results.get("mlResult", {})
     llm = results.get("llmResult", {})
     pdf_base64 = results.get("pdfBase64", "")
@@ -108,12 +194,43 @@ if "triage_results" in st.session_state:
 
     st.markdown(f"## 📊 {t('results_title', lang)}")
 
-    # Auto-Escalation Alert Banner
-    if ml.get("needsEscalation", False):
-        reason = ml.get("uncertaintyReason", "Clinical threshold exceeded")
+    if "escalate_msg" in st.session_state:
+        st.warning(st.session_state.pop("escalate_msg"))
+    if "accept_msg" in st.session_state:
+        st.success(st.session_state.pop("accept_msg"))
+
+    # Red-Flag Emergency Banner (Decision A Requirement)
+    if ml.get("redFlag"):
+        rf_details = ml.get("redFlagDetails", [])
+        clinical_rationales = {
+            "chest_pain": "potential acute coronary syndrome / cardiac emergency",
+            "coma": "severe depression of consciousness / acute neurological crisis",
+            "breathlessness": "acute respiratory distress / pulmonary decompensation",
+            "blood_in_sputum": "hemoptysis / active pulmonary hemorrhage",
+            "bloody_stool": "hematochezia / acute gastrointestinal hemorrhage",
+            "loss_of_balance": "acute ataxia / potential ischemic stroke",
+            "fast_heart_rate": "hemodynamically unstable tachyarrhythmia or severe sepsis",
+        }
+        reasons_list = []
+        for r in rf_details:
+            sym = r.get("symptom", "unknown")
+            sym_clean = sym.replace("_", " ").title()
+            cat = r.get("category")
+            rat = r.get("clinical_rationale") or clinical_rationales.get(sym) or (cat if cat and cat != "None" else None)
+            if rat:
+                reasons_list.append(f"{sym_clean} ({rat})")
+            else:
+                reasons_list.append(sym_clean)
+        reasons_str = "; ".join(reasons_list) if reasons_list else "Critical emergency presentation"
         st.error(
-            f"🚨 **{t('escalation_alert', lang)}:** The model confidence is low or clinical severity is high. "
-            f"Mandatory second opinion escalation recommended. (Reason: `{reason}`)"
+            f"🚨 **CRITICAL RED-FLAG ALERT (EMERGENCY REFERRAL REQUIRED):** {reasons_str}. "
+            "Case automatically escalated with highest clinical priority. Do not delay hospital transport."
+        )
+    elif ml.get("needsEscalation", False):
+        reason = ml.get("uncertaintyReason", "Clinical threshold exceeded")
+        st.warning(
+            f"⚠️ **{t('escalation_alert', lang)}:** The model confidence is low or clinical severity is high. "
+            f"Physician second opinion review recommended. (Reason: `{reason}`)"
         )
 
     # Top Metric Tiles
@@ -124,19 +241,28 @@ if "triage_results" in st.session_state:
             value=ml.get("disease", "Unknown"),
         )
     with m2:
-        conf_pct = round(float(ml.get("confidence", 0.0)) * 100, 1)
-        st.metric(
-            label=t("confidence", lang),
-            value=f"{conf_pct}%",
-            delta="High Certainty" if conf_pct >= 80 else ("Moderate" if conf_pct >= 50 else "-Low Certainty"),
-        )
+        raw_conf = float(ml.get("confidence", 0.0))
+        conf_pct = round(raw_conf * 100, 1)
+        if raw_conf >= 0.99 or conf_pct >= 99.0:
+            st.metric(
+                label=t("confidence", lang),
+                value="Very high (uncalibrated estimate)",
+                help=f"Raw model estimate: {conf_pct}%. Note: Model scores are uncalibrated and should not be interpreted as posterior probabilities.",
+            )
+        else:
+            st.metric(
+                label=t("confidence", lang),
+                value=f"{conf_pct}%",
+                delta="Estimate, not clinical probability",
+                delta_color="off",
+            )
     with m3:
-        sev = ml.get("severityScore", 1.0)
+        avg_sev = ml.get("severityScore", 1.0)
         st.metric(
-            label=t("severity", lang),
-            value=f"{sev} / 5.0",
-            delta="High Risk" if sev >= 3.5 else "Standard",
-            delta_color="inverse" if sev >= 3.5 else "normal",
+            label="Average Severity",
+            value=f"{avg_sev:.1f} / 7.0",
+            delta="High Risk" if avg_sev >= 4.0 else "Standard",
+            delta_color="inverse" if avg_sev >= 4.0 else "normal",
         )
     with m4:
         st.metric(
@@ -145,12 +271,13 @@ if "triage_results" in st.session_state:
         )
 
     st.markdown("---")
+    st.caption("ℹ️ **Methodological Context:** Bernoulli Naive Bayes decision-support estimate on curated reference dataset. Assumes conditional symptom independence. Probabilities represent statistical classifier weights, not clinical morbidity risks.")
 
-    # Visualizations: TreeSHAP Bar & Differential Probabilities
+    # Visualizations: Bayesian Evidence Bar & Differential Probabilities
     c_left, c_right = st.columns([3, 2])
     with c_left:
         st.markdown(f"#### 🔍 {t('shap_chart_title', lang)}")
-        st.caption(t("shap_chart_desc", lang))
+        st.caption("Exact Bayesian log-odds feature contributions for presenting symptoms:")
         shap_fig = create_shap_waterfall_or_bar(
             ml.get("shapExplanation", []),
             primary_disease=ml.get("disease", "Condition")
@@ -178,8 +305,11 @@ if "triage_results" in st.session_state:
         if referral:
             st.markdown(f"**Referral Advice:** {referral}")
 
-        if llm.get("llmFallback"):
-            st.caption("ℹ️ *Generated by Deterministic Clinical Fallback Engine (Safe Mode).*")
+        if llm.get("llmFallback", True):
+            st.info("📋 **Provenance:** Standard Decision-Support Template (Deterministic Safe Mode)")
+        else:
+            model_name = llm.get("model_used") or "Google Gemini"
+            st.success(f"✨ **Provenance:** AI-Generated Clinical Summary ({model_name})")
 
     with prec_col:
         st.markdown(f"#### 🛡️ {t('precautions_title', lang)}")
@@ -193,14 +323,110 @@ if "triage_results" in st.session_state:
     st.markdown("---")
 
     # Action Buttons: Accept / Escalate / Download PDF
+    is_red_flag = bool(ml.get("redFlag"))
+    needs_escalation = bool(ml.get("needsEscalation"))
+
+    if is_red_flag:
+        st.error("🚨 **RED FLAG DETECTED (HTTP 409):** Direct accept is strictly blocked. Clinical red flags require immediate escalation to a Medical Officer or referral to an emergency hospital facility.")
+    elif needs_escalation:
+        st.warning("⚠️ **ESCALATION RECOMMENDED:** This presentation suggests secondary referral. If accepting locally, Decision B clinical override criteria (canonical reason + minimum 10-character clinical note) are required.")
+        with st.expander("📝 Decision B Clinical Override Form", expanded=True):
+            CANONICAL_OVERRIDE_REASONS = [
+                "patient_improved",
+                "referred_in_person",
+                "doctor_unreachable",
+                "patient_declined_referral",
+                "other"
+            ]
+            sel_reason = st.selectbox(
+                "Clinical Override Reason (Required)",
+                options=CANONICAL_OVERRIDE_REASONS,
+                format_func=lambda r: {
+                    "patient_improved": "Patient condition improved substantially",
+                    "referred_in_person": "Patient physically referred to nearby CHC/hospital",
+                    "doctor_unreachable": "Medical officer unreachable after multiple attempts",
+                    "patient_declined_referral": "Patient declined institutional referral",
+                    "other": "Other documented clinical justification",
+                }.get(r, r),
+                key="worker_override_reason"
+            )
+            override_note = st.text_area(
+                "Clinical Override Justification Note (Min 10 non-whitespace characters)",
+                placeholder="Document clinical rationale for local management without MO second opinion...",
+                key="worker_override_note"
+            )
+
     act_col1, act_col2, act_col3 = st.columns(3)
     with act_col1:
-        if st.button(f"✅ {t('accept_decision', lang)}", use_container_width=True):
-            st.success("Triage consultation finalized and saved to patient record.")
+        if is_red_flag:
+            st.button(f"🚫 {t('accept_decision', lang)} (Blocked)", disabled=True, use_container_width=True)
+        elif needs_escalation:
+            if st.button(f"✅ {t('accept_decision', lang)} (With Override)", use_container_width=True):
+                note_clean = (st.session_state.get("worker_override_note") or "").strip()
+                if len(note_clean) < 10:
+                    st.error("Validation Error: Clinical override note must contain at least 10 non-whitespace characters.")
+                else:
+                    sub_res = submit_consultation(
+                        patient_info=patient_info,
+                        symptoms=curr_symptoms,
+                        token=token,
+                        worker_decision="accepted",
+                        override_reason=st.session_state.get("worker_override_reason"),
+                        override_note=note_clean,
+                        ml_analysis=ml,
+                        llm_analysis=llm,
+                    )
+                    if sub_res.get("success"):
+                        st.session_state["accept_msg"] = f"Consultation accepted under Decision B override: '{st.session_state.get('worker_override_reason')}' recorded."
+                        st.session_state["worker_page"] = 1
+                        st.rerun()
+                    else:
+                        err_code = sub_res.get("statusCode")
+                        err_str = str(sub_res.get("error", ""))
+                        if err_code == 409 or "409" in err_str or "red flag" in err_str.lower() or "conflict" in err_str.lower():
+                            st.error("Emergency: cannot accept without a doctor.")
+                        else:
+                            st.error(f"Failed to submit consultation: {err_str}")
+        else:
+            if st.button(f"✅ {t('accept_decision', lang)}", use_container_width=True):
+                sub_res = submit_consultation(
+                    patient_info=patient_info,
+                    symptoms=curr_symptoms,
+                    token=token,
+                    worker_decision="accepted",
+                    ml_analysis=ml,
+                    llm_analysis=llm,
+                )
+                if sub_res.get("success"):
+                    st.session_state["accept_msg"] = "Triage consultation finalized and saved to patient record."
+                    st.session_state["worker_page"] = 1
+                    st.rerun()
+                else:
+                    err_code = sub_res.get("statusCode")
+                    err_str = str(sub_res.get("error", ""))
+                    if err_code == 409 or "409" in err_str or "red flag" in err_str.lower() or "conflict" in err_str.lower():
+                        st.error("Emergency: cannot accept without a doctor.")
+                    else:
+                        st.error(f"Failed to submit consultation: {err_str}")
 
     with act_col2:
         if st.button(f"🚨 {t('escalate_decision', lang)}", type="primary", use_container_width=True):
-            st.warning("Case successfully escalated to Medical Officer for second opinion.")
+            esc_reason = ml.get("uncertaintyReason") or "Clinical second opinion requested"
+            sub_res = submit_consultation(
+                patient_info=patient_info,
+                symptoms=curr_symptoms,
+                token=token,
+                worker_decision="escalated",
+                escalation_reason=esc_reason,
+                ml_analysis=ml,
+                llm_analysis=llm,
+            )
+            if sub_res.get("success"):
+                st.session_state["escalate_msg"] = "Case successfully escalated to Medical Officer for second opinion."
+                st.session_state["worker_page"] = 1
+                st.rerun()
+            else:
+                st.error(f"Failed to escalate consultation: {sub_res.get('error')}")
 
     with act_col3:
         if pdf_base64:
@@ -214,3 +440,54 @@ if "triage_results" in st.session_state:
             )
         else:
             st.button(f"📄 {t('download_pdf', lang)}", disabled=True, use_container_width=True)
+
+
+# ── 4. Patient Consultation Records (Paginated) ──────────────────────────────
+st.markdown("---")
+st.markdown("### 📂 Recent Consultation Records (Paginated)")
+st.caption("Browse patient consultation history with server-side pagination and projection.")
+
+if "worker_page" not in st.session_state:
+    st.session_state["worker_page"] = 1
+
+page_limit = 5
+consult_data = get_worker_consultations(token, page=st.session_state["worker_page"], limit=page_limit) if token else {}
+consult_list = consult_data.get("consultations", [])
+total_count = consult_data.get("total", len(consult_list))
+total_pages = consult_data.get("totalPages", max(1, (total_count + page_limit - 1) // page_limit))
+curr_page = st.session_state["worker_page"]
+
+# Pagination controls
+c_prev, c_info, c_next = st.columns([1, 3, 1])
+with c_prev:
+    if st.button("⬅️ Previous Page", key="btn_prev_page", disabled=(curr_page <= 1), use_container_width=True):
+        st.session_state["worker_page"] = max(1, curr_page - 1)
+        st.rerun()
+with c_info:
+    st.markdown(f"<div style='text-align: center; padding-top: 8px; font-weight: bold;'>Page {curr_page} of {total_pages} (Total: {total_count} consultations)</div>", unsafe_allow_html=True)
+with c_next:
+    if st.button("Next Page ➡️", key="btn_next_page", disabled=(curr_page >= total_pages), use_container_width=True):
+        st.session_state["worker_page"] = min(total_pages, curr_page + 1)
+        st.rerun()
+
+if consult_list:
+    import pandas as pd
+    rows = []
+    for c in consult_list:
+        pt = c.get("patient") or {}
+        ml_res = c.get("mlAnalysis") or {}
+        sec_op = c.get("secondOpinion") or {}
+        doc_reply = sec_op.get("recommendation") or sec_op.get("prescription") or "-"
+        rows.append({
+            "Patient": pt.get("name", "N/A"),
+            "Age/Gender": f"{pt.get('age', '-')}/{pt.get('gender', '-')}",
+            "Primary Diagnosis": ml_res.get("disease", "Pending"),
+            "Status": c.get("status", "draft"),
+            "Outcome": c.get("decisionOutcome", "none"),
+            "Doctor Reply": doc_reply,
+            "Created": str(c.get("createdAt", ""))[:19].replace("T", " ")
+        })
+    df = pd.DataFrame(rows)
+    st.dataframe(df, use_container_width=True, hide_index=True)
+else:
+    st.info("No consultation records found on this page.")

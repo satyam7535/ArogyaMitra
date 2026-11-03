@@ -1,0 +1,51 @@
+# Command: python scripts/test_p0_golden_set.py
+# Date: 2026-11-03T18:45:38.047019+00:00
+# Git Commit: bd5248fd239a1ae6edfcb9029e1fcc136c1ab4ac (dirty)
+# Ingress Target: https://localhost
+# Status: RUNNING
+
+=== Step 1: Worker Authentication ===
+PASS: Worker authenticated successfully. Token length: 248
+
+=== Step 2: Anti-Mock Check (2 Different Symptom Sets Must Differ) ===
+Set A (Malaria symptoms) -> Predicted: 'Malaria', Confidence: 0.994
+Set B (Fungal symptoms)  -> Predicted: 'Fungal infection', Confidence: 0.9844
+PASS: Both symptom sets returned correct, distinct live predictions. Anti-mock test PASSED.
+
+=== Step 3: 20 Golden Cases & Boundary Validation ===
+[CASE-01] PASS: Fungal infection Case in 5.59s | Pred: 'Fungal infection' (Conf: 0.9844) | PDF bytes: 9660 | In 41-class vocab: True
+[CASE-02] PASS: Allergy Case in 16.202s | Pred: 'Allergy' (Conf: 0.9999) | PDF bytes: 9340 | In 41-class vocab: True
+[CASE-03] PASS: GERD Case in 5.405s | Pred: 'GERD' (Conf: 0.9999) | PDF bytes: 9896 | In 41-class vocab: True
+[CASE-04] PASS: Chronic cholestasis Case in 5.406s | Pred: 'Chronic cholestasis' (Conf: 0.9988) | PDF bytes: 10048 | In 41-class vocab: True
+[CASE-05] PASS: Peptic ulcer disease Case in 10.98s | Pred: 'Peptic ulcer diseae' (Conf: 0.9999) | PDF bytes: 9796 | In 41-class vocab: True
+[CASE-06] PASS: AIDS Case in 4.755s | Pred: 'AIDS' (Conf: 1) | PDF bytes: 9980 | In 41-class vocab: True
+[CASE-07] PASS: Diabetes Case in 8.116s | Pred: 'Diabetes' (Conf: 1) | PDF bytes: 10160 | In 41-class vocab: True
+[CASE-08] PASS: Gastroenteritis Case in 5.408s | Pred: 'Gastroenteritis' (Conf: 1) | PDF bytes: 10120 | In 41-class vocab: True
+[CASE-09] PASS: Bronchial Asthma Case in 5.975s | Pred: 'Bronchial Asthma' (Conf: 1) | PDF bytes: 10404 | In 41-class vocab: True
+[CASE-10] PASS: Hypertension Case in 6.716s | Pred: 'Hypertension' (Conf: 1) | PDF bytes: 10412 | In 41-class vocab: True
+[CASE-11] PASS: Migraine Case in 5.244s | Pred: 'Migraine' (Conf: 1) | PDF bytes: 10008 | In 41-class vocab: True
+[CASE-12] PASS: Cervical spondylosis Case in 5.292s | Pred: 'Cervical spondylosis' (Conf: 0.9992) | PDF bytes: 10396 | In 41-class vocab: True
+[CASE-13] PASS: Paralysis (brain hemorrhage) Case in 5.457s | Pred: 'Paralysis (brain hemorrhage)' (Conf: 0.9997) | PDF bytes: 10208 | In 41-class vocab: True
+[CASE-14] PASS: Jaundice Case in 10.383s | Pred: 'Jaundice' (Conf: 1) | PDF bytes: 10228 | In 41-class vocab: True
+[CASE-15] PASS: Malaria Case in 6.992s | Pred: 'Malaria' (Conf: 1) | PDF bytes: 10336 | In 41-class vocab: True
+[CASE-16] PASS: Chicken pox Case in 8.307s | Pred: 'Chicken pox' (Conf: 1) | PDF bytes: 10384 | In 41-class vocab: True
+[CASE-17] PASS: Dengue Case in 4.608s | Pred: 'Dengue' (Conf: 1) | PDF bytes: 11132 | In 41-class vocab: True
+[CASE-18] PASS: Typhoid Case in 6.737s | Pred: 'Typhoid' (Conf: 1) | PDF bytes: 11076 | In 41-class vocab: True
+[CASE-19] PASS: hepatitis A Case in 7.155s | Pred: 'hepatitis A' (Conf: 1) | PDF bytes: 11952 | In 41-class vocab: True
+[CASE-20] PASS: Hepatitis B Case in 6.842s | Pred: 'Hepatitis B' (Conf: 1) | PDF bytes: 12264 | In 41-class vocab: True
+
+PASS: All 20 Golden Set test cases predicted accurately within the 41-class boundary with valid PDFs.
+
+=== Step 4: Upstream Outage Test (Fail-Closed HTTP 503) ===
+Temporarily stopping container 'arogya-ml'...
+Response with ML stopped: HTTP 503
+PASS: Upstream outage returned HTTP 503 MODEL_UNAVAILABLE as expected.
+Restarting container 'arogya-ml'...
+PASS: arogya-ml container restored and healthy.
+
+=== Step 5: Stale-State Isolation Check ===
+First Call: 'Fungal infection', Second Call: 'Malaria'
+PASS: No state bleed or caching between subsequent requests.
+
+# Status: VERIFIED
+# All P0 Docker verification tests passed cleanly.

@@ -1,0 +1,99 @@
+﻿# Command: Nginx TLS & Ingress Isolation Verification Probes
+# Date: 2026-10-29 17:10:28 +05:30
+# Git Commit: 2f28743
+# Tool Version: curl 8.13.0 (Windows) libcurl/8.13.0 Schannel zlib/1.3.1 WinIDN
+
+
+--- Probe 1: HTTP Port 80 -> HTTPS Port 443 Redirect ---
+HTTP/1.1 301 Moved Permanently
+Server: nginx
+Date: Thu, 29 Oct 2026 11:40:28 GMT
+Content-Type: text/html
+Content-Length: 162
+Connection: keep-alive
+Location: https://localhost/
+
+
+--- Probe 2: HTTPS Frontend Ingress (Port 443 with TLS Security Headers) ---
+HTTP/1.1 200 OK
+Server: nginx
+Date: Thu, 29 Oct 2026 11:40:28 GMT
+Content-Type: text/html
+Content-Length: 1837
+Connection: keep-alive
+Accept-Ranges: bytes
+Etag: "dbab17a21eaa5481e5ea74ed9b2a58f9cddc1fa1c62651ba7aaaf6016c1781d9d3404eda0c9aa965c79e88d417929d1dfdda09325d0e845b3b42b7b0b6a642cd"
+Last-Modified: Thu, 29 Oct 2026 11:14:27 GMT
+Cache-Control: no-cache
+Vary: Accept-Encoding
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+
+--- Probe 3: HTTPS Backend API Health Route (/api/v1/health via Reverse Proxy) ---
+HTTP/1.1 200 OK
+Server: nginx
+Date: Thu, 29 Oct 2026 11:40:28 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 40
+Connection: keep-alive
+X-Request-Id: 1e731035-3e54-418b-8956-89f90a004445
+Content-Security-Policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin
+Access-Control-Allow-Credentials: true
+RateLimit-Policy: 150;w=60
+RateLimit-Limit: 150
+RateLimit-Remaining: 149
+RateLimit-Reset: 60
+ETag: W/"28-4kl2Qhy9a6qu68arCn8dgMcIYCE"
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+{"status":"healthy","service":"backend"}
+
+--- Probe 4: Internal Express Port Isolation (Port 5000 unreachable from host) ---
+CONFIRMED BLOCKED: Port 5000 refused/timed out (exit code 28)
+
+--- Probe 5: Internal ML Service Port Isolation (Port 8000 unreachable from host) ---
+CONFIRMED BLOCKED: Port 8000 refused/timed out (exit code 28)
+
+--- Probe 6: Internal Graph Service Port Isolation (Port 8001 unreachable from host) ---
+CONFIRMED BLOCKED: Port 8001 refused/timed out (exit code 28)
+
+--- Probe 7: Direct Unproxied Ingress to /predict Rejected ---
+HTTP/1.1 403 Forbidden
+Server: nginx
+Date: Thu, 29 Oct 2026 11:40:34 GMT
+Content-Type: application/octet-stream
+Content-Length: 56
+Connection: keep-alive
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+Direct access to internal ML microservice is forbidden.

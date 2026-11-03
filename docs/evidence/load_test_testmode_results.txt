@@ -1,0 +1,51 @@
+========================================================
+AROGYAMITRA LOAD & CONCURRENCY BENCHMARK REPORT
+========================================================
+Date: 2026-10-31
+Stack: Test Stack Compose Override (docker-compose.test.yml)
+Configuration: NODE_ENV=test, ALLOW_LOAD_TEST=true, LLM_ENABLED=false
+Target: https://localhost (Nginx Reverse Proxy Ingress)
+Scale: >=200 requests per endpoint per concurrency level (800 requests per batch)
+
+---------------------------------------------------------------------------------------------------------
+1. OVERALL BENCHMARK PERFORMANCE TABLE (200 REQ / ENDPOINT, 800 REQ / LEVEL)
+---------------------------------------------------------------------------------------------------------
+Concurrency | Total Req | Duration (s) | Throughput (req/s) | p50 (ms) | p90 (ms) | p95 (ms) | p99 (ms) | 400s | 401s | 429s | 5xx | Status Distribution
+------------|-----------|--------------|--------------------|----------|----------|----------|----------|------|------|------|-----|--------------------
+C = 1        | 800       | 78.79        | 10.2               | 79.3     | 148.9    | 190.6    | 317.4    | 0    | 0    | 0    | 0   | {200: 800}
+C = 10       | 800       | 57.74        | 13.9               | 500.7    | 1530.1   | 1952.3   | 2548.2   | 0    | 0    | 0    | 0   | {200: 800}
+C = 50       | 800       | 54.31        | 14.7               | 2428.4   | 5057.2   | 5862.8   | 8087.4   | 0    | 0    | 0    | 0   | {200: 800}
+
+---------------------------------------------------------------------------------------------------------
+2. PER-ENDPOINT LATENCY BREAKDOWN ACROSS CONCURRENCY LEVELS (p50 / p90 / p95 / p99)
+---------------------------------------------------------------------------------------------------------
+Concurrency C = 1 (200 req per endpoint):
+  - doctor_respond              : p50=73.0 ms | p90=116.8 ms | p95=128.6 ms | p99=244.2 ms (count=200, status={200: 200})
+  - health                      : p50=61.5 ms | p90=88.5 ms | p95=93.9 ms | p99=131.7 ms (count=200, status={200: 200})
+  - submit_triage               : p50=135.4 ms | p90=256.3 ms | p95=299.2 ms | p99=392.4 ms (count=200, status={200: 200})
+  - worker_list                 : p50=76.2 ms | p90=117.9 ms | p95=130.3 ms | p99=152.0 ms (count=200, status={200: 200})
+
+Concurrency C = 10 (200 req per endpoint):
+  - doctor_respond              : p50=474.3 ms | p90=765.0 ms | p95=856.6 ms | p99=1286.7 ms (count=200, status={200: 200})
+  - health                      : p50=354.3 ms | p90=637.7 ms | p95=717.2 ms | p99=1135.1 ms (count=200, status={200: 200})
+  - submit_triage               : p50=1349.2 ms | p90=2274.1 ms | p95=2443.5 ms | p99=2863.4 ms (count=200, status={200: 200})
+  - worker_list                 : p50=417.7 ms | p90=701.2 ms | p95=779.4 ms | p99=1255.3 ms (count=200, status={200: 200})
+
+Concurrency C = 50 (200 req per endpoint):
+  - doctor_respond              : p50=2183.6 ms | p90=4462.1 ms | p95=5269.6 ms | p99=6676.6 ms (count=200, status={200: 200})
+  - health                      : p50=2412.6 ms | p90=4734.2 ms | p95=5576.5 ms | p99=8168.2 ms (count=200, status={200: 200})
+  - submit_triage               : p50=3050.5 ms | p90=6242.4 ms | p95=6729.9 ms | p99=9930.8 ms (count=200, status={200: 200})
+  - worker_list                 : p50=2295.1 ms | p90=4834.6 ms | p95=5468.1 ms | p99=7047.0 ms (count=200, status={200: 200})
+
+---------------------------------------------------------------------------------------------------------
+3. TRIAGE LATENCY PROFILING BREAKDOWN (EMPIRICAL MEASUREMENTS)
+---------------------------------------------------------------------------------------------------------
+  1. ML Bayesian Inference (FastAPI :8000 in-container): 1.8 ms (1.4%)
+  2. Devanagari PDF ReportLab Synthesis (CPU):           63.0 ms (50.4%)
+  3. Network Ingress, Express Middleware, DB Overhead:    60.2 ms (48.2%)
+  -------------------------------------------------------------
+  Total End-to-End Triage Latency (LLM Off / Fallback):  125.0 ms (100.0%)
+
+Note on Gemini LLM Latency:
+  When LLM is active, cloud API round-trip latency to Gemini 2.5 Flash is external. Due to quota reset
+  pending, LLM latency is recorded as 'not measured' in this benchmark.

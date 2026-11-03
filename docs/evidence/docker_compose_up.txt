@@ -1,0 +1,12 @@
+﻿# Command: docker compose ps
+# Date: 2026-10-29 17:10:11 +05:30
+# Git Commit: 2f28743
+# Tool Version: Docker version 29.9.2, build a82e528
+
+NAME              IMAGE                  COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+arogya-backend    arogyamitra-backend    "docker-entrypoint.s…"   backend    42 seconds ago   Up 31 seconds (healthy)   5000/tcp
+arogya-frontend   arogyamitra-frontend   "streamlit run Home.…"   frontend   4 minutes ago    Up 4 minutes (healthy)    8501/tcp
+arogya-graph      arogyamitra-graph      "sh -c 'uvicorn serv…"   graph      4 minutes ago    Up 4 minutes (healthy)    8001/tcp
+arogya-ml         arogyamitra-ml         "sh -c 'uvicorn app:…"   ml         4 minutes ago    Up 4 minutes (healthy)    8000/tcp
+arogya-mongo      mongo:7.0              "docker-entrypoint.s…"   mongo      12 minutes ago   Up 11 minutes (healthy)   27017/tcp
+arogya-proxy      nginx:1.27-alpine      "/docker-entrypoint.…"   proxy      49 seconds ago   Up 41 seconds (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp

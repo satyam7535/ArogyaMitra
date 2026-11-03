@@ -1,0 +1,25 @@
+# ArogyaMitra — Docker Sanity Check (Item 0.6)
+Date: 2026-10-28T01:36:20Z
+Host OS: Windows 11 / Windows PowerShell
+
+======================================================================
+COMMAND: docker version
+======================================================================
+docker : The term 'docker' is not recognized as the name of a cmdlet, function, script file, or operable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+Exit Code: 1
+
+======================================================================
+COMMAND: docker run hello-world
+======================================================================
+docker : The term 'docker' is not recognized as the name of a cmdlet, function, script file, or operable program.
+Exit Code: 1
+
+======================================================================
+STORAGE & DISK STATUS
+======================================================================
+Status: Docker Desktop is NOT installed yet (as noted by owner; not a blocker for Stages 0-9).
+Docker disk-image location: Not configured / N/A
+Drive C: Free Space: 19.17 GB free (77.83 GB used)
+Drive D: Free Space: 98.18 GB free (42.64 GB used)
+Evaluation: Sufficient space on D: for future Docker Desktop data-root relocation (Stage 9B).

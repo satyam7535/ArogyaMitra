@@ -1,0 +1,214 @@
+============================================================
+  RUNNING: Lint (Python Ruff & Node ESLint)
+============================================================
+# Running ruff check on ML_Model, graph, ui...
+# Running ESLint on Backend/src...
+# Running Node syntax check on Backend/src...
+Lint checks completed successfully.
+All checks passed!
+
+> techathon-3.0@1.0.0 lint
+> eslint src/
+
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\admin.controller.js
+  155:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\consultation.controller.js
+  15:3  warning  'getJobStatus' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\doctor.controller.js
+  258:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\worker.controller.js
+  244:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runProbes.js
+   18:8  warning  'Admin' is defined but never used                 no-unused-vars
+  151:9  warning  'doc1Token' is assigned a value but never used    no-unused-vars
+  165:9  warning  'admin1Token' is assigned a value but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage1Probes.js
+  16:8  warning  'Consultation' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage2Probes.js
+  11:8  warning  'jwt' is defined but never used    no-unused-vars
+  13:8  warning  'ROLES' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage3Probes.js
+  49:10  warning  'redactBody' is defined but never used  no-unused-vars
+
+✖ 11 problems (0 errors, 11 warnings)
+
+PASSED: Lint (Python Ruff & Node ESLint) in 9702ms
+============================================================
+  RUNNING: ML Tests (ML_Model Phase 0 & Phase 1 contracts)
+============================================================
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, langsmith-0.14.14
+collecting ... collected 45 items
+
+tests\test_phase0.py::test_health_endpoint PASSED                        [  2%]
+tests\test_phase0.py::test_symptoms_endpoint PASSED                      [  4%]
+tests\test_phase0.py::test_prediction_contract PASSED                    [  6%]
+tests\test_phase0.py::test_prediction_empty_symptoms_fails PASSED        [  8%]
+tests\test_phase0.py::test_unauthenticated_predict_rejected PASSED       [ 11%]
+tests\test_phase0.py::test_invalid_token_predict_rejected PASSED         [ 13%]
+tests\test_phase0.py::test_authenticated_predict_accepted PASSED         [ 15%]
+tests\test_phase0.py::test_expired_service_token_rejected PASSED         [ 17%]
+tests\test_phase0.py::test_wrong_audience_service_token_rejected PASSED  [ 20%]
+tests\test_phase0.py::test_wrong_secret_service_token_rejected PASSED    [ 22%]
+tests\test_phase0.py::test_valid_jwt_service_token_accepted PASSED       [ 24%]
+tests\test_phase0.py::test_service_startup_refusal_when_secret_missing PASSED [ 26%]
+tests\test_phase1.py::test_no_data_leakage_in_clean_data PASSED          [ 28%]
+tests\test_phase1.py::test_symptom_name_normalization PASSED             [ 31%]
+tests\test_phase1.py::test_prediction_contract_complete PASSED           [ 33%]
+tests\test_phase1.py::test_high_acuity_triggers_escalation PASSED        [ 35%]
+tests\test_phase1.py::test_unrecognized_symptoms_handling PASSED         [ 37%]
+tests\test_phase1.py::test_all_unrecognized_symptoms_raises_422 PASSED   [ 40%]
+tests\test_phase1.py::test_health_and_ready_endpoints PASSED             [ 42%]
+tests\test_phase1.py::test_model_info_endpoint PASSED                    [ 44%]
+tests\test_phase1.py::test_symptoms_endpoint PASSED                      [ 46%]
+tests\test_phase1.py::test_model_architecture_provenance PASSED          [ 48%]
+tests\test_phase1.py::test_treeshap_additivity_property PASSED           [ 51%]
+tests\test_phase1.py::test_calibrated_probabilities_and_bounds PASSED    [ 53%]
+tests\test_phase1.py::test_symptom_dropout_robustness PASSED             [ 55%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_1_Fungal infection] PASSED [ 57%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_2_Allergy] PASSED [ 60%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_3_GERD] PASSED [ 62%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_4_Chronic cholestasis] PASSED [ 64%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_5_Peptic ulcer diseae] PASSED [ 66%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_6_AIDS] PASSED [ 68%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_7_Diabetes] PASSED [ 71%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_8_Gastroenteritis] PASSED [ 73%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_9_Bronchial Asthma] PASSED [ 75%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_10_Hypertension] PASSED [ 77%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_11_Migraine] PASSED [ 80%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_12_Cervical spondylosis] PASSED [ 82%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_13_Paralysis (brain hemorrhage)] PASSED [ 84%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_14_Jaundice] PASSED [ 86%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_15_Malaria] PASSED [ 88%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_16_Chicken pox] PASSED [ 91%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_17_Dengue] PASSED [ 93%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_18_Typhoid] PASSED [ 95%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_19_hepatitis A] PASSED [ 97%]
+tests\test_model_consistency.py::test_twenty_fixed_symptom_sets[set_20_Hepatitis B] PASSED [100%]
+
+============================== warnings summary ===============================
+..\.venv\Lib\site-packages\shap\plots\colors\_colors.py:47
+  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\shap\plots\colors\_colors.py:47: PendingDeprecationWarning: The set_bad function will be deprecated in a future version. Use cmap.with_extremes(bad=...) or Colormap(bad=...) instead.
+    red_blue.set_bad(gray_rgb.tolist(), 1.0)
+
+..\.venv\Lib\site-packages\shap\plots\colors\_colors.py:48
+  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\shap\plots\colors\_colors.py:48: PendingDeprecationWarning: The set_over function will be deprecated in a future version. Use cmap.with_extremes(over=...) or Colormap(over=...) instead.
+    red_blue.set_over(gray_rgb.tolist(), 1.0)
+
+..\.venv\Lib\site-packages\shap\plots\colors\_colors.py:49
+  D:\Document\Projects\Internship\Arogyamitra\.venv\Lib\site-packages\shap\plots\colors\_colors.py:49: PendingDeprecationWarning: The set_under function will be deprecated in a future version. Use cmap.with_extremes(under=...) or Colormap(under=...) instead.
+    red_blue.set_under(gray_rgb.tolist(), 1.0)  # "under" is incorrectly used instead of "bad" in the scatter plot
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 45 passed, 3 warnings in 23.02s =======================
+PASSED: ML Tests (ML_Model Phase 0 & Phase 1 contracts) in 28763ms
+============================================================
+  RUNNING: Backend Tests (Security, Auth, Concurrency, Crypto)
+============================================================
+
+> techathon-3.0@1.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 D:/Document/Projects/Internship/Arogyamitra/Backend
+
+stdout | tests/concurrency.test.js
+[dotenv@17.3.1] injecting env (15) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+stdout | tests/security.test.js
+[dotenv@17.3.1] injecting env (15) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+
+ ✓ tests/concurrency.test.js (7 tests) 38ms
+stdout | tests/authMatrix.test.js
+[dotenv@17.3.1] injecting env (15) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+stderr | tests/security.test.js > Phase 2 — Security & Cryptographic Integrity > 1. AES-256-GCM Field-Level Encryption > should handle null or invalid ciphertexts gracefully
+Failed to decrypt field: Invalid authentication tag length: 0
+System.Management.Automation.RemoteException
+ ✓ tests/authMatrix.test.js (81 tests) 1479ms
+ ✓ tests/security.test.js (48 tests) 4322ms
+   ✓ Phase 2 — Security & Cryptographic Integrity (48)
+     ✓ 2. Argon2id Password Hashing (2)
+       ✓ should hash password with Argon2id and verify correctly 1274ms
+     ✓ 7. Brute-Force Protection & Account Lockout (2)
+       ✓ should lock account after 5 failed password attempts 668ms
+     ✓ 13. Admin Soft-Deactivation & Deactivated Login Rejection (4)
+       ✓ should strictly reject login attempts from soft-deactivated worker (403 ACCOUNT_DEACTIVATED) 563ms
+       ✓ should permit login for active worker 665ms
+
+ Test Files  3 passed (3)
+      Tests  136 passed (136)
+   Start at  23:04:00
+   Duration  9.61s (import 65%, tests 31%, transform 4%)
+
+PASSED: Backend Tests (Security, Auth, Concurrency, Crypto) in 12323ms
+============================================================
+  RUNNING: Graph Tests (AI Reasoning, Fallback, Prompt Defense, PDF)
+============================================================
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, langsmith-0.14.14
+collecting ... collected 17 items
+
+tests\test_phase3.py::test_prompt_injection_sanitization PASSED          [  5%]
+tests\test_phase3.py::test_sanitize_nested_data PASSED                   [ 11%]
+tests\test_phase3.py::test_deterministic_fallback_multilingual PASSED    [ 17%]
+tests\test_phase3.py::test_call_llm_valid_mock_response PASSED           [ 23%]
+tests\test_phase3.py::test_call_llm_malformed_json_triggers_fallback PASSED [ 29%]
+tests\test_phase3.py::test_call_llm_exception_triggers_fallback PASSED   [ 35%]
+tests\test_phase3.py::test_verify_service_token_valid PASSED             [ 41%]
+tests\test_phase3.py::test_verify_service_token_missing PASSED           [ 47%]
+tests\test_phase3.py::test_verify_service_token_expired PASSED           [ 52%]
+tests\test_phase3.py::test_verify_service_token_wrong_audience PASSED    [ 58%]
+tests\test_phase3.py::test_verify_service_token_forged PASSED            [ 64%]
+tests\test_phase3.py::test_pdf_generation_multilingual PASSED            [ 70%]
+tests\test_phase3.py::test_e2e_graph_invocation PASSED                   [ 76%]
+tests\test_phase3.py::test_pdf_generator_labels_use_treeshap PASSED      [ 82%]
+tests\test_phase3.py::test_prompt_injection_corpus_twenty_attacks PASSED [ 88%]
+tests\test_phase3.py::test_pii_never_transmitted_to_llm PASSED           [ 94%]
+tests\test_phase3.py::test_langgraph_node_sequence_per_scenario PASSED   [100%]
+
+============================= 17 passed in 7.42s ==============================
+PASSED: Graph Tests (AI Reasoning, Fallback, Prompt Defense, PDF) in 12192ms
+============================================================
+  RUNNING: UI Tests (Streamlit AppTest headless suite)
+============================================================
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, langsmith-0.14.14
+collecting ... collected 6 items
+
+tests\test_streamlit.py::test_home_page_initialization PASSED            [ 16%]
+tests\test_streamlit.py::test_worker_triage_page_initialization PASSED   [ 33%]
+tests\test_streamlit.py::test_doctor_review_page_initialization PASSED   [ 50%]
+tests\test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 66%]
+tests\test_streamlit.py::test_i18n_localization_integrity PASSED         [ 83%]
+tests\test_streamlit.py::test_viz_module_robustness PASSED               [100%]
+
+============================= 6 passed in 17.06s ==============================
+PASSED: UI Tests (Streamlit AppTest headless suite) in 22833ms
+
+============================================================
+  ALL SUITES PASSED VERIFICATION
+============================================================

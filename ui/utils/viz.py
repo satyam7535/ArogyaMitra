@@ -1,28 +1,34 @@
 """
 ArogyaMitra — Interactive Plotly Visualization Module
-Renders TreeSHAP feature attributions, calibrated probability distributions,
+Renders Bayesian Evidence feature attributions, probability distributions,
 and epidemiological prevalence graphs.
 """
 
-import plotly.graph_objects as go
+from typing import Any
+
 import plotly.express as px
-from typing import List, Dict, Any
+import plotly.graph_objects as go
 
 
-def create_shap_waterfall_or_bar(shap_explanations: List[Dict[str, Any]], primary_disease: str) -> go.Figure:
+def create_shap_waterfall_or_bar(shap_explanations: list[dict[str, Any]], primary_disease: str) -> go.Figure:
     """
-    Renders an interactive horizontal bar chart showing TreeSHAP feature contributions.
+    Renders an interactive horizontal bar chart showing Bayesian Evidence feature contributions.
     Positive impacts (supports diagnosis) are displayed in teal/emerald,
     while negative impacts are displayed in coral/amber.
     """
     if not shap_explanations:
         fig = go.Figure()
         fig.add_annotation(
-            text="No TreeSHAP feature attributions available for this prediction",
+            text="No Bayesian Evidence feature attributions available for this prediction",
             showarrow=False,
-            font=dict(size=14, color="#718096"),
+            font={"size": 14, "color": "#94A3B8"},
         )
-        fig.update_layout(height=200, margin=dict(l=20, r=20, t=20, b=20))
+        fig.update_layout(
+            height=200,
+            margin={"l": 20, "r": 20, "t": 20, "b": 20},
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+        )
         return fig
 
     # Take top 10 features
@@ -30,7 +36,13 @@ def create_shap_waterfall_or_bar(shap_explanations: List[Dict[str, Any]], primar
     # Reverse so top feature appears at the top of horizontal chart
     features = features[::-1]
 
-    names = [f.get("symptom", "").replace("_", " ").title() for f in features]
+    names = [
+        str(f.get("symptom") or f.get("feature") or "Symptom")
+        .replace(" present", "")
+        .replace("_", " ")
+        .title()
+        for f in features
+    ]
     impacts = [float(f.get("impact", 0.0)) for f in features]
     directions = [f.get("direction", "Supports Diagnosis") for f in features]
 
@@ -44,41 +56,44 @@ def create_shap_waterfall_or_bar(shap_explanations: List[Dict[str, Any]], primar
             x=impacts,
             y=names,
             orientation="h",
-            marker=dict(color=colors, line=dict(color="#1F2937", width=1)),
+            marker={"color": colors, "line": {"color": "#0F172A", "width": 1}},
             hovertemplate=(
                 "<b>%{y}</b><br>"
-                "SHAP Value: %{x:.4f}<br>"
+                "Bayesian log-odds contribution: %{x:.4f}<br>"
                 "<extra></extra>"
             ),
         )
     )
 
     fig.update_layout(
-        title=dict(
-            text=f"<b>TreeSHAP Diagnostic Feature Importance — {primary_disease}</b>",
-            font=dict(size=16, color="#0F172A"),
-        ),
-        xaxis=dict(
-            title="Marginal Contribution to Log-Odds (SHAP Value)",
-            zeroline=True,
-            zerolinecolor="#94A3B8",
-            zerolinewidth=1.5,
-            gridcolor="#E2E8F0",
-        ),
-        yaxis=dict(
-            title="",
-            gridcolor="#F1F5F9",
-        ),
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
+        title={
+            "text": f"<b>Bayesian Evidence Contributions — {primary_disease}</b>",
+            "font": {"size": 15, "color": "#E2E8F0"},
+        },
+        xaxis={
+            "title": "Bayesian log-odds contribution",
+            "zeroline": True,
+            "zerolinecolor": "#64748B",
+            "zerolinewidth": 1.5,
+            "gridcolor": "#334155",
+            "tickfont": {"color": "#CBD5E1"},
+            "title_font": {"color": "#CBD5E1"},
+        },
+        yaxis={
+            "title": "",
+            "gridcolor": "#1E293B",
+            "tickfont": {"color": "#CBD5E1"},
+        },
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
         height=340,
-        margin=dict(l=150, r=30, t=50, b=50),
+        margin={"l": 150, "r": 30, "t": 50, "b": 50},
     )
 
     return fig
 
 
-def create_top_predictions_chart(top_predictions: List[Dict[str, Any]]) -> go.Figure:
+def create_top_predictions_chart(top_predictions: list[dict[str, Any]]) -> go.Figure:
     """
     Renders horizontal probability bar chart for differential diagnoses.
     """
@@ -86,17 +101,31 @@ def create_top_predictions_chart(top_predictions: List[Dict[str, Any]]) -> go.Fi
         return go.Figure()
 
     diseases = [p.get("disease", "") for p in top_predictions][::-1]
-    probs = [round(float(p.get("probability", 0.0)) * 100, 1) for p in top_predictions][::-1]
+    raw_vals = [
+        p.get("confidence") if p.get("confidence") is not None else p.get("probability", 0.0)
+        for p in top_predictions
+    ][::-1]
+
+    probs = []
+    for val in raw_vals:
+        try:
+            num = float(val)
+            if num <= 1.0:
+                probs.append(round(num * 100, 1))
+            else:
+                probs.append(round(num, 1))
+        except (ValueError, TypeError):
+            probs.append(0.0)
 
     fig = go.Figure(
         go.Bar(
             x=probs,
             y=diseases,
             orientation="h",
-            marker=dict(
-                color=["#93C5FD", "#60A5FA", "#2563EB"][:len(diseases)],
-                line=dict(color="#1D4ED8", width=1),
-            ),
+            marker={
+                "color": ["#93C5FD", "#60A5FA", "#2563EB"][:len(diseases)],
+                "line": {"color": "#1D4ED8", "width": 1},
+            },
             text=[f"{p}%" for p in probs],
             textposition="auto",
             hovertemplate="<b>%{y}</b>: %{x:.1f}%<extra></extra>",
@@ -104,19 +133,25 @@ def create_top_predictions_chart(top_predictions: List[Dict[str, Any]]) -> go.Fi
     )
 
     fig.update_layout(
-        title=dict(text="<b>Calibrated Differential Diagnoses</b>", font=dict(size=14, color="#0F172A")),
-        xaxis=dict(title="Calibrated Probability (%)", range=[0, 105], gridcolor="#E2E8F0"),
-        yaxis=dict(title=""),
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
+        title={"text": "<b>Differential Diagnoses</b>", "font": {"size": 14, "color": "#E2E8F0"}},
+        xaxis={
+            "title": "Confidence Estimate (%)",
+            "range": [0, 105],
+            "gridcolor": "#334155",
+            "tickfont": {"color": "#CBD5E1"},
+            "title_font": {"color": "#CBD5E1"},
+        },
+        yaxis={"title": "", "tickfont": {"color": "#CBD5E1"}},
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
         height=220,
-        margin=dict(l=160, r=20, t=40, b=40),
+        margin={"l": 160, "r": 20, "t": 40, "b": 40},
     )
 
     return fig
 
 
-def create_admin_epidemiology_chart(disease_counts: Dict[str, int]) -> go.Figure:
+def create_admin_epidemiology_chart(disease_counts: dict[str, int]) -> go.Figure:
     """
     Renders epidemiological disease prevalence distribution for Admin Dashboard.
     """
@@ -129,15 +164,17 @@ def create_admin_epidemiology_chart(disease_counts: Dict[str, int]) -> go.Figure
     fig = px.pie(
         names=labels,
         values=values,
-        hole=0.45,
+        hole=0.4,
         color_discrete_sequence=px.colors.qualitative.Prism,
     )
 
     fig.update_layout(
-        title=dict(text="<b>Regional Disease Incidence Breakdown</b>", font=dict(size=16)),
-        height=350,
-        margin=dict(l=20, r=20, t=50, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+        title={"text": "<b>Diagnostic Case Distribution</b>", "font": {"size": 16, "color": "#E2E8F0"}},
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        legend={"font": {"color": "#CBD5E1"}},
+        height=320,
+        margin={"l": 20, "r": 20, "t": 40, "b": 20},
     )
 
     return fig

@@ -1,0 +1,42 @@
+================================================================================
+AROGYAMITRA — REAL INTERCEPTION PROXY MITM DEMONSTRATION
+Date: 2026-10-31T10:31:05.956535+00:00
+Commit: e5a474ebfa8350d62e1b74e6359048b5e5e4fbb6 (DIRTY)
+Test Type: Active Intercepting Proxy with and without TLS Certificate Verification
+================================================================================
+
+[SCENARIO 1] Client with Certificate Verification ENABLED (Production Policy)
+  Routing HTTPS request through rogue proxy at 127.0.0.1:9998...
+  Client Target: https://localhost/api/v1/health
+  Client Header: Authorization: Bearer SECRET_WORKER_JWT_TOKEN_12345
+  [+] TLS HANDSHAKE REJECTED BY CLIENT:
+      Exception: SSLError
+      Detail: HTTPSConnectionPool(host='localhost', port=443): Max retries exceeded with url: /api/v1/health (Caused by SSLError(SSLCertVerificationError(...
+  [+] VERIFIED: Handshake aborted during certificate validation.
+  [+] ZERO CREDENTIALS OR APPLICATION BYTES LEAKED TO PROXY.
+  Result: PASS (Strict TLS prevented active MITM interception)
+
+[SCENARIO 2] Vulnerable Client with Certificate Verification DISABLED (verify=False)
+  Routing HTTPS request through rogue proxy at 127.0.0.1:9998...
+  Client Target: https://localhost/api/v1/health
+  Client Header: Authorization: Bearer SECRET_WORKER_JWT_TOKEN_12345
+  [!] Connection accepted rogue certificate. Response: 200
+      Response Body: {"status":"INTERCEPTED_BY_MITM","warning":"Payload captured by active proxy"}
+  [!] MITM PROXY SUCCESSFULLY INTERCEPTED DECRYPTED APPLICATION TRAFFIC:
+      >>> GET /api/v1/health HTTP/1.1
+      >>> Host: localhost
+      >>> User-Agent: python-requests/2.32.5
+      >>> Accept-Encoding: gzip, deflate
+      >>> Accept: */*
+      >>> Connection: keep-alive
+      >>> Authorization: Bearer SECRET_WORKER_JWT_TOKEN_12345
+      >>> X-Patient-Aadhaar: 1234-5678-9012
+  [!] DEMONSTRATION COMPLETE: Disabling cert validation allows full credential extraction.
+  Result: VERIFIED (Vulnerability mechanism proven under live proxy interception)
+
+================================================================================
+SUMMARY OF FINDINGS:
+1. Active interception proxy captures credentials and tokens ONLY when cert verification is disabled.
+2. Under strict TLS certificate verification (verify=True), SSLCertVerificationError terminates
+   the socket connection before the HTTP request header or token is transmitted.
+================================================================================

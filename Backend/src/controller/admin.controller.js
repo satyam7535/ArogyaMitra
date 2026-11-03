@@ -1,8 +1,14 @@
+import AuditLog from "../models/audit/auditLogSchema.js";
+import RefreshToken from "../models/auth/refreshTokenSchema.js";
+import { hashToken } from "../utils/crypto.js";
 import {
   loginAdmin,
   handleForgotPassword,
   handleResetPassword,
   rotateRefreshToken,
+  exportConsultationsCsv,
+  listActiveSessions,
+  revokeSessionById,
 } from "../service/admin.service.js";
 import { logAuditEvent } from "../middlewares/audit.middleware.js";
 
@@ -140,7 +146,19 @@ const resetPassword = async (req, res) => {
   }
 };
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
+  try {
+    const rawRefreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
+    if (rawRefreshToken) {
+      const tokenHash = hashToken(rawRefreshToken);
+      await RefreshToken.updateOne({ tokenHash }, { isRevoked: true });
+    } else if (req.user?.id) {
+      await RefreshToken.updateMany({ userId: req.user.id }, { isRevoked: true });
+    }
+  } catch (err) {
+    // Ignore revoke errors on logout
+  }
+
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -154,8 +172,76 @@ const logout = (req, res) => {
   return res.status(200).json({ message: "Logged out successfully" });
 };
 
+const getAuditLogs = async (req, res) => {
+  try {
+    const querySource = req.validatedQuery || req.query; const page = Math.max(1, parseInt(querySource.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(querySource.limit, 10) || 20));
+    const skip = (page - 1) * limit;
+
+    const query = { organization: req.user.organization };
+    if (querySource.action) query.action = querySource.action;
+    if (querySource.resourceType) query.resourceType = querySource.resourceType;
+    if (querySource.startDate || querySource.endDate) {
+      query.createdAt = {};
+      if (querySource.startDate) query.createdAt.$gte = new Date(querySource.startDate);
+      if (querySource.endDate) query.createdAt.$lte = new Date(querySource.endDate);
+    }
+
+    const [logs, total] = await Promise.all([
+      AuditLog.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      AuditLog.countDocuments(query),
+    ]);
+
+    return res.status(200).json({
+      auditLogs: logs,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      limit,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to retrieve audit logs", error: error.message });
+  }
+};
+
 const getProfile = (req, res) => {
   return res.status(200).json({ user: req.user });
+};
+
+
+const downloadConsultationsCsv = async (req, res) => {
+  try {
+    const csvData = await exportConsultationsCsv(req.user.organization);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="consultations_audit.csv"');
+    return res.status(200).send(csvData);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to export consultations CSV", error: error.message });
+  }
+};
+
+const getActiveSessions = async (req, res) => {
+  try {
+    const sessions = await listActiveSessions(req.user.organization);
+    return res.status(200).json({ sessions });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to retrieve active sessions", error: error.message });
+  }
+};
+
+const revokeSession = async (req, res) => {
+  try {
+    const result = await revokeSessionById(req.params.id, req.user.organization);
+    await logAuditEvent({
+      req,
+      action: "SESSION_REVOKED",
+      resourceType: "RefreshToken",
+      resourceId: req.params.id,
+    });
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(error.status || 500).json({ message: error.message || "Failed to revoke session" });
+  }
 };
 
 export {
@@ -165,5 +251,9 @@ export {
   forgotPassword,
   resetPassword,
   logout,
+  getAuditLogs,
   getProfile,
+  downloadConsultationsCsv,
+  getActiveSessions,
+  revokeSession,
 };

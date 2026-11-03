@@ -1,0 +1,27 @@
+Command: python graph/scripts/gemini_smoke_test.py
+================================================================================
+AROGYAMITRA — REAL GEMINI FREE-TIER SMOKE TEST (RULE 6 COMPLIANT)
+Timestamp: 2026-10-28T17:37:09Z
+================================================================================
+
+[1. INITIATING GEMINI FREE-TIER CALL]
+  - Model:         gemini-1.5-flash
+  - Target Lang:   English (en)
+  - Input Data:    De-identified synthetic clinical presentation (PII-free)
+
+[2. EXECUTION COMPLETED]
+  - Round-trip Latency: 742.59 ms
+  - Fallback Engaged:   True
+  - Pydantic Validated: True
+
+[3. STRUCTURED CLINICAL OUTPUT]
+  - Diagnosis Summary:          Patient presents clinical indicators consistent with Fungal infection with a model confidence of 91.2%.
+  - Confidence Interpretation:  Statistical decision-support estimation. Clinical correlation by a registered medical practitioner is required.
+  - Severity Assessment:        Calculated severity score is 2.4. Continuous monitoring of vital signs is recommended.
+  - Key Contributing Factors:   Primary presenting symptoms: itching, skin rash, nodal skin eruptions.
+  - Recommended Next Steps:     Standard precautions: bath twice daily; keep affected area dry; use clean clothes; avoid sharing towels. Escalate immediately if condition deteriorates.
+  - Referral Recommendation:    Refer to a medical officer or relevant clinical specialist for formal diagnostic confirmation.
+
+================================================================================
+GEMINI SMOKE TEST RESULT: DETERMINISTIC_FALLBACK_ENGAGED
+================================================================================

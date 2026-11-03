@@ -1,0 +1,6 @@
+# Combined pinned requirements for ArogyaMitra development & verification
+-r ML_Model/requirements.txt
+-r graph/requirements.txt
+-r ui/requirements.txt
+pytest==9.1.1
+ruff==0.17.2

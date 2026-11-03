@@ -1,0 +1,761 @@
+﻿================================================================================
+AROGYAMITRA MASTER REPRODUCTION RUN
+Executed At: 2026-10-31T14:45:25+05:30
+Git Commit:  77bb0765cee68761dd7141ec621bd0730d5af514
+Repo State:  DIRTY
+Root Path:   D:\Document\Projects\Internship\Arogyamitra
+================================================================================
+
+[STEP 1] Check Docker Container Stack Health
+NAME              IMAGE                  COMMAND                  SERVICE    CREATED             STATUS                       PORTS
+arogya-backend    arogyamitra-backend    "docker-entrypoint.s…"   backend    38 minutes ago      Up 28 minutes (healthy)      5000/tcp
+arogya-frontend   arogyamitra-frontend   "streamlit run Home.…"   frontend   About an hour ago   Up About an hour (healthy)   8501/tcp
+arogya-graph      arogyamitra-graph      "sh -c 'uvicorn serv…"   graph      22 hours ago        Up 2 hours (healthy)         8001/tcp
+arogya-ml         arogyamitra-ml         "sh -c 'uvicorn app:…"   ml         21 hours ago        Up 5 minutes (healthy)       8000/tcp
+arogya-mongo      mongo:7.0              "docker-entrypoint.s…"   mongo      23 hours ago        Up 2 hours (healthy)         27017/tcp
+arogya-proxy      nginx:1.27-alpine      "/docker-entrypoint.…"   proxy      23 hours ago        Up 2 hours (healthy)         0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp
+[STEP 1 RESULT] ExitCode: 0, Elapsed: 1756ms
+
+[STEP 2] Seed Docker Database with Standard Demo Accounts
+Seeding ArogyaMitra Docker database...
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+Connecting to MongoDB: mongodb://mongo:27017/arogyamitra
+Connected to MongoDB successfully.
+
+[*] Organization 1 exists: Pune District Rural Health Mission
+[*] Organization 2 exists: Nashik Rural Health Mission
+[*] Updated Admin password: admin@arogyamitra.gov.in
+[*] Updated Admin 2 password: admin2@arogyamitra.gov.in
+[*] Updated Health Worker 1 password: worker@arogyamitra.gov.in
+[*] Updated Health Worker 2 password: worker2@arogyamitra.gov.in
+[*] Updated Doctor 1 password: doctor@arogyamitra.gov.in
+[*] Updated Doctor 2 password: doctor2@arogyamitra.gov.in
+
+=======================================================
+   🎉 AROGYAMITRA DEMO SEEDING COMPLETED SUCCESSFULLY   
+=======================================================
+ORGANIZATION: Pune District Rural Health Mission (PUNE-RHM)
+-------------------------------------------------------
+ROLE       | EMAIL                       | PASSWORD
+-------------------------------------------------------
+Admin      | admin@arogyamitra.gov.in    | Admin@Arogya2026!
+Worker     | worker@arogyamitra.gov.in   | Worker@Arogya2026!
+Doctor     | doctor@arogyamitra.gov.in   | Doctor@Arogya2026!
+-------------------------------------------------------
+Streamlit Frontend : http://localhost:8501
+Backend API        : http://localhost:5000
+ML Microservice    : http://localhost:8000
+Graph AI Pipeline  : http://localhost:8001
+=======================================================
+
+
+Docker database seeded successfully.
+[STEP 2 RESULT] ExitCode: 0, Elapsed: 3502ms
+
+[STEP 3] Run Master Unit and Integration Test Runner (verify_all.ps1)
+============================================================
+  RUNNING: Lint (Python Ruff & Node ESLint)
+============================================================
+# Running ruff check on ML_Model, graph, ui...
+# Running ESLint on Backend/src...
+# Running Node syntax check on Backend/src...
+Lint checks completed successfully.
+Uninstalled 1 package in 4ms
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 1 package in 128ms
+All checks passed!
+
+> techathon-3.0@1.0.0 lint
+> eslint src/
+
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\admin.controller.js
+  158:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\consultation.controller.js
+   17:3   warning  'getJobStatus' is defined but never used             no-unused-vars
+  294:11  warning  'idempotencyKey' is assigned a value but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\doctor.controller.js
+  258:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\controller\worker.controller.js
+  244:12  warning  'err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runProbes.js
+   18:8  warning  'Admin' is defined but never used                 no-unused-vars
+  151:9  warning  'doc1Token' is assigned a value but never used    no-unused-vars
+  165:9  warning  'admin1Token' is assigned a value but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage1Probes.js
+  16:8  warning  'Consultation' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage2Probes.js
+  11:8  warning  'jwt' is defined but never used    no-unused-vars
+  13:8  warning  'ROLES' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\runStage3Probes.js
+  49:10  warning  'redactBody' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\run_load_test.js
+  58:16  warning  '_err' is defined but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\scripts\testWorkerKill.js
+  10:7  warning  '__dirname' is assigned a value but never used  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\consultation.service.js
+  307:45  warning  'prescription' is defined but never used. Allowed unused args must match /^_/u        no-unused-vars
+  307:59  warning  'diagnosisConfirmed' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+D:\Document\Projects\Internship\Arogyamitra\Backend\src\service\patient.service.js
+  4:8  warning  'crypto' is defined but never used        no-unused-vars
+  5:8  warning  'serverConfig' is defined but never used  no-unused-vars
+
+✖ 18 problems (0 errors, 18 warnings)
+
+PASSED: Lint (Python Ruff & Node ESLint) in 10516ms
+============================================================
+  RUNNING: ML Tests (ML_Model Phase 0 & Phase 1 contracts)
+============================================================
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
+collecting ... collected 55 items
+
+ML_Model/tests/test_clinical_red_flags.py::test_red_flag_forces_escalation_and_high_risk PASSED [  1%]
+ML_Model/tests/test_clinical_red_flags.py::test_non_red_flag_routine_presentation PASSED [  3%]
+ML_Model/tests/test_clinical_red_flags.py::test_red_flags_startup_validation_rejects_unmapped_vocabulary PASSED [  5%]
+ML_Model/tests/test_clinical_red_flags.py::test_red_flags_startup_validation_rejects_non_draft_status PASSED [  7%]
+ML_Model/tests/test_hypothesis_properties.py::test_hypothesis_probability_normalization_and_bounds PASSED [  9%]
+ML_Model/tests/test_hypothesis_properties.py::test_hypothesis_bayesian_mathematical_additivity PASSED [ 10%]
+ML_Model/tests/test_hypothesis_properties.py::test_hypothesis_empty_symptom_rejection PASSED [ 12%]
+ML_Model/tests/test_hypothesis_properties.py::test_hypothesis_unrecognized_symptoms_rejection PASSED [ 14%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_1_Fungal infection] PASSED [ 16%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_2_Allergy] PASSED [ 18%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_3_GERD] PASSED [ 20%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_4_Chronic cholestasis] PASSED [ 21%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_5_Peptic ulcer diseae] PASSED [ 23%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_6_AIDS] PASSED [ 25%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_7_Diabetes] PASSED [ 27%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_8_Gastroenteritis] PASSED [ 29%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_9_Bronchial Asthma] PASSED [ 30%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_10_Hypertension] PASSED [ 32%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_11_Migraine] PASSED [ 34%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_12_Cervical spondylosis] PASSED [ 36%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_13_Paralysis (brain hemorrhage)] PASSED [ 38%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_14_Jaundice] PASSED [ 40%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_15_Malaria] PASSED [ 41%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_16_Chicken pox] PASSED [ 43%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_17_Dengue] PASSED [ 45%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_18_Typhoid] PASSED [ 47%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_19_hepatitis A] PASSED [ 49%]
+ML_Model/tests/test_model_consistency.py::test_twenty_fixed_symptom_sets[set_20_Hepatitis B] PASSED [ 50%]
+ML_Model/tests/test_phase0.py::test_health_endpoint PASSED               [ 52%]
+ML_Model/tests/test_phase0.py::test_symptoms_endpoint PASSED             [ 54%]
+ML_Model/tests/test_phase0.py::test_prediction_contract PASSED           [ 56%]
+ML_Model/tests/test_phase0.py::test_prediction_empty_symptoms_fails PASSED [ 58%]
+ML_Model/tests/test_phase0.py::test_unauthenticated_predict_rejected PASSED [ 60%]
+ML_Model/tests/test_phase0.py::test_invalid_token_predict_rejected PASSED [ 61%]
+ML_Model/tests/test_phase0.py::test_authenticated_predict_accepted PASSED [ 63%]
+ML_Model/tests/test_phase0.py::test_expired_service_token_rejected PASSED [ 65%]
+ML_Model/tests/test_phase0.py::test_wrong_audience_service_token_rejected PASSED [ 67%]
+ML_Model/tests/test_phase0.py::test_wrong_secret_service_token_rejected PASSED [ 69%]
+ML_Model/tests/test_phase0.py::test_valid_jwt_service_token_accepted PASSED [ 70%]
+ML_Model/tests/test_phase0.py::test_service_startup_refusal_when_secret_missing PASSED [ 72%]
+ML_Model/tests/test_phase1.py::test_no_data_leakage_in_clean_data PASSED [ 74%]
+ML_Model/tests/test_phase1.py::test_symptom_name_normalization PASSED    [ 76%]
+ML_Model/tests/test_phase1.py::test_prediction_contract_complete PASSED  [ 78%]
+ML_Model/tests/test_phase1.py::test_high_acuity_triggers_escalation PASSED [ 80%]
+ML_Model/tests/test_phase1.py::test_unrecognized_symptoms_handling PASSED [ 81%]
+ML_Model/tests/test_phase1.py::test_all_unrecognized_symptoms_raises_422 PASSED [ 83%]
+ML_Model/tests/test_phase1.py::test_health_and_ready_endpoints PASSED    [ 85%]
+ML_Model/tests/test_phase1.py::test_model_info_endpoint PASSED           [ 87%]
+ML_Model/tests/test_phase1.py::test_symptoms_endpoint PASSED             [ 89%]
+ML_Model/tests/test_phase1.py::test_model_architecture_provenance PASSED [ 90%]
+ML_Model/tests/test_phase1.py::test_bayesian_contrastive_additivity_property PASSED [ 92%]
+ML_Model/tests/test_phase1.py::test_calibrated_probabilities_and_bounds PASSED [ 94%]
+ML_Model/tests/test_phase1.py::test_symptom_dropout_robustness PASSED    [ 96%]
+ML_Model/tests/test_phase1.py::test_suggested_follow_up_symptoms_on_uncertainty PASSED [ 98%]
+ML_Model/tests/test_phase1.py::test_production_contrastive_attribution_integrity PASSED [100%]
+
+============================= 55 passed in 10.15s =============================
+PASSED: ML Tests (ML_Model Phase 0 & Phase 1 contracts) in 14173ms
+============================================================
+  RUNNING: Backend Tests (Security, Auth, Concurrency, Crypto)
+============================================================
+
+> techathon-3.0@1.0.0 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mD:/Document/Projects/Internship/Arogyamitra/Backend[39m
+
+[90mstdout[2m | tests/decisionB.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+[90mstdout[2m | tests/authMatrix.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+[90mstdout[2m | tests/security.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+
+ [32m✓[39m tests/decisionB.test.js [2m([22m[2m13 tests[22m[2m)[22m[33m 449[2mms[22m[39m
+[90mstderr[2m | tests/security.test.js[2m > [22m[2mPhase 2 — Security & Cryptographic Integrity[2m > [22m[2m1. AES-256-GCM Field-Level Encryption[2m > [22m[2mshould handle null or invalid ciphertexts gracefully
+[22m[39mFailed to decrypt field: Invalid authentication tag length: 0
+System.Management.Automation.RemoteException
+ [32m✓[39m tests/authMatrix.test.js [2m([22m[2m101 tests[22m[2m)[22m[33m 1709[2mms[22m[39m
+[90mstdout[2m | tests/upload_adapter.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+
+ [32m✓[39m tests/security.test.js [2m([22m[2m67 tests[22m[2m)[22m[33m 4476[2mms[22m[39m
+   [32m✓[39m Phase 2 — Security & Cryptographic Integrity [2m(67)[22m
+     [32m✓[39m 2. Argon2id Password Hashing [2m(2)[22m
+       [33m[2m✓[22m[39m should hash password with Argon2id and verify correctly[33m 1140[2mms[22m[39m
+     [32m✓[39m 7. Brute-Force Protection & Account Lockout [2m(2)[22m
+       [33m[2m✓[22m[39m should lock account after 5 failed password attempts[33m 698[2mms[22m[39m
+       [33m[2m✓[22m[39m should reject attempts on a locked account with HTTP 423 Locked[33m 335[2mms[22m[39m
+     [32m✓[39m 13. Admin Soft-Deactivation & Deactivated Login Rejection [2m(4)[22m
+       [33m[2m✓[22m[39m should strictly reject login attempts from soft-deactivated worker (403 ACCOUNT_DEACTIVATED)[33m 332[2mms[22m[39m
+       [33m[2m✓[22m[39m should permit login for active worker[33m 931[2mms[22m[39m
+[90mstdout[2m | tests/dpdp_approval.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+ [32m✓[39m tests/upload_adapter.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 239[2mms[22m[39m
+ [32m✓[39m tests/dpdp_approval.test.js [2m([22m[2m8 tests[22m[2m)[22m[33m 454[2mms[22m[39m
+ [32m✓[39m tests/raceOcc.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 81[2mms[22m[39m
+[90mstdout[2m | tests/key_rotation.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+[90mstderr[2m | tests/key_rotation.test.js[2m > [22m[2mP3.6: Cryptographic Key Rotation & Dual-Keyring Verification[2m > [22m[2mshould fail gracefully when attempting decryption with wrong key or invalid tag
+[22m[39mFailed to decrypt field: Unsupported state or unable to authenticate data
+System.Management.Automation.RemoteException
+ [32m✓[39m tests/key_rotation.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+[90mstdout[2m | tests/concurrency.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+
+[90mstdout[2m | tests/blind_index.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+
+ [32m✓[39m tests/concurrency.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+[90mstdout[2m | tests/adminOps.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+
+ [32m✓[39m tests/adminOps.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/blind_index.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+[90mstdout[2m | tests/mc37_host_binding.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+
+[90mstdout[2m | tests/mc37_host_binding.test.js[2m > [22m[2mMC37: Backend HOST Binding Default (127.0.0.1 Containment)[2m > [22m[2mshould strictly bind to 127.0.0.1 by default when process.env.HOST is unset
+[22m[39mServer is running on http://127.0.0.1:5000 in test mode
+
+[90mstdout[2m | tests/mc37_host_binding.test.js[2m > [22m[2mMC37: Backend HOST Binding Default (127.0.0.1 Containment)[2m > [22m[2mshould allow explicit HOST override only when configured via environment
+[22m[39mServer is running on http://10.0.0.5:5000 in test mode
+
+ [32m✓[39m tests/mc37_host_binding.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m11 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[32m224 passed[39m[22m[90m (224)[39m
+[2m   Start at [22m 14:45:58
+[2m   Duration [22m 23.64s[2m (import 84%, tests 13%, transform 2%, worker 1%)[22m
+
+[2m    Isolate [22m [33m11 workers spawned[39m[2m · ~528ms startup each (spawn + environment, per file)[22m
+[2m            [22m [2mat least ~1.41s faster with [22m[33misolate: false[39m[2m — reuses workers across files instead of one per file[22m
+
+PASSED: Backend Tests (Security, Auth, Concurrency, Crypto) in 26532ms
+============================================================
+  RUNNING: Graph Tests (AI Reasoning, Fallback, Prompt Defense, PDF)
+============================================================
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
+collecting ... collected 22 items
+
+graph/tests/test_phase3.py::test_prompt_injection_sanitization PASSED    [  4%]
+graph/tests/test_phase3.py::test_sanitize_nested_data PASSED             [  9%]
+graph/tests/test_phase3.py::test_deterministic_fallback_multilingual PASSED [ 13%]
+graph/tests/test_phase3.py::test_call_llm_valid_mock_response PASSED     [ 18%]
+graph/tests/test_phase3.py::test_call_llm_malformed_json_triggers_fallback PASSED [ 22%]
+graph/tests/test_phase3.py::test_call_llm_exception_triggers_fallback PASSED [ 27%]
+graph/tests/test_phase3.py::test_verify_service_token_valid PASSED       [ 31%]
+graph/tests/test_phase3.py::test_verify_service_token_missing PASSED     [ 36%]
+graph/tests/test_phase3.py::test_verify_service_token_expired PASSED     [ 40%]
+graph/tests/test_phase3.py::test_verify_service_token_wrong_audience PASSED [ 45%]
+graph/tests/test_phase3.py::test_verify_service_token_forged PASSED      [ 50%]
+graph/tests/test_phase3.py::test_pdf_generation_multilingual PASSED      [ 54%]
+graph/tests/test_phase3.py::test_pdf_generation_includes_red_flag_banner PASSED [ 59%]
+graph/tests/test_phase3.py::test_e2e_graph_invocation PASSED             [ 63%]
+graph/tests/test_phase3.py::test_pdf_generator_labels_use_bayesian_evidence PASSED [ 68%]
+graph/tests/test_phase3.py::test_prompt_injection_corpus_twenty_attacks PASSED [ 72%]
+graph/tests/test_phase3.py::test_pii_never_transmitted_to_llm PASSED     [ 77%]
+graph/tests/test_phase3.py::test_langgraph_node_sequence_per_scenario PASSED [ 81%]
+graph/tests/test_phase3.py::test_20_prompt_injection_attacks_suite PASSED [ 86%]
+graph/tests/test_phase3.py::test_llm_output_sanity_check_disease_omission PASSED [ 90%]
+graph/tests/test_phase3.py::test_llm_output_sanity_check_forbidden_prescription_drugs PASSED [ 95%]
+graph/tests/test_phase3.py::test_multilingual_pdf_generation_bundled_font PASSED [100%]
+
+============================= 22 passed in 5.89s ==============================
+PASSED: Graph Tests (AI Reasoning, Fallback, Prompt Defense, PDF) in 10052ms
+============================================================
+  RUNNING: UI Tests (Streamlit AppTest headless suite)
+============================================================
+============================= test session starts =============================
+platform win32 -- Python 3.11.15, pytest-9.1.1, pluggy-1.7.0 -- D:\Document\Projects\Internship\Arogyamitra\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: D:\Document\Projects\Internship\Arogyamitra
+configfile: pyproject.toml
+plugins: anyio-4.15.1, hypothesis-6.170.13, langsmith-0.14.14
+collecting ... collected 9 items
+
+ui/tests/test_streamlit.py::test_home_page_initialization PASSED         [ 11%]
+ui/tests/test_streamlit.py::test_worker_triage_page_initialization PASSED [ 22%]
+ui/tests/test_streamlit.py::test_doctor_review_page_initialization PASSED [ 33%]
+ui/tests/test_streamlit.py::test_admin_dashboard_page_initialization PASSED [ 44%]
+ui/tests/test_streamlit.py::test_i18n_localization_integrity PASSED      [ 55%]
+ui/tests/test_streamlit.py::test_viz_module_robustness PASSED            [ 66%]
+ui/tests/test_streamlit.py::test_api_client_thin_client_auth_helpers PASSED [ 77%]
+ui/tests/test_streamlit.py::test_api_client_no_service_secret_or_bypass PASSED [ 88%]
+ui/tests/test_streamlit.py::test_triage_analysis_with_bayesian_evidence_and_red_flags PASSED [100%]
+
+============================= 9 passed in 31.36s ==============================
+PASSED: UI Tests (Streamlit AppTest headless suite) in 35400ms
+
+============================================================
+  ALL SUITES PASSED VERIFICATION
+  Test Summary (Dynamically Parsed):
+    - ML Tests:      55 passed
+    - Backend Tests: 224 passed
+    - Graph Tests:   22 passed
+    - UI Tests:      9 passed
+    - Total Tests:   310 passed (0 failed)
+============================================================
+[STEP 3 RESULT] ExitCode: 0, Elapsed: 97738ms
+
+[STEP 4] Execute Playwright E2E Browser Suite (test_p4_playwright_suite.mjs)
+================================================================================
+AROGYAMITRA — PHASE P4 COMPLETE PLAYWRIGHT 10-SCENARIO E2E SUITE
+Target URL: https://localhost
+Date: 2026-10-31T09:17:09.509Z
+================================================================================
+
+=== SCENARIO 1: Worker End-to-End Triage & Normal Accept ===
+Analysis triggered. Awaiting result metrics...
+PASS: Fungal infection diagnosed with valid confidence.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s1_worker_accept.png
+
+=== SCENARIO 2: Worker Red-Flag Block (Cardiac Emergency) ===
+Triggered analysis for cardiac symptoms...
+PASS: Red-flag emergency alert verified. Accept button blocked status: true
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s2_redflag_blocked.png
+
+=== SCENARIO 3: Worker Case Escalation to Medical Officer ===
+Triggered analysis for Jaundice symptoms...
+PASS: Case successfully escalated to physician queue.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s3_worker_escalate.png
+
+=== SCENARIO 4: Medical Officer Second Opinion Workstation ===
+PASS: Medical officer clinical second opinion submitted successfully.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s4_doctor_second_opinion.png
+
+=== SCENARIO 5: Admin Dashboard & Session Management ===
+PASS: Admin dashboard metrics and telemetry loaded.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s5_admin_dashboard_revoke.png
+
+=== SCENARIO 6: Administrative CSV Export ===
+PASS: CSV downloaded successfully (1875 bytes).
+CSV Header Preview: ConsultationID,CreatedAt,Status,PrimaryDiagnosis,ConfidenceScore,Risk,RedFlag,NeedsEscalation,WorkerDecision,OverrideReason,OverrideNote,PatientName,PatientAge,PatientGender,WorkerName
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s6_admin_csv_export.png
+
+=== SCENARIO 7: Multilingual Report Download (Hindi / Marathi) ===
+PASS: Multilingual clinical triage executed and PDF ready for download: true
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s7_multilingual_download.png
+
+=== SCENARIO 8: DPDP Patient Consent Withdrawal ===
+PASS: Patient consent withdrawal clicked.
+PASS: Processing strictly refused after DPDP consent withdrawal.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s8_dpdp_withdrawal.png
+
+=== SCENARIO 9: ML Outage Error State (Fail-Closed 503) ===
+Temporarily stopping arogya-ml container...
+Triggered analysis during ML container outage...
+Restarting arogya-ml container...
+arogya-ml container restored and healthy.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s9_ml_outage_error.png
+
+=== SCENARIO 10: Role-Based Portal Navigation & Security Gateway ===
+PASS: All role portal entry points present and accessible through secure ingress.
+[+] Screenshot captured: D:\Document\Projects\Internship\Arogyamitra\docs\evidence\ui_screenshots\p4_s10_role_navigation.png
+
+
+================================================================================
+PLAYWRIGHT TEST SUMMARY: 10/10 Scenarios PASSED
+================================================================================
+
+Evidence saved to docs/evidence/playwright_report.txt
+[STEP 4 RESULT] ExitCode: 0, Elapsed: 63734ms
+
+[STEP 5] Run Ingress Load Test Suite (run_p5_load_test.py)
+Setting up load test authentication and consultation fixtures...
+Authenticated successfully. Target Consultation: None
+
+--- Benchmarking Endpoint: GET /health (Edge Baseline) ---
+  -> Concurrency 1 users (200 requests)... Done in 1.58s (126.7 RPS, p95=11.1ms, errors=0.0%)
+  -> Concurrency 10 users (200 requests)... Done in 1.3s (154.1 RPS, p95=115.8ms, errors=0.0%)
+  -> Concurrency 50 users (200 requests)... Done in 3.65s (54.8 RPS, p95=1905.7ms, errors=0.0%)
+
+--- Benchmarking Endpoint: POST /api/v1/worker/login (Auth Limiter) ---
+  -> Concurrency 1 users (200 requests)... Done in 10.06s (19.9 RPS, p95=56.9ms, errors=0.0%)
+  -> Concurrency 10 users (200 requests)... Done in 1.26s (158.7 RPS, p95=92.1ms, errors=0.0%)
+  -> Concurrency 50 users (200 requests)... Done in 4.44s (45.0 RPS, p95=2820.2ms, errors=0.0%)
+
+--- Benchmarking Endpoint: POST /api/v1/consultation/triage (Direct ML Sync) ---
+  -> Concurrency 1 users (200 requests)... Done in 9.96s (20.1 RPS, p95=56.4ms, errors=0.0%)
+  -> Concurrency 10 users (200 requests)... Done in 1.15s (173.5 RPS, p95=106.5ms, errors=0.0%)
+  -> Concurrency 50 users (200 requests)... Done in 4.0s (50.0 RPS, p95=2544.0ms, errors=0.0%)
+
+--- Benchmarking Endpoint: POST /consultation/:id/analyze/async (Queue Async) ---
+  -> Concurrency 1 users (200 requests)... Done in 10.02s (20.0 RPS, p95=57.8ms, errors=0.0%)
+  -> Concurrency 10 users (200 requests)... Done in 1.21s (165.4 RPS, p95=107.2ms, errors=0.0%)
+  -> Concurrency 50 users (200 requests)... Done in 4.72s (42.4 RPS, p95=2769.0ms, errors=0.0%)
+
+Load test complete. Results saved to docs/evidence/load_test_results.txt and docs/evidence/performance_tuning.txt
+[STEP 5 RESULT] ExitCode: 0, Elapsed: 55030ms
+
+[STEP 6] Run MITM Transport Security Demo (test_p6_mitm_demo.py)
+# EVIDENCE RECORD: P6.1 Transport Security & Man-In-The-Middle (MITM) Defense Demonstration
+# COMMAND: python scripts/test_p6_mitm_demo.py
+# DATE: 2026-10-31T09:19:08.391967+00:00
+# COMMIT: 77bb0765cee68761dd7141ec621bd0730d5af514
+# STATUS: DIRTY
+# TARGET: http://localhost:80 -> https://localhost:443 (Edge Nginx Gateway)
+# -----------------------------------------------------------------------------------------
+
+### PART A: Cleartext HTTP Interception & Downgrade Defense
+Sending cleartext HTTP request to http://localhost/api/v1/health (allow_redirects=False)...
+Response Status: HTTP 301
+Location Header: https://localhost/api/v1/health
+Server Header: nginx
+Result: PASS - Cleartext HTTP is strictly rejected with HTTP 301 Permanent Redirect to HTTPS.
+
+### PART B: TLS Certificate Validation Rejection (MITM / Untrusted CA Defense)
+Attempting TLS connection to https://localhost/api/v1/health with strict system CA verification...
+Client TLS Abort Caught: requests.exceptions.SSLError
+Error Message: HTTPSConnectionPool(host='localhost', port=443): Max retries exceeded with url: /api/v1/health (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1016)')))
+Result: PASS - Client strictly aborted TLS handshake because gateway cert is not in default public trust store (prevents rogue CA interception).
+
+### PART C: Encrypted Transmission with Validated Certificate Authority
+Connecting to https://arogyamitra.local/api/v1/health using trusted root CA (deploy/certs/arogyamitra.crt)...
+HTTP/1.1 429 Too Many Requests
+Server: nginx
+Date: Sat, 31 Oct 2026 09:19:08 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 100
+Connection: keep-alive
+X-Request-Id: 9959fe9f-b59d-4088-8621-b15b864ad650
+Content-Security-Policy: default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data: https://res.cloudinary.com;connect-src 'self' http://localhost:8000 http://localhost:8001;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin
+Access-Control-Allow-Credentials: true
+RateLimit-Policy: 1000;w=60
+RateLimit-Limit: 1000
+RateLimit-Remaining: 0
+RateLimit-Reset: 6
+Retry-After: 6
+ETag: W/"64-ITClHX2tAra0EU2+s2Spml/yH4s"
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+{"message":"Too many requests from this IP, please try again shortly.","code":"RATE_LIMIT_EXCEEDED"}
+
+Result: FAIL - TLS handshake or verification failed.
+[STEP 6 RESULT] ExitCode: 0, Elapsed: 1390ms
+
+[STEP 7] Run Automated Security Scanners
+gitleaks.exe : 
+At D:\Document\Projects\Internship\Arogyamitra\scripts\reproduce_all.ps1:119 char:5
++     & $gitleaksBin detect --source . -v --redact --gitleaks-ignore-pa ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m2:49PM[0m [32mINF[0m [1m33 commits scanned.[0m
+[90m2:49PM[0m [32mINF[0m [1mscanned ~3838766 bytes (3.84 MB) in 2.01s[0m
+[90m2:49PM[0m [32mINF[0m [1mno leaks found[0m
+uv : WARNING:pip_audit._dependency_source.pip:pip-audit will run pip against 
+C:\Users\DELL\AppData\Roaming\uv\tools\pip-audit\Scripts\python.exe, but you have a virtual environment loaded at 
+D:\Document\Projects\Internship\Arogyamitra\.venv. This may result in unintuitive audits, since your local environment 
+will not be audited. You can forcefully override this behavior by setting PIPAPI_PYTHON_LOCATION to the location of 
+your virtual environment's Python interpreter.
+At D:\Document\Projects\Internship\Arogyamitra\scripts\reproduce_all.ps1:123 char:5
++     uv run pip-audit
++     ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING:pip_aud...on interpreter.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+No known vulnerabilities found
+trivy.exe : 2026-10-31T14:49:17+05:30	INFO	[vuln] Vulnerability scanning is enabled
+At D:\Document\Projects\Internship\Arogyamitra\scripts\reproduce_all.ps1:127 char:5
++     & $trivyBin fs --severity HIGH,CRITICAL --scanners vuln --exit-co ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (2026-10-31T14:4...ning is enabled:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+2026-10-31T14:49:20+05:30	INFO	[npm] Run "npm install" to collect the license information of packages	
+dir="legacy/frontend/node_modules"
+2026-10-31T14:49:20+05:30	WARN	[pip] Unable to find python `site-packages` directory. License detection is skipped.	
+err="site-packages directory not found"
+2026-10-31T14:49:20+05:30	INFO	Suppressing dependencies for development and testing. To display them, try the 
+'--include-dev-deps' flag.
+2026-10-31T14:49:20+05:30	INFO	Number of language-specific files	num=7
+2026-10-31T14:49:20+05:30	INFO	[npm] Detecting vulnerabilities...
+2026-10-31T14:49:20+05:30	INFO	[pip] Detecting vulnerabilities...
+2026-10-31T14:49:20+05:30	INFO	[uv] Detecting vulnerabilities...
+
+Report Summary
+
+┌───────────────────────────────────┬──────┬─────────────────┐
+│              Target               │ Type │ Vulnerabilities │
+├───────────────────────────────────┼──────┼─────────────────┤
+│ Backend/package-lock.json         │ npm  │        0        │
+├───────────────────────────────────┼──────┼─────────────────┤
+│ ML_Model/requirements.txt         │ pip  │        2        │
+├───────────────────────────────────┼──────┼─────────────────┤
+│ graph/requirements.txt            │ pip  │        9        │
+├───────────────────────────────────┼──────┼─────────────────┤
+│ legacy/frontend/package-lock.json │ npm  │       19        │
+├───────────────────────────────────┼──────┼─────────────────┤
+│ ui/requirements.txt               │ pip  │        0        │
+├───────────────────────────────────┼──────┼─────────────────┤
+│ uv.lock                           │  uv  │        0        │
+└───────────────────────────────────┴──────┴─────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+ML_Model/requirements.txt (pip)
+===============================
+Total: 2 (HIGH: 2, CRITICAL: 0)
+
+┌──────────────────┬────────────────┬──────────┬────────┬───────────────────┬───────────────┬───────────────────────────────────────────────────────────┐
+│     Library      │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │                           Title                           │
+├──────────────────┼────────────────┼──────────┼────────┼───────────────────┼───────────────┼───────────────────────────────────────────────────────────┤
+│ python-multipart │ CVE-2026-42561 │ HIGH     │ fixed  │ 0.0.22            │ 0.0.27        │ python-multipart: python-multipart: Denial of Service via │
+│                  │                │          │        │                   │               │ excessive multipart part headers                          │
+│                  │                │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-42561                │
+│                  ├────────────────┤          │        │                   ├───────────────┼───────────────────────────────────────────────────────────┤
+│                  │ CVE-2026-53539 │          │        │                   │ 0.0.30        │ python-multipart: Python-Multipart: Denial of Service via │
+│                  │                │          │        │                   │               │ crafted form-urlencoded bodies                            │
+│                  │                │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-53539                │
+└──────────────────┴────────────────┴──────────┴────────┴───────────────────┴───────────────┴───────────────────────────────────────────────────────────┘
+
+graph/requirements.txt (pip)
+============================
+Total: 9 (HIGH: 8, CRITICAL: 1)
+
+┌──────────────────┬─────────────────────┬──────────┬────────┬───────────────────┬───────────────┬─────────────────────────────────────────────────────────────┐
+│     Library      │    Vulnerability    │ Severity │ Status │ Installed Version │ Fixed Version │                            Title                            │
+├──────────────────┼─────────────────────┼──────────┼────────┼───────────────────┼───────────────┼─────────────────────────────────────────────────────────────┤
+│ langchain        │ CVE-2026-45134      │ HIGH     │ fixed  │ 0.3.20            │ 0.3.30        │ langsmith-sdk-python: langsmith-sdk-js: LangSmith Client    │
+│                  │                     │          │        │                   │               │ SDKs: Information disclosure via untrusted prompt           │
+│                  │                     │          │        │                   │               │ deserialization                                             │
+│                  │                     │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-45134                  │
+├──────────────────┼─────────────────────┼──────────┤        ├───────────────────┼───────────────┼─────────────────────────────────────────────────────────────┤
+│ pyjwt            │ CVE-2026-102268     │ CRITICAL │        │ 2.10.1            │ 2.14.0        │ pyjwt: PyJWT: Authentication bypass via improper public key │
+│                  │                     │          │        │                   │               │ validation                                                  │
+│                  │                     │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-102268                 │
+│                  ├─────────────────────┼──────────┤        │                   │               ├─────────────────────────────────────────────────────────────┤
+│                  │ CVE-2026-102267     │ HIGH     │        │                   │               │ pyjwt: pyjwt: Verification key substitution via unvalidated │
+│                  │                     │          │        │                   │               │ JWKS redirects                                              │
+│                  │                     │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-102267                 │
+│                  ├─────────────────────┤          │        │                   │               ├─────────────────────────────────────────────────────────────┤
+│                  │ CVE-2026-102271     │          │        │                   │               │ pyjwt: PyJWT: Authentication bypass via acceptance of DER   │
+│                  │                     │          │        │                   │               │ public keys as HMAC...                                      │
+│                  │                     │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-102271                 │
+│                  ├─────────────────────┤          │        │                   ├───────────────┼─────────────────────────────────────────────────────────────┤
+│                  │ CVE-2026-32597      │          │        │                   │ 2.12.0        │ pyjwt: PyJWT accepts unknown `crit` header extensions (RFC  │
+│                  │                     │          │        │                   │               │ 7515 §4.1.11 MUST violation)...                             │
+│                  │                     │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-32597                  │
+│                  ├─────────────────────┤          │        │                   ├───────────────┼─────────────────────────────────────────────────────────────┤
+│                  │ CVE-2026-48526      │          │        │                   │ 2.13.0        │ python-pyjwt: PyJWT: Authentication bypass due to forged    │
+│                  │                     │          │        │                   │               │ JSON Web Tokens                                             │
+│                  │                     │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-48526                  │
+│                  ├─────────────────────┤          │        │                   ├───────────────┼─────────────────────────────────────────────────────────────┤
+│                  │ GHSA-pxh4-856f-4h89 │          │        │                   │ 2.14.0        │ PyJWT: HS256/384/512 verify accepts empty HMAC key via oct  │
+│                  │                     │          │        │                   │               │ JWK (PyJWK/PyJWKClient) enabling...                         │
+│                  │                     │          │        │                   │               │ https://github.com/advisories/GHSA-pxh4-856f-4h89           │
+├──────────────────┼─────────────────────┤          │        ├───────────────────┼───────────────┼─────────────────────────────────────────────────────────────┤
+│ python-multipart │ CVE-2026-42561      │          │        │ 0.0.22            │ 0.0.27        │ python-multipart: python-multipart: Denial of Service via   │
+│                  │                     │          │        │                   │               │ excessive multipart part headers                            │
+│                  │                     │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-42561                  │
+│                  ├─────────────────────┤          │        │                   ├───────────────┼─────────────────────────────────────────────────────────────┤
+│                  │ CVE-2026-53539      │          │        │                   │ 0.0.30        │ python-multipart: Python-Multipart: Denial of Service via   │
+│                  │                     │          │        │                   │               │ crafted form-urlencoded bodies                              │
+│                  │                     │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-53539                  │
+└──────────────────┴─────────────────────┴──────────┴────────┴───────────────────┴───────────────┴─────────────────────────────────────────────────────────────┘
+
+legacy/frontend/package-lock.json (npm)
+=======================================
+Total: 19 (HIGH: 19, CRITICAL: 0)
+
+┌──────────────┬─────────────────────┬──────────┬────────┬───────────────────┬─────────────────────┬──────────────────────────────────────────────────────────────┐
+│   Library    │    Vulnerability    │ Severity │ Status │ Installed Version │    Fixed Version    │                            Title                             │
+├──────────────┼─────────────────────┼──────────┼────────┼───────────────────┼─────────────────────┼──────────────────────────────────────────────────────────────┤
+│ axios        │ CVE-2026-101898     │ HIGH     │ fixed  │ 1.13.5            │ 1.20.0              │ axios: axios: Security control bypass via unapplied HTTP/2   │
+│              │                     │          │        │                   │                     │ proxy and DNS settings...                                    │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-101898                  │
+│              ├─────────────────────┤          │        │                   │                     ├──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-101901     │          │        │                   │                     │ axios: Axios: Denial of Service via unhandled error in       │
+│              │                     │          │        │                   │                     │ HTTP/2 session initialization...                             │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-101901                  │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-42033      │          │        │                   │ 1.15.1, 0.31.1      │ axios: Axios: HTTP Transport Hijacking via Prototype         │
+│              │                     │          │        │                   │                     │ Pollution                                                    │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-42033                   │
+│              ├─────────────────────┤          │        │                   │                     ├──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-42035      │          │        │                   │                     │ axios: Axios: Arbitrary HTTP header injection via prototype  │
+│              │                     │          │        │                   │                     │ pollution                                                    │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-42035                   │
+│              ├─────────────────────┤          │        │                   │                     ├──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-42043      │          │        │                   │                     │ axios: Axios: NO_PROXY bypass via crafted URL                │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-42043                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-42264      │          │        │                   │ 1.15.2              │ axios: Axios: Prototype pollution allows information         │
+│              │                     │          │        │                   │                     │ disclosure and request manipulation                          │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-42264                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-44486      │          │        │                   │ 1.16.0, 0.32.0      │ axios: Axios: Information disclosure of proxy credentials    │
+│              │                     │          │        │                   │                     │ via HTTP redirects                                           │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-44486                   │
+│              ├─────────────────────┤          │        │                   │                     ├──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-44487      │          │        │                   │                     │ axios: Axios: Information disclosure of proxy credentials    │
+│              │                     │          │        │                   │                     │ via redirect flows                                           │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-44487                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-44488      │          │        │                   │ 1.16.0              │ axios: Axios: Denial of Service due to unenforced request    │
+│              │                     │          │        │                   │                     │ and response size...                                         │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-44488                   │
+│              ├─────────────────────┤          │        │                   │                     ├──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-44494      │          │        │                   │                     │ axios: Axios: Man-in-the-Middle (MITM) attack via Prototype  │
+│              │                     │          │        │                   │                     │ Pollution                                                    │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-44494                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-44495      │          │        │                   │ 1.15.2, 0.31.1      │ axios: Axios: Information disclosure due to prototype        │
+│              │                     │          │        │                   │                     │ pollution vulnerability                                      │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-44495                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-44496      │          │        │                   │ 1.16.0, 0.32.0      │ axios: Axios: Client-side Denial of Service via unescaped    │
+│              │                     │          │        │                   │                     │ regex metacharacters in XSRF...                              │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-44496                   │
+├──────────────┼─────────────────────┤          │        ├───────────────────┼─────────────────────┼──────────────────────────────────────────────────────────────┤
+│ form-data    │ CVE-2026-12143      │          │        │ 4.0.5             │ 2.5.6, 3.0.5, 4.0.6 │ form-data: form-data: Form field override via CRLF injection │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-12143                   │
+├──────────────┼─────────────────────┤          │        ├───────────────────┼─────────────────────┼──────────────────────────────────────────────────────────────┤
+│ react-router │ CVE-2026-33245      │          │        │ 7.13.0            │ 7.13.2              │ react-router: React Router: Cross-Site Scripting             │
+│              │                     │          │        │                   │                     │ vulnerability via untrusted React Server Component           │
+│              │                     │          │        │                   │                     │ redirects...                                                 │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-33245                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-34077      │          │        │                   │ 7.14.0              │ react-router: React Router: Denial of Service via            │
+│              │                     │          │        │                   │                     │ client-side Cross-Site Scripting in RSC...                   │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-34077                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-42211      │          │        │                   │ 7.14.2              │ react-router: React Router: Remote Code Execution via        │
+│              │                     │          │        │                   │                     │ prototype pollution in Framework Mode...                     │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-42211                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-42342      │          │        │                   │ 7.15.0              │ react-router: @remix-run/server-runtime: React Router /      │
+│              │                     │          │        │                   │                     │ Remix: Denial of Service via unbounded path...               │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-42342                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ CVE-2026-55685      │          │        │                   │ 7.18.0              │ react-router: @remix-run/server-runtime: React Router:       │
+│              │                     │          │        │                   │                     │ Denial of Service via unauthenticated manifest endpoint      │
+│              │                     │          │        │                   │                     │ requests...                                                  │
+│              │                     │          │        │                   │                     │ https://avd.aquasec.com/nvd/cve-2026-55685                   │
+│              ├─────────────────────┤          │        │                   ├─────────────────────┼──────────────────────────────────────────────────────────────┤
+│              │ GHSA-qwww-vcr4-c8h2 │          │        │                   │ 7.18.2, 8.3.0       │ React Router: RSC Mode CSRF Bypass Allows Action Execution   │
+│              │                     │          │        │                   │                     │ Before 400 Response...                                       │
+│              │                     │          │        │                   │                     │ https://github.com/advisories/GHSA-qwww-vcr4-c8h2            │
+└──────────────┴─────────────────────┴──────────┴────────┴───────────────────┴─────────────────────┴──────────────────────────────────────────────────────────────┘
+uv : [main]	INFO	profile include tests: None
+At D:\Document\Projects\Internship\Arogyamitra\scripts\reproduce_all.ps1:132 char:5
++     uv run bandit -r ML_Model graph ui -ll -ii
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([main]	INFO	profile include tests: None:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.11.15
+Run started:2026-10-31 09:19:23.640867+00:00
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 6217
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 313
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 313
+Files skipped (0):
+[STEP 7 RESULT] ExitCode: 0, Elapsed: 15889ms
+
+================================================================================
+MASTER REPRODUCTION RUN COMPLETE - ALL STEPS VERIFIED
+Finished At: 2026-10-31T14:49:24+05:30
+================================================================================

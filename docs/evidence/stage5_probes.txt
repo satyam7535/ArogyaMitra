@@ -1,0 +1,74 @@
+Command: node src/scripts/runStage5Probes.js
+================================================================================
+AROGYAMITRA STAGE 5 — FLOW STEPS 10 & 11 CLINICAL DECISION & SECOND OPINION PROBES
+Timestamp: 2026-10-28T21:18:39.433Z
+Database: MongoDB Atlas arogyamitra_dev
+Backend URL: http://127.0.0.1:5000
+================================================================================
+
+[FIXTURES IN DATABASE]
+Org 1 (Pune):   6ae1070ef57007c12dfe5bee (PUNE-RHM)
+Org 2 (Nashik): 6ae10765d7265b845af2b8af (NASHIK-RHM)
+Worker 1 (Org 1): 6ae10766d7265b845af2b8bc (worker@arogyamitra.gov.in)
+Doctor 1 (Org 1): 6ae10767d7265b845af2b8c2 (doctor@arogyamitra.gov.in)
+Patient 1 (Org 1): 6ae10768d7265b845af2b8c8 (Kavita Devi)
+
+--------------------------------------------------------------------------------
+[PROBE 1] Flow Step 10: Worker accepts AI diagnostic recommendation
+Request: PATCH /api/v1/consultation/6ae266b00079eb5695a899ae/accept
+Response Status: 200 (Expected 200)
+Response Body: {"message":"AI result accepted. Consultation closed.","consultation":{"mlAnalysis":{"disease":"Common Cold","confidence":0.92,"severityScore":1.2,"needsEscalation":false,"topPredictions":[],"matchedSymptoms":[],"precautions":[],"shapExplanation":[]},"llmAnalysis":{"llmFallback":false},"_id":"6ae266b00079eb5695a899ae","patient":"6ae10768d7265b845af2b8c8","submittedBy":"6ae10766d7265b845af2b8bc","organization":"6ae1070ef57007c12dfe5bee","symptoms":["headache","mild fever"],"attachments":[],"status":"closed","createdAt":"2026-10-28T21:18:40.135Z","updatedAt":"2026-10-28T21:18:40.327Z","__v":1,"workerDecision":"accepted"}}
+
+--------------------------------------------------------------------------------
+[PROBE 2] Security: Cross-organization worker cannot accept consultation (404 Anti-Enumeration)
+Request: PATCH /api/v1/consultation/6ae266b00079eb5695a899ae/accept (Cross-Org Token)
+Response Status: 404 (Expected 404)
+Response Body: {"message":"Consultation not found"}
+
+--------------------------------------------------------------------------------
+[PROBE 3] Security: Doctor role cannot invoke worker accept endpoint (RBAC 403 Forbidden)
+Request: PATCH /api/v1/consultation/6ae266b00079eb5695a899ae/accept (Doctor Token)
+Response Status: 403 (Expected 403)
+Response Body: {"message":"Forbidden: Insufficient role permissions"}
+
+--------------------------------------------------------------------------------
+[PROBE 4] Flow Step 10: Worker escalates high-risk consultation to Doctor for Second Opinion
+Request: PATCH /api/v1/consultation/6ae266b00079eb5695a899af/escalate
+Response Status: 200 (Expected 200)
+Response Body: {"message":"Consultation escalated to doctor","consultation":{"mlAnalysis":{"disease":"Cardiac Risk Profile","confidence":0.88,"severityScore":4.8,"needsEscalation":true,"uncertaintyReason":"RED_FLAG_MATCH","topPredictions":[],"matchedSymptoms":[],"precautions":[],"shapExplanation":[]},"llmAnalysis":{"llmFallback":false},"_id":"6ae266b00079eb5695a899af","patient":"6ae10768d7265b845af2b8c8","submittedBy":"6ae10766d7265b845af2b8bc","organization":"6ae1070ef57007c12dfe5bee","symptoms":["chest pain","shortness of breath","sweating"],"attachments":[],"status":"pending","createdAt":"2026-10-28T21:18:40.438Z","updatedAt":"2026-10-28T21:18:40.492Z","__v":1,"assignedDoctor":"6ae10767d7265b845af2b8c2","escalationReason":"Clinical red-flag symptoms detected: acute chest pain with diaphoresis.","workerDecision":"escalated"}}
+
+--------------------------------------------------------------------------------
+[PROBE 5] Flow Step 11: Doctor queries pending review queue
+Request: GET /api/v1/consultation/pending
+Response Status: 200 (Expected 200)
+Pending cases assigned to Dr. Dr. Anand Joshi (Medical Officer): 2
+Escalated case present in queue: true
+
+--------------------------------------------------------------------------------
+[PROBE 6] Flow Step 11: Doctor submits clinical second opinion
+Request: PATCH /api/v1/consultation/6ae266b00079eb5695a899af/respond
+Response Status: 200 (Expected 200)
+Response Body: {"message":"Second opinion submitted successfully","consultation":{"mlAnalysis":{"disease":"Cardiac Risk Profile","confidence":0.88,"severityScore":4.8,"needsEscalation":true,"uncertaintyReason":"RED_FLAG_MATCH","topPredictions":[],"matchedSymptoms":[],"precautions":[],"shapExplanation":[]},"llmAnalysis":{"llmFallback":false},"secondOpinion":{"diagnosis":"Suspected Acute Coronary Syndrome — Immediate Emergency Referral Required","recommendation":"Administer Aspirin 300mg stat, Sublingual Sorbitrate 5mg if systolic BP > 100 mmHg. Call 108 ambulance immediately.","respondedAt":"2026-10-28T21:18:40.608Z"},"_id":"6ae266b00079eb5695a899af","patient":"6ae10768d7265b845af2b8c8","submittedBy":"6ae10766d7265b845af2b8bc","organization":"6ae1070ef57007c12dfe5bee","symptoms":["chest pain","shortness of breath","sweating"],"attachments":[],"status":"reviewed","createdAt":"2026-10-28T21:18:40.438Z","updatedAt":"2026-10-28T21:18:40.609Z","__v":2,"assignedDoctor":"6ae10767d7265b845af2b8c2","escalationReason":"Clinical red-flag symptoms detected: acute chest pain with diaphoresis.","workerDecision":"escalated"}}
+
+--------------------------------------------------------------------------------
+[PROBE 7] Security: Worker role cannot submit doctor second opinion (RBAC 403 Forbidden)
+Request: PATCH /api/v1/consultation/6ae266b00079eb5695a899af/respond (Worker Token)
+Response Status: 403 (Expected 403)
+Response Body: {"message":"Forbidden: Insufficient role permissions"}
+
+--------------------------------------------------------------------------------
+[PROBE 8] Security: Cross-organization doctor cannot respond to consultation (404 Anti-Enumeration)
+Request: PATCH /api/v1/consultation/6ae266b00079eb5695a899af/respond (Cross-Org Doctor Token)
+Response Status: 404 (Expected 404)
+Response Body: {"message":"Consultation not found or not assigned to you"}
+
+--------------------------------------------------------------------------------
+[PROBE 9] Audit Log: Verify immutable audit records created for triage transitions
+Found 3 audit events for test consultations:
+ - Action: CONSULTATION_ACCEPTED_AI | Resource: Consultation:6ae266b00079eb5695a899ae | User: Worker:6ae10766d7265b845af2b8bc | IP: 127.0.0.1
+ - Action: CONSULTATION_ESCALATED | Resource: Consultation:6ae266b00079eb5695a899af | User: Worker:6ae10766d7265b845af2b8bc | IP: 127.0.0.1
+ - Action: SECOND_OPINION_SUBMITTED | Resource: Consultation:6ae266b00079eb5695a899af | User: Doctor:6ae10767d7265b845af2b8c2 | IP: 127.0.0.1
+
+================================================================================
+ALL STAGE 5 PROBES COMPLETED SUCCESSFULLY.
+================================================================================

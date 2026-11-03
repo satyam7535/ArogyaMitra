@@ -1,0 +1,26 @@
+# EVIDENCE RECORD: P6.4 Internal Service Isolation & Network Exposure Probes
+# COMMAND: python scripts/test_p6_service_isolation.py
+# DATE: 2026-10-31T08:45:07.281143+00:00
+# COMMIT: addf510d4959e64414ccb8a27917654b32a45b14
+# STATUS: DIRTY
+# TARGET PORTS: 5000 (Backend), 8000 (ML), 8001 (Graph), 27017 (Mongo)
+# ----------------------------------------------------------------------------------
+
+### 1. Host Listening Ports Netstat Probe
+Clean: Zero listening sockets found on host for ports 5000, 8000, 8001, 27017.
+
+### 2. Direct Socket Connection Probes from Host
+[+] Backend API (:5000): ISOLATED (Connection Refused - not exposed on host)
+[+] ML Inference Service (:8000): ISOLATED (Connection Refused - not exposed on host)
+[+] Graph Workflow Engine (:8001): ISOLATED (Connection Refused - not exposed on host)
+[+] MongoDB Database (:27017): ISOLATED (Connection Refused - not exposed on host)
+
+### 3. Direct curl Ingress Probes from Host
+[+] Backend Direct HTTP (http://localhost:5000/health): BLOCKED (curl exit code 28: Connection refused/timed out)
+[+] ML Direct HTTP (http://localhost:8000/health): BLOCKED (curl exit code 28: Connection refused/timed out)
+[+] Graph Direct HTTP (http://localhost:8001/health): BLOCKED (curl exit code 28: Connection refused/timed out)
+
+### 4. Direct MongoDB Driver Probe from Host
+[+] MongoDB: mongosh not on host; socket probe confirms port 27017 is closed on host.
+
+Final Isolation Audit Result: All Internal Microservices Strictly Isolated = True

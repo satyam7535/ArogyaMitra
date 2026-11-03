@@ -19,28 +19,30 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     except Exception:
         pass
 
-import yaml
+from typing import Any
+
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Any
+import yaml
 
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import BernoulliNB
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score, f1_score, log_loss
-from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, f1_score, log_loss
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.naive_bayes import BernoulliNB
+from sklearn.neural_network import MLPClassifier
+from xgboost import XGBClassifier
 
 from ML_Model.training.prepare_data import (
-    load_and_clean_data,
+    apply_symptom_masking,
     augment_training_data,
-    apply_symptom_masking
+    load_and_clean_data,
 )
+
 
 def compute_ece(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10) -> float:
     """Computes Expected Calibration Error (ECE) for multi-class predictions."""
@@ -62,7 +64,7 @@ def compute_top_k_acc(y_true: np.ndarray, y_prob: np.ndarray, k: int = 3) -> flo
     top_k_preds = np.argsort(y_prob, axis=1)[:, -k:]
     return float(np.mean([y_true[i] in top_k_preds[i] for i in range(len(y_true))]))
 
-def get_models(seed: int = 42) -> Dict[str, Any]:
+def get_models(seed: int = 42) -> dict[str, Any]:
     return {
         "Logistic Regression": LogisticRegression(max_iter=1000, random_state=seed, C=1.0),
         "Bernoulli Naive Bayes": BernoulliNB(alpha=0.5),
@@ -98,7 +100,7 @@ def run_benchmark(config_path: str = "ML_Model/training/config.yaml"):
 
     print(f"Dataset: {len(X)} unique samples, {X.shape[1]} features, {num_classes} classes.")
     print(f"Validation Strategy: RepeatedStratifiedKFold (splits={cfg['cv']['n_splits']}, repeats={cfg['cv']['n_repeats']})")
-    print(f"Evaluating across 3 missing symptom test rates: 0%, 30%, 50% hidden symptoms.\n")
+    print("Evaluating across 3 missing symptom test rates: 0%, 30%, 50% hidden symptoms.\n")
 
     rskf = RepeatedStratifiedKFold(
         n_splits=cfg["cv"]["n_splits"],
@@ -220,14 +222,13 @@ def run_benchmark(config_path: str = "ML_Model/training/config.yaml"):
         f.write("## 2. Comparative Benchmark Matrix\n\n")
         f.write("| Model | Augmented | Hidden Symptoms | Accuracy | Top-3 Accuracy | Macro-F1 | Log Loss | ECE |\n")
         f.write("|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n")
-        for _, r in res_df.iterrows():
-            f.write(f"| {r['Model']} | {'Yes' if r['Augmented'] else 'No'} | {r['Hidden Symptoms']} | {r['Accuracy (Mean±Std)']} | {r['Top-3 Acc (Mean±Std)']} | {r['Macro-F1 (Mean±Std)']} | {r['Log Loss']} | {r['ECE']} |\n")
+        f.writelines(f"| {r['Model']} | {'Yes' if r['Augmented'] else 'No'} | {r['Hidden Symptoms']} | {r['Accuracy (Mean±Std)']} | {r['Top-3 Acc (Mean±Std)']} | {r['Macro-F1 (Mean±Std)']} | {r['Log Loss']} | {r['ECE']} |\n" for _, r in res_df.iterrows())
 
         f.write("\n## 3. Analysis & Model Selection Rationale\n")
         f.write("- **Dropout Augmentation Impact**: Models trained with symptom-dropout augmentation demonstrate markedly superior robustness at 30% and 50% missing symptoms compared to unaugmented baselines.\n")
         f.write("- **Winner Selection**: LightGBM with dropout augmentation maintains the highest Top-3 accuracy and macro-F1 under high symptom omission, while delivering fast, deterministic inference and native support for TreeSHAP.\n")
 
-    print(f"\n[SUCCESS] Benchmark completed successfully!")
+    print("\n[SUCCESS] Benchmark completed successfully!")
     print(f"[SAVED] Raw CSV: {csv_path}")
     print(f"[SAVED] Markdown Report: {md_path}")
     return res_df

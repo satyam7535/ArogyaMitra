@@ -1,0 +1,44 @@
+Command: python graph/scripts/verify_pdf_generation.py
+================================================================================
+AROGYAMITRA â€” MULTILINGUAL PDF REPORT & EXPLAINABILITY AUDIT
+Timestamp: 2026-10-28T20:58:45Z
+================================================================================
+
+[SYSTEM FONT ENVIRONMENT]
+  - Active Devanagari Font: 'DejaVuBundled'
+  - Host OS Platform:       win32
+
+>>> SECTION 1: MULTILINGUAL PDF GENERATION RESULTS <<<
+--------------------------------------------------------------------------------
+Language:              English (en)
+  - Size:              5,765 bytes
+  - Latency:           31.38 ms
+  - Valid PDF Header:  True
+  - Bayesian Header:   True
+  - LIME Completely Absent: True
+  - Output File:       D:\Document\Projects\Internship\Arogyamitra\graph\scripts\output\sample_report_en.pdf
+--------------------------------------------------------------------------------
+Language:              Hindi (à¤¹à¤¿à¤‚à¤¦à¥€) (hi)
+  - Size:              26,247 bytes
+  - Latency:           31.87 ms
+  - Valid PDF Header:  True
+  - Bayesian Header:   True
+  - LIME Completely Absent: True
+  - Output File:       D:\Document\Projects\Internship\Arogyamitra\graph\scripts\output\sample_report_hi.pdf
+--------------------------------------------------------------------------------
+Language:              Marathi (à¤®à¤°à¤¾à¤ à¥€) (mr)
+  - Size:              26,238 bytes
+  - Latency:           29.03 ms
+  - Valid PDF Header:  True
+  - Bayesian Header:   True
+  - LIME Completely Absent: True
+  - Output File:       D:\Document\Projects\Internship\Arogyamitra\graph\scripts\output\sample_report_mr.pdf
+
+>>> SECTION 2: PNG RENDER CHECK-IN <<<
+  - PNG Preview Generated: True
+  - PNG File Size:         108,539 bytes
+  - PNG File Path:         D:\Document\Projects\Internship\Arogyamitra\graph\scripts\output\sample_report_preview.png
+
+================================================================================
+MULTILINGUAL PDF & PNG AUDIT COMPLETE: 100% SPECIFICATION COMPLIANCE VERIFIED
+================================================================================

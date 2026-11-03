@@ -1,0 +1,1 @@
+# Keep certs directory tracked; certs and keys generated per-host locally are gitignored.

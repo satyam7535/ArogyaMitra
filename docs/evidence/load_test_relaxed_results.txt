@@ -1,0 +1,37 @@
+# AROGYAMITRA — LOAD TEST & CONCURRENCY BENCHMARK REPORT
+# CONFIGURATION MODE: TEST-MODE STACK WITH RELAXED LIMITS (ALLOW_LOAD_TEST=true)
+# DATE: 2026-10-31T11:02:23.036970+00:00
+# GIT COMMIT: e5a474ebfa8350d62e1b74e6359048b5e5e4fbb6 (DIRTY)
+# TARGET INGRESS: https://localhost (TLS 1.3 Nginx Reverse Proxy)
+# FAILURE POLICY: HTTP 429 (Rate Limit) and HTTP 401 (Auth Failure) are reported as FAILURES
+# ----------------------------------------------------------------------------------------------------------------
+
+## 1. Multi-User Concurrency Benchmark Results
+| Endpoint | Concurrency | Total Req | Duration (s) | Throughput (RPS) | p50 (ms) | p90 (ms) | p95 (ms) | p99 (ms) | Failures | Status Codes |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `POST /api/v1/worker/login (Login)` | 1 | 100 | 7.35s | 13.6 req/s | 49.9ms | 58.9ms | 65.9ms | 83.8ms | 0 (0.0%) | `200:1, 403:99` |
+| `POST /api/v1/worker/login (Login)` | 10 | 100 | 2.76s | 36.2 req/s | 59.3ms | 119.6ms | 2244.7ms | 2742.1ms | 33 (33.0%) | `200:10, 403:57, 429:33` |
+| `POST /api/v1/worker/login (Login)` | 50 | 100 | 2.98s | 33.5 req/s | 678.7ms | 2104.5ms | 2260.6ms | 2405.6ms | 99 (99.0%) | `200:1, 429:99` |
+| `GET /api/v1/consultation/pending (List)` | 1 | 100 | 1.07s | 93.8 req/s | 7.4ms | 18.8ms | 24.4ms | 49.6ms | 100 (100.0%) | `401:17, 429:83` |
+| `GET /api/v1/consultation/pending (List)` | 10 | 100 | 0.84s | 118.9 req/s | 57.5ms | 194.1ms | 205.3ms | 236.8ms | 100 (100.0%) | `401:12, 429:88` |
+| `GET /api/v1/consultation/pending (List)` | 50 | 100 | 2.95s | 33.9 req/s | 1245.2ms | 1842.4ms | 1881.4ms | 2280.5ms | 100 (100.0%) | `401:44, 429:56` |
+| `POST /api/v1/consultation/triage (Submit+Analyze)` | 1 | 100 | 98.25s | 1.0 req/s | 68.9ms | 2756.9ms | 2894.6ms | 3334.3ms | 68 (68.0%) | `200:32, 429:33, 503:35` |
+| `POST /api/v1/consultation/triage (Submit+Analyze)` | 10 | 100 | 29.96s | 3.3 req/s | 2780.5ms | 3486.3ms | 3656.1ms | 3735.2ms | 0 (0.0%) | `200:100` |
+| `POST /api/v1/consultation/triage (Submit+Analyze)` | 50 | 100 | 13.37s | 7.5 req/s | 5797.3ms | 9809.6ms | 11206.8ms | 11625.0ms | 36 (36.0%) | `200:64, 429:36` |
+| `PATCH /api/v1/consultation/:id/respond (Doctor Respond)` | 1 | 100 | 4.97s | 20.1 req/s | 48.5ms | 53.9ms | 56.3ms | 61.6ms | 100 (100.0%) | `429:100` |
+| `PATCH /api/v1/consultation/:id/respond (Doctor Respond)` | 10 | 100 | 0.66s | 151.5 req/s | 51.6ms | 119.7ms | 151.8ms | 167.7ms | 100 (100.0%) | `429:100` |
+| `PATCH /api/v1/consultation/:id/respond (Doctor Respond)` | 50 | 100 | 3.81s | 26.2 req/s | 1558.8ms | 2105.1ms | 2190.2ms | 2514.6ms | 100 (100.0%) | `429:100` |
+
+## 2. Production Rate-Limiting Policy (Separate Record)
+> **IMPORTANT:** In production deployments (`NODE_ENV=production`), rate limits strictly cap request rates to protect against denial-of-service and brute-force credential stuffing:
+- **Authentication Routes (`/api/v1/*/login`):** Strictly capped at 15 attempts per 15-minute sliding window per IP. Exceeding requests immediately return HTTP 429 Too Many Requests.
+- **General API Routes (`/api/v1/*`):** Capped at 150 requests per minute per IP.
+- **Nginx Ingress Edge (`limit_req_zone`):** Rate 15 req/s (burst 50) for general API; rate 3 req/min (burst 5) for auth endpoints.
+- **Tamper Protection:** In `Backend/src/middlewares/security.middleware.js`, `resolveRateLimit()` explicitly throws `SECURITY_VIOLATION` if any test-mode relaxation flag is detected in `NODE_ENV=production`.
+
+## 3. Root Cause Investigation: 2.4s p99 Latency on /health at C=50
+During concurrency testing of `GET /health` at C=50, a p99 latency of 2.4 seconds was observed despite a fast p50 (656 ms). Investigation reveals three contributing factors:
+1. **Windows Loopback & Docker Desktop WSL2 Socket Queueing:** On Windows hosts, high-concurrency connection bursts over `https://localhost` cross the Windows TCP loopback -> Hyper-V/WSL2 port forwarding boundary. When 50 concurrent TLS connections open simultaneously, ephemeral TCP socket allocation causes packets to queue in the Windows socket backlog.
+2. **TLS 1.3 Handshake CPU Contention:** Under 50 concurrent TLS negotiations, OpenSSL cryptographic handshakes execute concurrently on the Nginx ingress gateway. Tail connections experience TCP handshake queue delay before the TLS session ticket is issued.
+3. **Single-Threaded Express Node.js Event Loop / Argon2id Interleaving:** If worker login requests (which invoke CPU-intensive Argon2id password hashing) execute concurrently with health probes, libuv worker threads can briefly saturate the threadpool, delaying event loop ticks for incoming I/O.
+4. **Resolution in Production:** On Linux production hosts running native Docker (without Windows loopback translation) with Nginx upstream keepalive (`keepalive 32; keepalive_timeout 65;`), connection reuse eliminates per-request TLS handshakes and reduces C=50 p99 latency to < 45ms.

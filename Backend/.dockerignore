@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.env.*
+node_modules
+tests
+coverage
+docs
+*.md
+eslint.config.js
+vitest.config.js

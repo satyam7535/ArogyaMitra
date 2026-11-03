@@ -1,0 +1,23 @@
+# Command: git grep -i "Calibrated Confidence" ui/ ; git grep -i "High Certainty" ui/ ; git grep -i "calibrated" ui/
+# Date: 2026-10-30T17:11:45+05:30
+# Git Commit: 201dc9c (dirty)
+# Status: VERIFIED
+
+=== Grep: 'Calibrated Confidence' in ui/ ===
+[EXIT 1 - NO OCCURRENCES FOUND]
+
+=== Grep: 'High Certainty' in ui/ ===
+[EXIT 1 - NO OCCURRENCES FOUND]
+
+=== Grep: 'calibrated' in ui/ ===
+[EXIT 1 - NO OCCURRENCES FOUND]
+
+=== Verification in ui/utils/i18n.py ===
+Line 40: "confidence": "Model confidence (estimate, not a clinical probability)"
+Line 99 (hi): "confidence": "मॉडल विश्वसनीयता (अनुमान, नैदानिक संभावना नहीं)"
+Line 158 (mr): "confidence": "मॉडेल अंदाज (वैद्यकीय संभाव्यता नाही)"
+
+=== Verification in ui/pages/1_Worker_Triage.py ===
+st.metric(label=t("confidence", lang), value=f"{conf_pct}%", delta=None)
+delta badge removed.
+

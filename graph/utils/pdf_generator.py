@@ -1,17 +1,23 @@
-import os
 import io
+import os
 from datetime import datetime
-from reportlab.lib.pagesizes import A4
+
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    HRFlowable, KeepTogether
-)
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import (
+    HRFlowable,
+    KeepTogether,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 # ── Translations ─────────────────────────────────────────────────────────────
 TRANSLATIONS = {
@@ -38,7 +44,7 @@ TRANSLATIONS = {
         "high": "High",
         "moderate": "Moderate",
         "low": "Low",
-        "ai_explanation": "AI Explanation (LIME)",
+        "ai_explanation": "AI Explanation (Bayesian Evidence Weights)",
         "lime_desc": "The following factors most influenced this prediction. Positive impact = supports the diagnosis. Negative impact = evidence against it.",
         "impact_score": "Impact Score",
         "direction": "Direction",
@@ -76,7 +82,7 @@ TRANSLATIONS = {
         "high": "उच्च",
         "moderate": "मध्यम",
         "low": "कम",
-        "ai_explanation": "AI स्पष्टीकरण (LIME)",
+        "ai_explanation": "AI स्पष्टीकरण (बायेसियन साक्ष्य भार)",
         "lime_desc": "निम्नलिखित कारकों ने इस भविष्यवाणी को सबसे अधिक प्रभावित किया। सकारात्मक प्रभाव = निदान का समर्थन करता है। नकारात्मक प्रभाव = इसके विरुद्ध साक्ष्य।",
         "impact_score": "प्रभाव स्कोर",
         "direction": "दिशा",
@@ -114,7 +120,7 @@ TRANSLATIONS = {
         "high": "उच्च",
         "moderate": "मध्यम",
         "low": "कमी",
-        "ai_explanation": "AI स्पष्टीकरण (LIME)",
+        "ai_explanation": "AI स्पष्टीकरण (बायेशियन पुरावा भार)",
         "lime_desc": "खालील घटकांनी या भविष्यवाणीवर सर्वात जास्त प्रभाव टाकला. सकारात्मक प्रभाव = निदानाचे समर्थन करतो. नकारात्मक प्रभाव = त्याविरुद्ध पुरावा.",
         "impact_score": "प्रभाव स्कोर",
         "direction": "दिशा",
@@ -131,30 +137,32 @@ TRANSLATIONS = {
     }
 }
 
-# Try to register a font that supports Devanagari
+# Try to register a font that supports Devanagari (NotoSansDevanagari first, then Nirmala, DejaVu)
 try:
-    # On most Ubuntu/Debian systems (like Hugging Face)
-    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" 
-    if os.path.exists(font_path):
-        pdfmetrics.registerFont(TTFont('DejaVu', font_path))
+    noto_devanagari = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fonts", "NotoSansDevanagari-Regular.ttf")
+    bundled_font = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fonts", "DejaVuSans.ttf")
+    linux_font = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    windows_nirmala = "C:/Windows/Fonts/nirmala.ttf"
+    windows_arial = "C:/Windows/Fonts/arial.ttf"
+
+    if os.path.exists(noto_devanagari):
+        pdfmetrics.registerFont(TTFont('NotoSansDevanagari', noto_devanagari))
+        DEFAULT_FONT = 'NotoSansDevanagari'
+    elif os.path.exists(windows_nirmala):
+        pdfmetrics.registerFont(TTFont('Nirmala', windows_nirmala))
+        DEFAULT_FONT = 'Nirmala'
+    elif os.path.exists(bundled_font):
+        pdfmetrics.registerFont(TTFont('DejaVuBundled', bundled_font))
+        DEFAULT_FONT = 'DejaVuBundled'
+    elif os.path.exists(linux_font):
+        pdfmetrics.registerFont(TTFont('DejaVu', linux_font))
         DEFAULT_FONT = 'DejaVu'
+    elif os.path.exists(windows_arial):
+        pdfmetrics.registerFont(TTFont('Arial', windows_arial))
+        DEFAULT_FONT = 'Arial'
     else:
-        # Fallback for Windows or systems without DejaVu
-        import platform
-        if platform.system() == "Windows":
-            font_path = "C:/Windows/Fonts/arial.ttf"
-            nirmala = "C:/Windows/Fonts/nirmala.ttf"
-            if os.path.exists(nirmala):
-                pdfmetrics.registerFont(TTFont('Nirmala', nirmala))
-                DEFAULT_FONT = 'Nirmala'
-            elif os.path.exists(font_path):
-                pdfmetrics.registerFont(TTFont('Arial', font_path))
-                DEFAULT_FONT = 'Arial'
-            else:
-                DEFAULT_FONT = 'Helvetica'
-        else:
-            DEFAULT_FONT = 'Helvetica'
-except Exception as e:
+        DEFAULT_FONT = 'Helvetica'
+except Exception:
     DEFAULT_FONT = 'Helvetica'
 
 # ── PDF Generator ──────────────────────────────────────────────────────────────
@@ -180,8 +188,6 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
     LIGHT_BG   = colors.HexColor('#EBF5FB')
     LIGHT_GRAY = colors.HexColor('#F2F3F4')
     WHITE      = colors.white
-
-    styles = getSampleStyleSheet()
 
     def style(name, **kwargs):
         return ParagraphStyle(name, **kwargs)
@@ -231,6 +237,31 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
     story.append(meta_table)
     story.append(Spacer(1, 14))
 
+    # ── Urgent Clinical Red Flag Banner (Decision A) ───────────
+    if data.get("redFlag") or str(data.get("risk", "")).lower() == "high" or any("RED FLAG" in str(r) for r in data.get("escalationReasons", [])):
+        rf_text = (
+            "<b>🚨 URGENT CLINICAL RED FLAG DETECTED — IMMEDIATE PHYSICIAN ESCALATION REQUIRED</b><br/>"
+            "<i>Status: DRAFT Configuration — Pending Clinical Review by Licensed Medical Officer</i>"
+        )
+        rf_style = style(
+            'RedFlagAlert',
+            fontName=font_name,
+            fontSize=10,
+            leading=14,
+            textColor=colors.HexColor('#991B1B'),
+        )
+        rf_table = Table([[Paragraph(rf_text, rf_style)]], colWidths=[17*cm])
+        rf_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#FEE2E2')),
+            ('BOX',        (0,0), (-1,-1), 1.5, colors.HexColor('#DC2626')),
+            ('TOPPADDING', (0,0), (-1,-1), 8),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ('LEFTPADDING', (0,0), (-1,-1), 12),
+            ('RIGHTPADDING', (0,0), (-1,-1), 12),
+        ]))
+        story.append(rf_table)
+        story.append(Spacer(1, 12))
+
     # ── Patient Information ───────────────────────────────────
     story.append(Paragraph(t["patient_info"], section_style))
     story.append(HRFlowable(width="100%", thickness=1, color=ACCENT))
@@ -239,7 +270,7 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
     gender  = str(data.get('patientGender') or '—').capitalize()
     age     = str(data.get('patientAge') or '—')
     patient_data = [
-        [Paragraph(f'<b>{t["name"]}</b>', body_style),    Paragraph(data['patientName'], body_style),
+        [Paragraph(f'<b>{t["name"]}</b>', body_style),    Paragraph(str(data.get('patientName') or '—'), body_style),
          Paragraph(f'<b>{t["age"]}</b>', body_style),     Paragraph(age, body_style)],
         [Paragraph(f'<b>{t["gender"]}</b>', body_style),  Paragraph(gender, body_style),
          Paragraph(f'<b>{t["symptoms_reported"]}</b>', body_style), Paragraph(str(len(data.get('matchedSymptoms', []))), body_style)],
@@ -448,6 +479,13 @@ def generate_pdf(data: dict, language: str = "en") -> bytes:
         ('RIGHTPADDING',  (0,0),(-1,-1), 12),
     ]))
     story.append(disc_table)
+    story.append(Spacer(1, 10))
+
+    # ── Report / Model Version Footer ─────────────────────────
+    model_ver = data.get('modelVersion', 'v2.0.0')
+    model_name = data.get('modelUsed', 'Bernoulli Naive Bayes')
+    footer_text = f"<font size=7 color='#7F8C8D'>ArogyaMitra Clinical Decision Support System | Model: {model_name} ({model_ver}) | Generated: {now} | ReportLab PDF Engine</font>"
+    story.append(Paragraph(footer_text, ParagraphStyle('Footer', alignment=TA_CENTER, fontName=font_name)))
 
     doc.build(story)
     buffer.seek(0)

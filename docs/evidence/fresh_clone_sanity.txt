@@ -1,0 +1,202 @@
+﻿================================================================================
+AROGYAMITRA FRESH-CLONE LIFECYCLE SANITY TRANSCRIPT
+Timestamp: 2026-10-28T02:53:08Z
+Origin Repository: D:\Document\Projects\Internship\Arogyamitra
+Target Clone Directory: D:\temp\arogyamitra_fresh_clone
+================================================================================
+
+[*] Freeing all local ports before starting fresh clone test...
+[*] Removing previous clone directory D:\temp\arogyamitra_fresh_clone...
+
+--- STEP 1: git clone . D:\temp\arogyamitra_fresh_clone ---
+Cloning into 'D:\temp\arogyamitra_fresh_clone'...
+done.
+[+] git clone completed successfully.
+[+] Injected active Backend\.env (with Atlas DB_URL) into fresh clone directory.
+
+--- STEP 2: Running setup_local.ps1 in fresh clone ---
+Using CPython 3.11.15
+Creating virtual environment at: .venv
+Resolved 112 packages in 2ms
+Downloading networkx (2.0MiB)
+Downloading pygments (1.2MiB)
+Downloading pydeck (10.9MiB)
+Downloading scipy (34.9MiB)
+Downloading plotly (9.2MiB)
+Downloading scikit-image (11.3MiB)
+Downloading reportlab (1.9MiB)
+Downloading streamlit (9.9MiB)
+Downloading matplotlib (8.9MiB)
+Downloading fonttools (1.6MiB)
+Downloading ruff (9.9MiB)
+Downloading openai (2.2MiB)
+Downloading lightgbm (1.3MiB)
+Downloading pyarrow (27.2MiB)
+Downloading pillow (6.9MiB)
+Downloading pydantic-core (2.1MiB)
+Downloading llvmlite (39.9MiB)
+Downloading numpy (15.1MiB)
+Downloading scikit-learn (7.9MiB)
+Downloading numba (2.7MiB)
+Downloading pandas (10.8MiB)
+   Building lime==0.2.0.1
+ Downloaded lightgbm
+ Downloaded pygments
+ Downloaded reportlab
+ Downloaded fonttools
+ Downloaded pydantic-core
+      Built lime==0.2.0.1
+ Downloaded networkx
+ Downloaded numba
+ Downloaded pillow
+ Downloaded ruff
+ Downloaded pydeck
+ Downloaded pandas
+ Downloaded matplotlib
+ Downloaded scikit-learn
+ Downloaded streamlit
+ Downloaded plotly
+ Downloaded numpy
+ Downloaded scikit-image
+ Downloaded llvmlite
+ Downloaded openai
+ Downloaded pyarrow
+ Downloaded scipy
+Prepared 108 packages in 2m 36s
+Installed 108 packages in 11.54s
+ + altair==6.3.0
+ + annotated-doc==0.0.5
+ + annotated-types==0.8.0
+ + anyio==4.15.1
+ + attrs==26.1.0
+ + certifi==2026.10.23
+ + charset-normalizer==3.5.2
+ + click==8.5.0
+ + cloudpickle==3.1.2
+ + colorama==0.4.6
+ + contourpy==1.3.3
+ + cycler==0.12.1
+ + distro==1.9.0
+ + fastapi==0.162.0
+ + fonttools==4.68.0
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpcore2==2.16.0
+ + httptools==0.9.0
+ + httpx==0.28.1
+ + httpx2==2.16.0
+ + idna==3.20
+ + imageio==2.38.1
+ + iniconfig==2.3.1
+ + itsdangerous==2.2.0
+ + jinja2==3.1.6
+ + jiter==0.18.0
+ + joblib==1.6.0
+ + jsonpatch==1.38
+ + jsonpointer==3.6
+ + jsonschema==4.26.0
+ + jsonschema-specifications==2025.9.1
+ + kiwisolver==1.5.1
+ + langchain==1.4.7
+ + langchain-core==1.7.0
+ + langchain-openai==1.7.3
+ + langchain-protocol==0.0.20
+ + langgraph==1.2.18
+ + langgraph-checkpoint==4.3.1
+ + langgraph-prebuilt==1.1.1
+ + langgraph-sdk==0.4.10
+ + langsmith==0.14.14
+ + lazy-loader==0.6
+ + lightgbm==4.7.0
+ + lime==0.2.0.1
+ + llvmlite==0.50.0
+ + markupsafe==3.0.4
+ + matplotlib==3.11.2
+ + narwhals==2.28.0
+ + networkx==3.6.1
+ + numba==0.68.1
+ + numpy==1.26.4
+ + openai==3.40.0
+ + opentelemetry-api==1.45.1
+ + orjson==3.13.0
+ + ormsgpack==1.13.0
+ + packaging==26.3
+ + pandas==2.3.3
+ + pillow==13.0.0
+ + plotly==7.1.0
+ + pluggy==1.7.0
+ + protobuf==7.36.2
+ + pyarrow==26.0.0
+ + pydantic==2.14.1
+ + pydantic-core==2.50.1
+ + pydeck==0.9.3
+ + pygments==2.21.0
+ + pyjwt==2.15.1
+ + pyparsing==3.3.3
+ + pytest==9.1.1
+ + python-dateutil==3.0.0
+ + python-dotenv==1.2.4
+ + python-multipart==0.0.32
+ + pytz==2026.5
+ + pyyaml==6.0.3
+ + referencing==0.37.0
+ + regex==2026.9.29
+ + reportlab==5.1.0
+ + requests==2.34.2
+ + requests-toolbelt==1.0.0
+ + rpds-py==2026.9.1
+ + ruff==0.17.3
+ + scikit-image==0.26.0
+ + scikit-learn==1.9.1
+ + scipy==1.17.1
+ + shap==0.49.1
+ + six==1.17.0
+ + slicer==0.0.8
+ + sniffio==1.3.1
+ + starlette==1.10.0
+ + streamlit==1.66.1
+ + tenacity==9.2.1
+ + threadpoolctl==3.7.0
+ + tifffile==2026.3.3
+ + tiktoken==0.14.0
+ + tqdm==4.70.1
+ + truststore==0.10.5
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.4
+ + tzdata==2026.5
+ + urllib3==2.8.0
+ + uuid-utils==0.19.0
+ + uvicorn==0.54.0
+ + watchdog==6.0.0
+ + watchfiles==1.3.0
+ + websockets==17.3
+ + xxhash==4.0.2
+ + zstandard==0.25.0
+npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 296 packages, and audited 297 packages in 1m
+
+75 packages are looking for funding
+  run `npm fund` for details
+
+4 vulnerabilities (1 moderate, 3 high)
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+setup_local exit code: 0
+
+--- STEP 3: Running start_local.ps1 in fresh clone ---
+start_local exit code: 0
+
+--- STEP 4: Running health_check.ps1 in fresh clone ---
+health_check exit code: 0
+
+--- STEP 5: Running stop_local.ps1 in fresh clone ---
+stop_local exit code: 0
+
+[*] Cleaning up clone directory D:\temp\arogyamitra_fresh_clone...
+[+] Cleaned up D:\temp\arogyamitra_fresh_clone.
+
+[*] Restarting primary repository services...

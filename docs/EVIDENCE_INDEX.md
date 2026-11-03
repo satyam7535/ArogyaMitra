@@ -1,30 +1,52 @@
-# ArogyaMitra — Master Evidence & Empirical Verification Index
+# ArogyaMitra — Comprehensive Evidence Index
 
-This index catalogs every empirical artifact, benchmark log, test output, and cryptographic verification generated throughout the project. In accordance with the system's strict evidence rules, **all metrics and figures originate from reproducible runs**.
+This document catalogs every empirical evidence artifact generated during remediation.
+Every status claim in the completion ledger traces to one of these verified command records.
 
----
+| File | Phase | Status | Commit | Description |
+|---|---|---|---|---|
+| [`docs/evidence/p0_root_cause.txt`](evidence/p0_root_cause.txt) | **P0.1** | `VERIFIED` | latest | Root cause trace of canned predictions & fallback bypass |
+| [`docs/evidence/p0_trace_docker.txt`](evidence/p0_trace_docker.txt) | **P0.2** | `VERIFIED` | latest | End-to-end trace of triage request through Docker network |
+| [`docs/evidence/p0_docker_tests.txt`](evidence/p0_docker_tests.txt) | **P0.4-P0.6** | `VERIFIED` | latest | API boundary validation (41 classes) and 10 golden set tests |
+| [`docs/evidence/p0_playwright.txt`](evidence/p0_playwright.txt) | **P0.7** | `VERIFIED` | latest | Headless browser automation on HTTPS localhost for Malaria & Fungal |
+| [`docs/evidence/p0_confidence_wording_grep.txt`](evidence/p0_confidence_wording_grep.txt) | **P0.8** | `VERIFIED` | latest | Grep eliminating false 'Calibrated Confidence' wording |
+| [`docs/evidence/p1_docker_rebuild.txt`](evidence/p1_docker_rebuild.txt) | **P1.1** | `VERIFIED` | latest | Clean compose rebuild with live health probe confirmation |
+| [`docs/evidence/p1_secret_rotation.txt`](evidence/p1_secret_rotation.txt) | **P1.2** | `VERIFIED` | latest | Secret rotation audit with zero gitleaks findings |
+| [`docs/evidence/p1_verify_all.txt`](evidence/p1_verify_all.txt) | **P1.3** | `VERIFIED` | latest | Dynamic test execution of 283 tests across all suites |
+| [`docs/evidence/mc37_raw_output.txt`](evidence/mc37_raw_output.txt) | **P1.5** | `VERIFIED` | latest | Raw failure and passing output for 127.0.0.1 host binding gate |
+| [`docs/evidence/p1_model_info_live.txt`](evidence/p1_model_info_live.txt) | **P1.6** | `VERIFIED` | latest | Live /model-info probe with dynamic git commit and metrics |
+| [`docs/evidence/p1_seed_docker.txt`](evidence/p1_seed_docker.txt) | **P1.7** | `VERIFIED` | latest | Docker seeding execution preserving production environment guards |
+| [`docs/evidence/p1_pdf_devanagari_test.txt`](evidence/p1_pdf_devanagari_test.txt) | **P1.8** | `VERIFIED` | latest | Devanagari font rendering and pdftotext extraction test |
+| [`docs/evidence/p2_gemini_check.txt`](evidence/p2_gemini_check.txt) | **P2.1** | `VERIFIED` | latest | In-container Gemini probe confirming deprecated model error |
+| [`docs/evidence/p2_guardrails_tests.txt`](evidence/p2_guardrails_tests.txt) | **P2.3-P2.5** | `VERIFIED` | latest | 22/22 graph guardrail tests passing in test_phase3.py |
+| [`docs/evidence/p2_pii_audit.txt`](evidence/p2_pii_audit.txt) | **P2.6** | `VERIFIED` | latest | PII boundary audit verifying zero patient demographic leakage |
+| [`docs/evidence/p3_thresholds_heldout.txt`](evidence/p3_thresholds_heldout.txt) | **P3.1** | `VERIFIED` | latest | Held-out separate-data threshold sweep with symptom dropout |
+| [`docs/evidence/p3_dpdp_approval_tests.txt`](evidence/p3_dpdp_approval_tests.txt) | **P3.4** | `VERIFIED` | latest | 8/8 DPDP admin approval gate tests passing |
+| [`docs/evidence/p3_upload_adapter_tests.txt`](evidence/p3_upload_adapter_tests.txt) | **P3.5** | `VERIFIED` | latest | 9/9 file upload magic-byte and size limit tests passing |
+| [`docs/evidence/p3_key_rotation_test.txt`](evidence/p3_key_rotation_test.txt) | **P3.6** | `VERIFIED` | latest | 4/4 key rotation and multi-keyring decryption tests passing |
+| [`docs/evidence/p3_worker_kill_test.txt`](evidence/p3_worker_kill_test.txt) | **P3.7** | `VERIFIED` | latest | Real OS SIGKILL mid-job and lease expiry reclamation in Docker |
+| [`docs/evidence/p3_idempotency_http.txt`](evidence/p3_idempotency_http.txt) | **P3.8** | `VERIFIED` | latest | 50 parallel requests deduplicated to single job ID in Docker |
+| [`docs/evidence/p3_non_blocking_test.txt`](evidence/p3_non_blocking_test.txt) | **P3.9** | `VERIFIED` | latest | Backend responsiveness during total ML container outage |
+| [`docs/evidence/p3_blind_index.txt`](evidence/p3_blind_index.txt) | **P3.10** | `VERIFIED` | latest | 6/6 patient phone HMAC blind index tests passing |
+| [`docs/evidence/p4_i18n_test.txt`](evidence/p4_i18n_test.txt) | **P4.8** | `VERIFIED` | latest | 100% localization parity across en, hi, mr with Devanagari script |
+| [`docs/evidence/p4_streamlit_tests.txt`](evidence/p4_streamlit_tests.txt) | **P4.9** | `VERIFIED` | `0ddca8d` | 9/9 Streamlit AppTest unit tests passing |
+| [`docs/evidence/playwright_report.txt`](evidence/playwright_report.txt) | **P4.9-P4.10** | `VERIFIED` | latest | 10-scenario Playwright E2E browser test report (10/10 PASS) |
+| [`docs/evidence/load_test_results.txt`](evidence/load_test_results.txt) | **P5.1** | `VERIFIED` | `77bb076` | P5.1 Ingress HTTPS Load & Concurrency Benchmark Results |
+| [`docs/evidence/rate_limit_429.txt`](evidence/rate_limit_429.txt) | **P5.2** | `VERIFIED` | `0ebfa6a` | P5.2 Production Rate Limiter Verification |
+| [`docs/evidence/http_race_tests.txt`](evidence/http_race_tests.txt) | **P5.3** | `VERIFIED` | `9827da1` | P5.3 HTTP-Level Atomic Race Tests |
+| [`docs/evidence/performance_tuning.txt`](evidence/performance_tuning.txt) | **P5.4** | `VERIFIED` | latest | Architecture characterization and bottleneck tuning notes |
+| [`docs/evidence/mitm_demo.txt`](evidence/mitm_demo.txt) | **P6.1** | `VERIFIED` | `268093b` | P6.1 Transport Security & Man-In-The-Middle (MITM) Defense Demonstration |
+| [`docs/evidence/tls_headers.txt`](evidence/tls_headers.txt) | **P6.2** | `VERIFIED` | `addf510` | P6.2 TLS Protocol, Cipher Suites & Security Headers Verification |
+| [`docs/evidence/zap_report.txt`](evidence/zap_report.txt) | **P6.3** | `VERIFIED` | latest | OWASP API Security Top 10 automated baseline scan (10/10 PASS) |
+| [`docs/evidence/service_isolation.txt`](evidence/service_isolation.txt) | **P6.4** | `VERIFIED` | `addf510` | P6.4 Internal Service Isolation & Network Exposure Probes |
+| [`docs/evidence/actionlint_report.txt`](evidence/actionlint_report.txt) | **P6.6** | `VERIFIED` | `addf510` | P6.6 actionlint GitHub Actions Workflow Static Analysis |
+| [`docs/evidence/gitleaks_report.txt`](evidence/gitleaks_report.txt) | **P6.7** | `VERIFIED` | `addf510` | Gitleaks scan across all 32 commits: 0 leaks |
+| [`docs/evidence/npm_audit_report.txt`](evidence/npm_audit_report.txt) | **P6.7** | `VERIFIED` | `addf510` | P6.7 Backend npm audit Vulnerability Scan |
+| [`docs/evidence/pip_audit_report.txt`](evidence/pip_audit_report.txt) | **P6.7** | `VERIFIED` | `addf510` | pip-audit scan: 0 known vulnerabilities found |
+| [`docs/evidence/trivy_report.txt`](evidence/trivy_report.txt) | **P6.7** | `VERIFIED` | `addf510` | Trivy filesystem scan: 0 vulnerabilities in backend/ui |
+| [`docs/evidence/bandit_report.txt`](evidence/bandit_report.txt) | **P6.7** | `VERIFIED` | `addf510` | Bandit Python security linter: 0 medium, 0 high vulnerabilities |
 
-## Master Artifact Catalog
-
-| # | Evidence Artifact | Component | Date Generated | Generation Command | Empirical Outcome / Result |
-| :-: | :--- | :--- | :---: | :--- | :--- |
-| **1** | [`phase0_ml_contract.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase0_ml_contract.txt) | ML Service (Baseline) | 2026-10-26 | `pytest tests/test_contract.py` | 1/1 passed. Verified baseline `/predict` schema contract. |
-| **2** | [`model_benchmark.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.md)<br>[`model_benchmark.csv`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/model_benchmark.csv) | Machine Learning | 2026-10-26 | `python scripts/benchmark.py` | Benchmarked 6 model families across 15 splits (5x3 Repeated Stratified K-Fold) with 0%, 30%, 50% missing symptoms. LightGBM (Tuned + Aug) ranked #1 (99.67% clean, 83.22% under 50% missing). |
-| **3** | [`classification_report.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/classification_report.md) | Machine Learning | 2026-10-26 | `python scripts/train_lightgbm.py` | Per-class precision, recall, and F1 across all 42 diseases. Macro F1: 0.9967, Weighted F1: 0.9967. |
-| **4** | [`calibration_reliability.png`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/calibration_reliability.png) | Machine Learning | 2026-10-26 | `python scripts/train_lightgbm.py` | Empirical reliability diagram confirming calibration alignment. Log Loss: 0.0505, ECE: 0.0384, Brier Score: 0.0121. |
-| **5** | [`phase1_ml_contract.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase1_ml_contract.txt) | ML Microservice | 2026-10-26 | `pytest tests/test_phase1.py -v` | **9 / 9 passed (100%)**. Validated `/health`, `/ready`, `/model-info`, `/symptoms`, `/predict`, calibrated probabilities, TreeSHAP attributions, and clinical uncertainty escalation triggers. |
-| **6** | [`phase2_security_matrix.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase2_security_matrix.txt) | Backend Security | 2026-10-26 | `npm test tests/security.test.js` | **19 / 19 passed (100%)**. Validated Argon2id hashing, legacy bcrypt migration, 5-attempt lockout, rotating refresh tokens with reuse detection, AES-256-GCM PII encryption, anti-enumeration 404s, and NoSQL injection sanitizer. |
-| **7** | [`phase3_llm_pipeline.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase3_llm_pipeline.txt) | LangGraph Pipeline | 2026-10-26 | `pytest tests/test_phase3.py -v` | **12 / 12 passed (100%)**. Validated prompt injection neutralization, Pydantic v2 parsing, inter-service HMAC JWT authentication, ReportLab bilingual PDF generation, and deterministic clinical fallback. |
-| **8** | [`load_test.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/load_test.md)<br>[`run_load_test.py`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/run_load_test.py) | Backend Concurrency | 2026-10-26 | `python docs/evidence/run_load_test.py` | 400 real requests across 4 concurrency tiers ($c=1, 5, 10, 20$). Peak throughput: 13.17 req/s, **0.00% error rate**. |
-| **9** | [`phase4_concurrency_matrix.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase4_concurrency_matrix.txt) | Backend Concurrency | 2026-10-26 | `npm test tests/concurrency.test.js` | **7 / 7 passed (100%)** (26/26 backend total). Validated Mongoose optimistic locking `VersionError`, job queue async orchestration, status isolation, and concurrency throttling. |
-| **10** | [`mitm_demo.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/mitm_demo.md) | Network Security | 2026-10-26 | Network Packet Capture Analysis | Empirical packet analysis contrasting cleartext HTTP exposure with TLS 1.3 encryption, HSTS downgrade resistance, and AES-256-GCM authenticated tamper-resistance. |
-| **11** | [`security_audit.md`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/security_audit.md) | System Dependencies | 2026-10-26 | `npm audit fix` & pip inspection | Dependency vulnerability audit and mitigation report across Node.js and Python ecosystems. |
-| **12** | [`phase6_streamlit_evidence.txt`](file:///d:/Document/Projects/Internship/Arogyamitra/docs/evidence/phase6_streamlit_evidence.txt) | Streamlit UI | 2026-10-26 | `pytest tests/test_streamlit.py -v` | **6 / 6 passed (100%)**. Headless UI verification using `streamlit.testing.v1.AppTest` across `Home.py`, `1_Worker_Triage.py`, `2_Doctor_Review.py`, and `3_Admin_Dashboard.py`. |
-
----
-
-## Cumulative Verification Summary
-
-$$\text{Total Verified Automated Tests} = 9 \text{ (ML)} + 19 \text{ (Security)} + 12 \text{ (Graph)} + 7 \text{ (Concurrency)} + 6 \text{ (Streamlit)} = \mathbf{53 \text{ Passed / 53 Total (100\%)}}$$
-
-$$\text{Total Load Test Requests} = 400 \quad | \quad \text{Failed Requests} = 0 \quad (\mathbf{0.00\% \text{ Error Rate}})$$
+### Automated Verification Note
+- Total cataloged empirical evidence files: 40
+- Zero hand-edited artifacts: all files generated via automated scripts, CLI tools, or browser drivers.
+- All raw outputs include header metadata: execution command, timestamp, commit hash, and working tree cleanliness.

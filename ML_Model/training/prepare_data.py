@@ -5,7 +5,8 @@ Handles dataset loading, symptom/disease normalization, deduplication, and sympt
 
 import os
 import re
-from typing import Tuple, List, Dict, Any, Optional
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
@@ -34,11 +35,11 @@ def normalize_disease_name(name: str) -> str:
 
 def load_and_clean_data(
     training_path: str,
-    severity_path: Optional[str] = None,
-    desc_path: Optional[str] = None,
-    prec_path: Optional[str] = None,
+    severity_path: str | None = None,
+    desc_path: str | None = None,
+    prec_path: str | None = None,
     deduplicate: bool = True
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Loads Training.csv, normalizes symptom column names, merges duplicate columns,
     deduplicates identical symptom vectors, and maps metadata.
@@ -75,7 +76,6 @@ def load_and_clean_data(
     df[target_col] = df[target_col].astype(str).apply(normalize_disease_name)
 
     # 5. Deduplication
-    unique_rows_before = len(df)
     if deduplicate:
         df = df.drop_duplicates().reset_index(drop=True)
     unique_rows_after = len(df)
@@ -91,7 +91,7 @@ def load_and_clean_data(
     disease_classes = list(le.classes_)
 
     # 7. Load Severity Map
-    severity_map: Dict[str, int] = {}
+    severity_map: dict[str, int] = {}
     if severity_path and os.path.exists(severity_path):
         sev_df = pd.read_csv(severity_path)
         sev_df.columns = sev_df.columns.str.strip()
@@ -108,7 +108,7 @@ def load_and_clean_data(
             severity_map[s] = 1
 
     # 8. Load Descriptions Map
-    description_map: Dict[str, str] = {}
+    description_map: dict[str, str] = {}
     if desc_path and os.path.exists(desc_path):
         desc_df = pd.read_csv(desc_path)
         desc_df.columns = desc_df.columns.str.strip()
@@ -117,7 +117,7 @@ def load_and_clean_data(
             description_map[d_name] = str(row["Description"]).strip()
 
     # 9. Load Precautions Map
-    precaution_map: Dict[str, List[str]] = {}
+    precaution_map: dict[str, list[str]] = {}
     if prec_path and os.path.exists(prec_path):
         prec_df = pd.read_csv(prec_path)
         prec_df.columns = prec_df.columns.str.strip()
@@ -160,7 +160,7 @@ def augment_training_data(
     min_symptoms_kept: int = 1,
     copies_per_sample: int = 3,
     random_state: int = 42
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Augments the training fold only with symptom-dropout copies.
     Never run on validation or test sets.

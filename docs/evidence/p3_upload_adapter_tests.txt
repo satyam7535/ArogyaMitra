@@ -1,0 +1,30 @@
+
+> techathon-3.0@1.0.0 test
+> vitest run tests/upload_adapter.test.js
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mD:/Document/Projects/Internship/Arogyamitra/Backend[39m
+
+[90mstdout[2m | tests/upload_adapter.test.js
+[22m[39m[dotenv@17.3.1] injecting env (7) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+
+ [31m❯[39m tests/upload_adapter.test.js [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 750[2mms[22m[39m
+   [31m❯[39m Phase P3.5: Upload Storage Adapter & Magic-Byte Defense Suite [2m(9)[22m
+     [32m✓[39m 1. Binary Magic Bytes Validation Unit Tests [2m(6)[22m
+       [32m✓[39m should accept valid PDF magic bytes (%PDF-)[32m 44[2mms[22m[39m
+       [32m✓[39m should accept valid PNG magic bytes[32m 11[2mms[22m[39m
+       [32m✓[39m should accept valid JPEG magic bytes[32m 10[2mms[22m[39m
+       [32m✓[39m should reject Windows MZ executable masquerading as PNG[32m 10[2mms[22m[39m
+       [32m✓[39m should reject ELF Linux binary masquerading as PDF[32m 6[2mms[22m[39m
+       [32m✓[39m should reject HTML/script polyglot masquerading as PDF[32m 6[2mms[22m[39m
+     [31m❯[39m 2. HTTP Route Level Enforcement (POST /api/v1/consultation) [2m(3)[22m
+       [33m[2m✓[22m[39m should reject unauthenticated upload attempt with HTTP 401 Unauthorized[33m 327[2mms[22m[39m
+[31m       [31m×[31m should strictly reject disguised executable (MZ header) with HTTP 400 Bad Request[39m[32m 244[2mms[22m[39m
+[31m       [31m×[31m should accept authentic PDF document with correct magic bytes and worker auth[39m[32m 76[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 18:37:12
+[2m   Duration [22m 15.67s[2m (import 86%, transform 7%, tests 6%, worker 1%)[22m
+
