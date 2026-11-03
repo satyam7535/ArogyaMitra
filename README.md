@@ -91,9 +91,10 @@ All 6 microservices must report `HEALTHY`.
 Open **[https://localhost](https://localhost)** in your browser.  
 *(Note: ArogyaMitra uses a self-signed TLS certificate for local evaluation; acknowledge the browser certificate warning to proceed).*
 
-### 6. Seed & Reset Demo Data
+### 6. Seed, Reset & Teardown
 - **Seed initial demo state**: `powershell -File scripts/seed_docker.ps1`
 - **Reset to clean 0-consultation state** (keeps seed users): `powershell -File scripts/reset_demo.ps1`
+- **Stop container stack**: `docker compose down`
 
 ### Demo Credentials (Evaluation Only)
 | Role | Email | Password | Allowed Scope |
